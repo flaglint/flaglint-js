@@ -1,0 +1,54 @@
+{
+  "name": "flaglint",
+  "version": "0.1.0",
+  "description": "Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.",
+  "type": "module",
+  "bin": {
+    "flaglint": "./dist/bin/flaglint.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "feature-flags",
+    "launchdarkly",
+    "openfeature",
+    "cli",
+    "flag-debt",
+    "developer-tools"
+  ],
+  "author": "flaglint",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/flaglint/flaglint.git"
+  },
+  "homepage": "https://flaglint.dev",
+  "bugs": {
+    "url": "https://github.com/flaglint/flaglint/issues"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@typescript-eslint/types": "^8.59.4",
+    "@typescript-eslint/typescript-estree": "^8.59.4",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "fast-glob": "^3.3.2",
+    "ora": "^8.1.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^4.1.6",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^4.1.6"
+  }
+}
