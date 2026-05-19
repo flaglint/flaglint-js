@@ -1,0 +1,17 @@
+# Dev artifacts
+coverage/
+.claude/
+*.tgz
+
+# Source + test files (only dist/ ships)
+src/
+bin/
+tsconfig.json
+tsup.config.ts
+vitest.config.ts
+
+# CI / issue templates
+.github/
+
+# Dev dependencies lock artifacts
+*.log
