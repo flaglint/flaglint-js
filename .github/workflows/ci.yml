@@ -3,25 +3,20 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
 
 jobs:
   test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run build
       - run: npm run test:coverage
       - uses: actions/upload-artifact@v4
-        if: matrix.node-version == 22
         with:
           name: coverage-report
           path: coverage/
