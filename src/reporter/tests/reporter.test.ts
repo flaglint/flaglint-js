@@ -38,6 +38,7 @@ const resultWithStale: ScanResult = {
   uniqueFlags: ["my-flag", "old-flag"],
   usages: [activeUsage, staleUsage, dynamicUsage],
   scanDurationMs: 42,
+  warnings: [],
 };
 
 const resultNoStale: ScanResult = {
@@ -46,6 +47,7 @@ const resultNoStale: ScanResult = {
   uniqueFlags: ["my-flag"],
   usages: [activeUsage],
   scanDurationMs: 10,
+  warnings: [],
 };
 
 // ── markdown ──────────────────────────────────────────────────────────────────
