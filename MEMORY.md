@@ -34,3 +34,7 @@ Format: ## [DATE] TITLE followed by bullet points.
 - Does not support .vue / .svelte files
 - Does not evaluate flags at runtime
 - Does not add vendors other than LaunchDarkly as scan targets
+
+## [2026-05-19] Session decisions
+
+- Test entry from agent setup
