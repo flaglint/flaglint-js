@@ -1,6 +1,6 @@
 # Issue Tracker
 
-FlagLint uses GitHub Issues at github.com/flaglint/flaglint/issues.
+FlagLint uses GitHub Issues at github.com/flaglint/flagkit-cli/issues.
 
 When creating issues:
 - Use `gh issue create` 
