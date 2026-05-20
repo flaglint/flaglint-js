@@ -9,7 +9,7 @@ export default defineConfig({
   format: ["esm"],
   dts: true,
   clean: true,
-  sourcemap: true,
+  sourcemap: false,
   target: "node22",
   banner: {
     js: "#!/usr/bin/env node",
