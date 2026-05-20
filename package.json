@@ -27,11 +27,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/flaglint/flaglint.git"
+    "url": "git+https://https://github.com/flaglint/flagkit-cli.git"
   },
   "homepage": "https://flaglint.dev",
   "bugs": {
-    "url": "https://github.com/flaglint/flaglint/issues"
+    "url": "https://https://github.com/flaglint/flagkit-cli/issues"
   },
   "scripts": {
     "build": "tsup",
