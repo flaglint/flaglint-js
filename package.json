@@ -6,6 +6,12 @@
   "bin": {
     "flaglint": "./dist/bin/flaglint.js"
   },
+  "files": [
+    "dist/",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=18"
   },
@@ -33,7 +39,11 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "agent": "tsx scripts/agent/agent.ts",
+    "agent:launch": "tsx scripts/agent/agent.ts launch",
+    "agent:parallel": "tsx scripts/agent/agent.ts parallel",
+    "agent:sync": "tsx scripts/agent/agent.ts sync-docs"
   },
   "dependencies": {
     "@typescript-eslint/types": "^8.59.4",
@@ -47,7 +57,9 @@
   "devDependencies": {
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.1.6",
+    "clipboardy": "^4.0.0",
     "tsup": "^8.2.4",
+    "tsx": "^4.19.0",
     "typescript": "^5.5.4",
     "vitest": "^4.1.6"
   }
