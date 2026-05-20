@@ -2,7 +2,7 @@
 
 **Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.**
 
-[![CI](https://github.com/flaglint/flaglint/actions/workflows/ci.yml/badge.svg)](https://github.com/flaglint/flaglint/actions/workflows/ci.yml)
+[![CI](https://https://github.com/flaglint/flagkit-cli/actions/workflows/ci.yml/badge.svg)](https://https://github.com/flaglint/flagkit-cli/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/flaglint.svg)](https://www.npmjs.com/package/flaglint)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
