@@ -1,3 +1,27 @@
+<p align="center">
+  <img src="docs/assets/logo.png" alt="FlagLint" width="400" />
+</p>
+
+<p align="center">
+  <strong>Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/flaglint/flaglint/actions/workflows/ci.yml">
+    <img src="https://github.com/flaglint/flaglint/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+  <a href="https://www.npmjs.com/package/flaglint">
+    <img src="https://img.shields.io/npm/v/flaglint.svg" alt="npm version" />
+  </a>
+  <a href="https://www.npmjs.com/package/flaglint">
+    <img src="https://img.shields.io/npm/dm/flaglint.svg" alt="downloads" />
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" />
+  </a>
+</p>
+
+
 # FlagLint
 
 **Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.**
