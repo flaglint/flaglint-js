@@ -136,7 +136,7 @@ function formatJSON(result: ScanResult): string {
 
 function formatHTML(result: ScanResult, options: ReporterOptions): string {
   const { scannedFiles, totalUsages, uniqueFlags, usages, scanDurationMs } = result;
-  const staleCount = usages.filter((u) => u.isStale).length;
+  const staleCount = new Set(usages.filter((u) => u.isStale).map((u) => u.flagKey)).size;
   const dynamicCount = usages.filter((u) => u.isDynamic).length;
   const date = new Date().toLocaleString();
 

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlagLint — Find stale feature flags. Plan your OpenFeature migration.</title>
+  <meta name="description" content="FlagLint scans your codebase for LaunchDarkly flag debt and generates your OpenFeature migration plan. Free, open source CLI for JavaScript and TypeScript.">
+  <meta property="og:title" content="FlagLint — Feature Flag Debt Scanner">
+  <meta property="og:description" content="Find stale LaunchDarkly flags. Generate your OpenFeature migration plan. Free CLI.">
+  <meta property="og:url" content="https://flaglint.dev">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@flaglint">
+  <link rel="canonical" href="https://flaglint.dev">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-raised: #1a1a1a;
+      --border: #222222;
+      --text-primary: #f0f0f0;
+      --text-secondary: #888888;
+      --accent: #00d97e;
+      --accent-navy: #1a2744;
+      --code-bg: #0d1117;
+      --radius-card: 8px;
+      --radius-btn: 6px;
+      --radius-code: 4px;
+      --transition: 0.15s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* ── NAV ─────────────────────────────────────────────────────── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid transparent;
+      transition: border-color var(--transition);
+    }
+    nav.scrolled { border-bottom-color: var(--border); }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .logo span { color: var(--accent); }
+    .btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-btn);
+      padding: 7px 14px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color var(--transition), border-color var(--transition);
+      font-family: inherit;
+    }
+    .btn-outline:hover { color: var(--text-primary); border-color: #444; }
+
+    /* ── HERO ────────────────────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 80px 24px 60px;
+      position: relative;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, #ffffff08 39px, #ffffff08 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, #ffffff08 39px, #ffffff08 40px);
+    }
+    .hero-inner { max-width: 800px; width: 100%; }
+
+    .badge {
+      display: inline-block;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 100px;
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+
+    .hero h1 {
+      font-size: clamp(36px, 6vw, 64px);
+      font-weight: 700;
+      line-height: 1.1;
+      color: var(--text-primary);
+      letter-spacing: -1px;
+      margin-bottom: 20px;
+    }
+
+    .hero-sub {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Terminal */
+    .terminal {
+      background: var(--code-bg);
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      max-width: 620px;
+      margin: 40px auto 0;
+      padding: 20px 24px;
+      text-align: left;
+    }
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .term-dots { display: flex; gap: 6px; }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+    .term-version { font-size: 12px; color: #444; font-family: 'SF Mono', 'Fira Code', monospace; }
+    .term-body { font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace; font-size: 14px; line-height: 1.8; min-height: 180px; }
+    .term-line { display: block; }
+    .term-line.hidden { display: none; }
+    .c-white { color: #f0f0f0; }
+    .c-green { color: #00d97e; }
+    .c-amber { color: #f0a500; }
+    .c-muted { color: #888; }
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 14px;
+      background: var(--accent);
+      vertical-align: text-bottom;
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* CTA buttons */
+    .cta-row {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0a;
+      font-weight: 600;
+      padding: 12px 28px;
+      border-radius: 8px;
+      border: none;
+      font-size: 15px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: filter var(--transition), transform var(--transition);
+      display: inline-block;
+    }
+    .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text-primary);
+      border: 1px solid #333;
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      transition: border-color var(--transition), background var(--transition);
+      display: inline-block;
+    }
+    .btn-secondary:hover { border-color: #555; background: var(--surface-raised); }
+
+    /* Stats row */
+    .stats-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      margin-top: 48px;
+      flex-wrap: wrap;
+    }
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 32px;
+    }
+    .stat-item + .stat-item {
+      border-left: 1px solid var(--border);
+    }
+    .stat-num { font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1; }
+    .stat-label { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+    /* ── SECTION SHARED ──────────────────────────────────────────── */
+    section { padding: 80px 24px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+    .section-heading {
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.15;
+      margin-bottom: 48px;
+      letter-spacing: -0.5px;
+    }
+
+    /* ── PROBLEM SECTION ─────────────────────────────────────────── */
+    .problem { background: var(--surface); }
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .card {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 28px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover { border-color: #333; transform: translateY(-2px); }
+    .card-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+    .card-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; line-height: 1.3; }
+    .card-body { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+
+    /* ── HOW IT WORKS ────────────────────────────────────────────── */
+    .how { background: var(--bg); }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 48px;
+      position: relative;
+    }
+    .steps-grid::before {
+      content: '';
+      position: absolute;
+      top: 28px;
+      left: calc(16.66% + 24px);
+      right: calc(16.66% + 24px);
+      height: 1px;
+      background: linear-gradient(90deg, var(--border) 0%, var(--accent) 50%, var(--border) 100%);
+    }
+    .step { position: relative; }
+    .step-num {
+      font-size: 40px;
+      font-weight: 700;
+      color: var(--accent);
+      line-height: 1;
+      margin-bottom: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+    .step-title { font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+    .step-body { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+    .code-snippet {
+      display: inline-block;
+      background: var(--code-bg);
+      border: 1px solid #30363d;
+      border-radius: var(--radius-code);
+      padding: 6px 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13px;
+      color: var(--accent);
+      margin: 12px 0;
+    }
+    .format-badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+    .badge-pill {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 3px 12px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    /* ── FEATURES ────────────────────────────────────────────────── */
+    .features { background: var(--surface); }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .feature-tile {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .feature-tile:hover { border-color: #333; transform: translateY(-2px); }
+    .feature-icon { font-size: 24px; margin-bottom: 12px; display: block; }
+    .feature-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+    .feature-body { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ── INSTALL ─────────────────────────────────────────────────── */
+    .install { background: var(--bg); }
+    .install-blocks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 800px;
+      margin: 0 auto 32px;
+    }
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      position: relative;
+    }
+    .code-block-label {
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .code-block pre {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+      color: var(--accent);
+      line-height: 1.5;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-family: inherit;
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color var(--transition), border-color var(--transition);
+    }
+    .copy-btn:hover { color: var(--text-primary); border-color: #444; }
+    .install-note {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 15px;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── WAITLIST ────────────────────────────────────────────────── */
+    .waitlist-section { background: var(--bg); padding: 80px 24px; }
+    .waitlist-card {
+      background: var(--surface);
+      border: 1px solid rgba(0, 217, 126, 0.2);
+      border-radius: 16px;
+      padding: 60px 40px;
+      max-width: 640px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .waitlist-card h2 {
+      font-size: clamp(28px, 4vw, 40px);
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.5px;
+      margin-bottom: 16px;
+    }
+    .waitlist-sub {
+      color: var(--text-secondary);
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+
+    /* Loops form dark overrides */
+    #loops-form { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+    #loops-form input[type="email"] {
+      background: var(--surface-raised);
+      border: 1px solid #333;
+      color: var(--text-primary);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 15px;
+      width: 100%;
+      max-width: 360px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    #loops-form input[type="email"]:focus { border-color: var(--accent); }
+    #loops-form input[type="email"]::placeholder { color: #555; }
+    #loops-submit {
+      background: var(--accent);
+      color: #0a0a0a;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: filter var(--transition);
+      width: 100%;
+      max-width: 360px;
+    }
+    #loops-submit:hover { filter: brightness(1.1); }
+    #loops-loading {
+      background: var(--accent);
+      color: #0a0a0a;
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+      border: none;
+      font-family: inherit;
+      width: 100%;
+      max-width: 360px;
+      opacity: 0.7;
+    }
+    #loops-success { color: var(--accent); font-size: 15px; font-weight: 500; }
+    #loops-error { color: #ef4444; font-size: 15px; }
+    #loops-back {
+      color: #888;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      font-family: inherit;
+      margin-top: 4px;
+      text-decoration: underline;
+    }
+    .waitlist-disclaimer { color: #555; font-size: 13px; margin-top: 12px; }
+
+    /* ── FOOTER ──────────────────────────────────────────────────── */
+    footer {
+      background: var(--bg);
+      border-top: 1px solid #1a1a1a;
+      padding: 32px 24px;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-copy { color: #444; font-size: 14px; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a {
+      color: #555;
+      font-size: 14px;
+      transition: color var(--transition);
+    }
+    .footer-links a:hover { color: var(--text-primary); }
+
+    /* ── RESPONSIVE ──────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; gap: 40px; }
+      .steps-grid::before { display: none; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .install-blocks { grid-template-columns: 1fr; }
+      .waitlist-card { padding: 40px 24px; }
+      .stat-item { padding: 0 20px; }
+    }
+    @media (max-width: 480px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .cta-row { flex-direction: column; align-items: center; }
+      .btn-primary, .btn-secondary { width: 100%; max-width: 300px; text-align: center; }
+      .stat-item { padding: 12px 16px; }
+      .stat-item + .stat-item { border-left: none; border-top: 1px solid var(--border); }
+      .stats-row { flex-direction: column; }
+      .nav-inner { gap: 12px; }
+      .logo { font-size: 18px; }
+      .btn-outline { font-size: 12px; padding: 6px 10px; }
+    }
+    @media (max-width: 375px) {
+      section { padding: 60px 16px; }
+      .hero { padding: 80px 16px 60px; }
+      .terminal { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">Flag<span>Lint</span></a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">★ Star on GitHub</button>
+      </a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="badge">★ Open Source · MIT License</div>
+
+      <h1>Your LaunchDarkly flags<br>are costing you money.</h1>
+
+      <p class="hero-sub">
+        FlagLint scans your codebase, finds stale feature flags, and
+        generates your OpenFeature migration plan. Free and open source.
+      </p>
+
+      <div class="terminal" role="region" aria-label="Terminal demo">
+        <div class="terminal-header">
+          <div class="term-dots">
+            <div class="dot dot-r"></div>
+            <div class="dot dot-y"></div>
+            <div class="dot dot-g"></div>
+          </div>
+          <span class="term-version">flaglint v0.1.2</span>
+        </div>
+        <div class="term-body" id="term-body" aria-live="polite">
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn-primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">
+          Join the waitlist →
+        </button>
+        <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer" class="btn-secondary">
+          View on GitHub →
+        </a>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-num">60</span>
+          <span class="stat-label">tests passing</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">7</span>
+          <span class="stat-label">dependencies</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num">MIT</span>
+          <span class="stat-label">license</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROBLEM -->
+  <section class="problem">
+    <div class="section-inner">
+      <div class="section-label">The Problem</div>
+      <h2 class="section-heading">Flag debt is invisible. Until it isn't.</h2>
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-icon">💸</span>
+          <div class="card-title">LaunchDarkly bills by MAU</div>
+          <p class="card-body">Your flag count grows. Your bill grows with it. Half those flags haven't been touched in months. You're paying for flags nobody manages.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🔍</span>
+          <div class="card-title">Nobody knows what's safe to remove</div>
+          <p class="card-body">Flags accumulate across codebases. Engineers are afraid to delete them. The debt compounds silently while your codebase gets harder to reason about.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🔒</span>
+          <div class="card-title">Vendor lock-in has a hidden cost</div>
+          <p class="card-body">Every <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">ldClient.variation()</code> call is a dependency you never chose to own. OpenFeature exists. Migration feels impossible without a map.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how">
+    <div class="section-inner">
+      <div class="section-label">How It Works</div>
+      <h2 class="section-heading">From flag debt to OpenFeature in three steps</h2>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">01</div>
+          <div class="step-title">Scan your codebase</div>
+          <div class="code-snippet">$ flaglint scan ./src</div>
+          <p class="step-body">Detects every LaunchDarkly SDK call using AST analysis. Finds <code style="font-family:monospace;font-size:12px">variation()</code>, <code style="font-family:monospace;font-size:12px">useFlags()</code>, <code style="font-family:monospace;font-size:12px">LDProvider</code>, <code style="font-family:monospace;font-size:12px">withLDConsumer</code>. Flags stale candidates and dynamic keys.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-title">Get your flag debt report</div>
+          <div class="format-badges">
+            <span class="badge-pill">JSON</span>
+            <span class="badge-pill">Markdown</span>
+            <span class="badge-pill">HTML</span>
+          </div>
+          <p class="step-body">Generates a detailed report in JSON, Markdown, or HTML. Know exactly what flags you have, where they live, and which ones are safe to remove.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">03</div>
+          <div class="step-title">Generate your migration plan</div>
+          <div class="code-snippet">$ flaglint migrate ./src</div>
+          <p class="step-body">Produces exact before/after code changes for every flag usage. Correct async/await. Right OpenFeature SDK packages. Zero guesswork.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+    <div class="section-inner">
+      <div class="section-label">Features</div>
+      <h2 class="section-heading">Everything you need to escape LaunchDarkly</h2>
+      <div class="features-grid">
+        <div class="feature-tile">
+          <span class="feature-icon">🔍</span>
+          <div class="feature-title">AST-based scanning</div>
+          <p class="feature-body">Finds every SDK call. Not just grep matches.</p>
+        </div>
+        <div class="feature-tile">
+          <span class="feature-icon">📊</span>
+          <div class="feature-title">Three report formats</div>
+          <p class="feature-body">JSON for pipelines. Markdown for PRs. HTML for sharing.</p>
+        </div>
+        <div class="feature-tile">
+          <span class="feature-icon">🎯</span>
+          <div class="feature-title">Stale flag detection</div>
+          <p class="feature-body">Configurable thresholds. Know what's safe to remove.</p>
+        </div>
+        <div class="feature-tile">
+          <span class="feature-icon">⚡</span>
+          <div class="feature-title">Dynamic flag warnings</div>
+          <p class="feature-body">Runtime keys flagged for manual review automatically.</p>
+        </div>
+        <div class="feature-tile">
+          <span class="feature-icon">🔄</span>
+          <div class="feature-title">OpenFeature migration</div>
+          <p class="feature-body">Exact code changes. Correct async/await. Right packages.</p>
+        </div>
+        <div class="feature-tile">
+          <span class="feature-icon">🚦</span>
+          <div class="feature-title">CI/CD integration</div>
+          <p class="feature-body">Exit code 1 on stale flags. Block PRs. Enforce hygiene.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section class="install">
+    <div class="section-inner">
+      <div class="section-label">Install</div>
+      <h2 class="section-heading" style="text-align:center">Works with any JavaScript or TypeScript project</h2>
+      <div class="install-blocks">
+        <div class="code-block">
+          <div class="code-block-label">Install globally</div>
+          <pre id="code-global">$ npm install -g flaglint</pre>
+          <button class="copy-btn" onclick="copyCode('code-global', this)">Copy</button>
+        </div>
+        <div class="code-block">
+          <div class="code-block-label">Or use without installing</div>
+          <pre id="code-npx">$ npx flaglint scan .</pre>
+          <button class="copy-btn" onclick="copyCode('code-npx', this)">Copy</button>
+        </div>
+      </div>
+      <p class="install-note">
+        Supports Node.js 18+. Works with React, Next.js, Express, NestJS, or any
+        TypeScript/JavaScript codebase using LaunchDarkly.
+      </p>
+    </div>
+  </section>
+
+  <!-- WAITLIST -->
+  <section class="waitlist-section">
+    <div id="waitlist" class="waitlist-card">
+      <h2>FlagLint Cloud is coming.</h2>
+      <p class="waitlist-sub">
+        Hosted reports. Team dashboards. Historical flag tracking.
+        Slack alerts. Flat predictable pricing — no MAU billing, ever.
+      </p>
+
+      <!-- Loops waitlist form -->
+      <div id="loops-form-wrap">
+        <form id="loops-form" action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0" method="POST">
+          <input type="email" name="email" id="loops-email" placeholder="you@company.com" required autocomplete="email">
+          <button type="submit" id="loops-submit">Join the waitlist</button>
+          <button type="button" id="loops-loading" style="display:none" disabled>Please wait...</button>
+        </form>
+        <div id="loops-success" style="display:none"></div>
+        <div id="loops-error" style="display:none"></div>
+        <button id="loops-back" style="display:none" onclick="resetFormHandler()">← Back</button>
+      </div>
+
+      <p class="waitlist-disclaimer">No spam. Just launch updates and early access.</p>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-copy">FlagLint — MIT License</span>
+      <div class="footer-links">
+        <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+        <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglint on X</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── 1. TYPEWRITER ANIMATION ────────────────────────────────────
+    const termLines = [
+      { text: '$ npx flaglint scan ./src', cls: 'c-white' },
+      { text: '', cls: '' },
+      { text: '✔ Scanning 142 files...', cls: 'c-green' },
+      { text: '✔ Found 23 LaunchDarkly flags', cls: 'c-green' },
+      { text: '⚠ 8 stale candidates detected', cls: 'c-amber' },
+      { text: '⚡ 2 dynamic flags (manual review)', cls: 'c-muted' },
+      { text: '', cls: '' },
+      { text: '→ Run flaglint migrate . for migration plan', cls: 'c-green' },
+    ];
+
+    (function runTypewriter() {
+      const body = document.getElementById('term-body');
+      let i = 0;
+      function showNext() {
+        if (i >= termLines.length) {
+          const cursor = document.createElement('span');
+          cursor.className = 'cursor';
+          body.appendChild(cursor);
+          return;
+        }
+        const line = termLines[i++];
+        const span = document.createElement('span');
+        span.className = 'term-line' + (line.cls ? ' ' + line.cls : '');
+        span.textContent = line.text || ' ';
+        body.appendChild(span);
+        setTimeout(showNext, 400);
+      }
+      setTimeout(showNext, 600);
+    })();
+
+    // ── 2. NAV BORDER ON SCROLL ────────────────────────────────────
+    const nav = document.getElementById('nav');
+    window.addEventListener('scroll', function () {
+      nav.classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    // ── 3. COPY BUTTONS ────────────────────────────────────────────
+    function copyCode(id, btn) {
+      const text = document.getElementById(id).textContent.replace(/^\$ /, '');
+      navigator.clipboard.writeText(text).then(function () {
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        btn.style.color = 'var(--accent)';
+        setTimeout(function () {
+          btn.textContent = orig;
+          btn.style.color = '';
+        }, 2000);
+      }).catch(function () {
+        btn.textContent = 'Failed';
+        setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+      });
+    }
+
+    // ── 4. SMOOTH SCROLL (btn-primary already uses inline onclick) ─
+
+    // ── 5. LOOPS FORM — verbatim submitHandler & resetFormHandler ──
+    var loopsForm = document.getElementById('loops-form');
+    var loopsEmail = document.getElementById('loops-email');
+    var loopsSubmit = document.getElementById('loops-submit');
+    var loopsLoading = document.getElementById('loops-loading');
+    var loopsSuccess = document.getElementById('loops-success');
+    var loopsError = document.getElementById('loops-error');
+    var loopsBack = document.getElementById('loops-back');
+
+    var rateLimit = false;
+
+    function submitHandler(event) {
+      event.preventDefault();
+      if (rateLimit) return;
+      rateLimit = true;
+      setTimeout(function () { rateLimit = false; }, 10000);
+
+      loopsSubmit.style.display = 'none';
+      loopsLoading.style.display = 'block';
+      loopsError.style.display = 'none';
+
+      var formBody = 'userGroup=&mailingLists=&email=' + encodeURIComponent(loopsEmail.value);
+
+      fetch(loopsForm.action, {
+        method: 'POST',
+        body: formBody,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      })
+        .then(function (res) { return res.json(); })
+        .then(function (json) {
+          loopsLoading.style.display = 'none';
+          if (json.success) {
+            loopsSuccess.textContent = 'Thanks! We\'ll be in touch.';
+            loopsSuccess.style.display = 'block';
+            loopsBack.style.display = 'block';
+            loopsForm.style.display = 'none';
+          } else {
+            loopsError.textContent = json.message || 'Something went wrong. Please try again.';
+            loopsError.style.display = 'block';
+            loopsSubmit.style.display = 'block';
+          }
+        })
+        .catch(function () {
+          loopsLoading.style.display = 'none';
+          loopsError.textContent = 'Something went wrong. Please try again.';
+          loopsError.style.display = 'block';
+          loopsSubmit.style.display = 'block';
+          rateLimit = false;
+        });
+    }
+
+    function resetFormHandler() {
+      loopsEmail.value = '';
+      loopsSuccess.style.display = 'none';
+      loopsError.style.display = 'none';
+      loopsBack.style.display = 'none';
+      loopsForm.style.display = 'flex';
+      loopsSubmit.style.display = 'block';
+    }
+
+    loopsForm.addEventListener('submit', submitHandler);
+  </script>
+</body>
+</html>
