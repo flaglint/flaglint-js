@@ -154,6 +154,28 @@ describe("scanner — syntax-error.ts", () => {
   });
 });
 
+describe("scanner — --exclude-tests patterns", () => {
+  it("excludes .test.tsx fixture when test patterns are in config.exclude", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-provider-test-file.test.tsx"],
+      exclude: ["**/*.test.tsx"],
+    });
+    const result = await scan(FIXTURES, config);
+    expect(result.usages).toHaveLength(0);
+    expect(result.scannedFiles).toBe(0);
+  });
+});
+
+describe("scanner — provider in test file", () => {
+  it("marks LDProvider usage in test file as isStale: true", async () => {
+    const result = await scan(FIXTURES, cfg("ld-provider-test-file.test.tsx"));
+    const provider = result.usages.find((u) => u.callType === "provider");
+    expect(provider).toBeDefined();
+    expect(provider!.flagKey).toBe("*");
+    expect(provider!.isStale).toBe(true);
+  });
+});
+
 describe("scanner — scan() metadata", () => {
   it("returns scanDurationMs >= 0", async () => {
     const result = await scan(FIXTURES, cfg("no-ld.ts"));

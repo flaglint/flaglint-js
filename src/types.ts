@@ -1,12 +1,22 @@
 export type { FlagLintConfig } from "./config.js";
 
+export type CallType =
+  | "variation"
+  | "variationDetail"
+  | "allFlags"
+  | "isFeatureEnabled"
+  | "hook-useFlags"
+  | "hook-useLDClient"
+  | "hoc"
+  | "provider";
+
 export interface FlagUsage {
   flagKey: string;
   isDynamic: boolean;
   file: string;
   line: number;
   column: number;
-  callType: string;
+  callType: CallType;
   isStale: boolean;
 }
 

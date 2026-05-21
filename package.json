@@ -1,6 +1,6 @@
 {
   "name": "flaglint",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.",
   "type": "module",
   "bin": {
@@ -37,6 +37,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
+    "typecheck:agent": "tsc --project tsconfig.agent.json",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",

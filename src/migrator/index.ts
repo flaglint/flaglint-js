@@ -102,14 +102,7 @@ function buildItem(usage: FlagUsage): MigrationItem {
       };
 
     default:
-      return {
-        usage,
-        openFeatureEquivalent: null,
-        codeChangeBefore: `// ${usage.callType} call`,
-        codeChangeAfter: `// Manual migration required`,
-        requiresManualReview: true,
-        reviewReason: `Unrecognized call type: ${usage.callType}`,
-      };
+      throw new Error(`Unhandled callType: ${usage.callType satisfies never}`);
   }
 }
 
