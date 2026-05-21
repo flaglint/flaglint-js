@@ -10,7 +10,7 @@ Thank you for your interest in contributing.
 ## Setup
 
 ```bash
-git clone https://https://github.com/flaglint/flagkit-cli.git
+git clone https://https://github.com/flaglint/flaglint.git
 cd flaglint
 npm install
 npm run build
