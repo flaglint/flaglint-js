@@ -68,7 +68,7 @@ function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
   lines.push("");
   lines.push(`**Scanned:** ${scannedFiles} files in ${scanDurationMs}ms  `);
   lines.push(`**Flag usages:** ${totalUsages} across ${uniqueFlags.length} unique flags  `);
-  lines.push(`**Stale candidates:** ${staleUsages.length} flags flagged for review`);
+  lines.push(`**Stale candidates:** ${new Set(staleUsages.map((u) => u.flagKey)).size} flags flagged for review`);
   lines.push("");
 
   // Flag Inventory
@@ -105,7 +105,7 @@ function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
     lines.push("| Flag Key | Reason | Location |");
     lines.push("|----------|--------|----------|");
     for (const [key, data] of staleFlags) {
-      const first = data.usages[0]!;
+      const first = data.usages.find((u) => u.isStale) ?? data.usages[0]!;
       lines.push(`| ${key} | ${staleReason(first)} | ${first.file}:${first.line} |`);
     }
     lines.push("");
@@ -118,7 +118,7 @@ function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
       "Flags with non-static keys that could not be automatically identified:"
     );
     for (const u of dynamicUsages) {
-      lines.push(`- \`dynamic\` at ${u.file}:${u.line} — key determined at runtime`);
+      lines.push(`- \`${u.flagKey}\` at ${u.file}:${u.line} — key determined at runtime`);
     }
     lines.push("");
   }

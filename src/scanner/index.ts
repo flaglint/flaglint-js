@@ -3,7 +3,7 @@ import { relative } from "path";
 import fg from "fast-glob";
 import { parse } from "@typescript-eslint/typescript-estree";
 import type { TSESTree } from "@typescript-eslint/types";
-import type { FlagUsage, ScanResult, FlagLintConfig } from "../types.js";
+import type { CallType, FlagUsage, ScanResult, FlagLintConfig } from "../types.js";
 
 const LD_MEMBER_METHODS = new Set(["variation", "variationDetail", "allFlags"]);
 const LD_CLIENT_PATTERN = /ld|client/i;
@@ -74,7 +74,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
         LD_CLIENT_PATTERN.test((callee.object as TSESTree.Identifier).name) &&
         LD_MEMBER_METHODS.has((callee.property as TSESTree.Identifier).name)
       ) {
-        const method = (callee.property as TSESTree.Identifier).name;
+        const method = (callee.property as TSESTree.Identifier).name as CallType;
         if (method === "allFlags") {
           usages.push({
             flagKey: "*",
@@ -164,7 +164,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
           line: loc.line,
           column: loc.column,
           callType: "provider",
-          isStale: false,
+          isStale: checkStale("*", filePath),
         });
       }
     }

@@ -16,6 +16,7 @@ export function registerMigrateCommand(program: Command): void {
     .option("-o, --output <file>", "write migration plan to file", "MIGRATION.md")
     .option("-c, --config <path>", "path to .flaglintrc config file")
     .option("--dry-run", "print migration plan to stdout without writing file")
+    .option("--exclude-tests", "exclude test files (*.test.*, *.spec.*, __tests__/, tests/)")
     .addHelpText(
       "after",
       `
@@ -23,10 +24,11 @@ Examples:
   $ flaglint migrate                 generate migration plan for current directory
   $ flaglint migrate ./src           analyze specific directory
   $ flaglint migrate --dry-run       preview without writing file
-  $ flaglint migrate --output plan.md write to custom file`
+  $ flaglint migrate --output plan.md write to custom file
+  $ flaglint migrate --exclude-tests skip test and spec files`
     )
     .action(
-      async (dir: string, options: { output: string; config?: string; dryRun?: boolean }) => {
+      async (dir: string, options: { output: string; config?: string; dryRun?: boolean; excludeTests?: boolean }) => {
         // Validate directory exists
         try {
           const s = await stat(resolve(dir));
@@ -55,12 +57,25 @@ Examples:
           process.exit(1);
         }
 
+        if (options.excludeTests) {
+          config.exclude.push(
+            "**/*.test.ts",
+            "**/*.test.tsx",
+            "**/*.spec.ts",
+            "**/*.spec.tsx",
+            "**/__tests__/**",
+            "**/tests/**"
+          );
+        }
+
         const spinner = ora(`Scanning ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
 
         let scanResult;
         try {
-          scanResult = await scan(dir, config);
+          scanResult = await scan(dir, config, (filesScanned) => {
+            spinner.text = `Scanning files... ${filesScanned}`;
+          });
           spinner.text = "Analyzing migration readiness...";
         } catch (err) {
           spinner.fail("Scan failed");

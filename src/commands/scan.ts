@@ -19,6 +19,7 @@ export function registerScanCommand(program: Command): void {
     .option("-f, --format <format>", "output format: json | markdown | html", "markdown")
     .option("-o, --output <file>", "write report to file")
     .option("-c, --config <path>", "path to .flaglintrc config file")
+    .option("--exclude-tests", "exclude test files (*.test.*, *.spec.*, __tests__/, tests/)")
     .addHelpText(
       "after",
       `
@@ -26,10 +27,11 @@ Examples:
   $ flaglint scan                    scan current directory
   $ flaglint scan ./src              scan specific directory
   $ flaglint scan --format json      output as JSON
-  $ flaglint scan --output report.md save to file`
+  $ flaglint scan --output report.md save to file
+  $ flaglint scan --exclude-tests    skip test and spec files`
     )
     .action(
-      async (dir: string, options: { format: string; output?: string; config?: string }) => {
+      async (dir: string, options: { format: string; output?: string; config?: string; excludeTests?: boolean }) => {
         // Validate format before doing any I/O
         if (!VALID_FORMATS.includes(options.format)) {
           process.stderr.write(
@@ -66,6 +68,17 @@ Examples:
         } catch (err) {
           process.stderr.write(chalk.red(String(err instanceof Error ? err.message : err)) + "\n");
           process.exit(1);
+        }
+
+        if (options.excludeTests) {
+          config.exclude.push(
+            "**/*.test.ts",
+            "**/*.test.tsx",
+            "**/*.spec.ts",
+            "**/*.spec.tsx",
+            "**/__tests__/**",
+            "**/tests/**"
+          );
         }
 
         const format = options.format as ReporterOptions["format"];
