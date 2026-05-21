@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { formatReport } from "../index.js";
-import type { ScanResult } from "../../types.js";
+import type { FlagUsage, ScanResult } from "../../types.js";
 
-const staleUsage = {
+const staleUsage: FlagUsage = {
   flagKey: "old-flag",
   isDynamic: false,
   file: "/src/legacy.ts",
@@ -12,7 +12,7 @@ const staleUsage = {
   isStale: true,
 };
 
-const activeUsage = {
+const activeUsage: FlagUsage = {
   flagKey: "my-flag",
   isDynamic: false,
   file: "/src/Header.tsx",
@@ -22,7 +22,7 @@ const activeUsage = {
   isStale: false,
 };
 
-const dynamicUsage = {
+const dynamicUsage: FlagUsage = {
   flagKey: "dynamic",
   isDynamic: true,
   file: "/src/util.ts",
@@ -85,6 +85,29 @@ describe("reporter — markdown format", () => {
     expect(output).toContain("Scanned");
     expect(output).toContain("Flag usages");
     expect(output).toContain("Stale candidates");
+  });
+
+  it("stale candidates count is unique flag keys, not usage count", () => {
+    // Two stale usages of the same key — count should be 1, not 2
+    const staleUsage2: FlagUsage = {
+      flagKey: "old-flag",
+      isDynamic: false,
+      file: "/src/other.ts",
+      line: 20,
+      column: 0,
+      callType: "variation",
+      isStale: true,
+    };
+    const result: ScanResult = {
+      scannedFiles: 2,
+      totalUsages: 2,
+      uniqueFlags: ["old-flag"],
+      usages: [staleUsage, staleUsage2],
+      scanDurationMs: 5,
+      warnings: [],
+    };
+    const output = formatReport(result, { format: "markdown" });
+    expect(output).toContain("**Stale candidates:** 1 flags flagged for review");
   });
 
   it("renders optional title when provided", () => {
