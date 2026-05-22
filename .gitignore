@@ -1,10 +1,18 @@
+# Build outputs
 node_modules/
 dist/
 coverage/
 *.tgz
 *.log
+
+# Claude tooling (local only)
 .claude/
 
-# Personal — do not commit
+# Strategy and business docs — never commit
 VISION.md
-MEMORY.md
+Company.vision.md
+*.vision.md
+
+# Content docs — local only
+CONTEXT.md
+CONTENT.md
