@@ -1,8 +1,32 @@
+<p align="center">
+  <img src="docs/assets/logo.png" alt="FlagLint" width="400" />
+</p>
+
+<p align="center">
+  <strong>Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/flaglint/flaglint/actions/workflows/ci.yml">
+    <img src="https://github.com/flaglint/flaglint/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+  <a href="https://www.npmjs.com/package/flaglint">
+    <img src="https://img.shields.io/npm/v/flaglint.svg" alt="npm version" />
+  </a>
+  <a href="https://www.npmjs.com/package/flaglint">
+    <img src="https://img.shields.io/npm/dm/flaglint.svg" alt="downloads" />
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" />
+  </a>
+</p>
+
+
 # FlagLint
 
 **Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.**
 
-[![CI](https://https://github.com/flaglint/flagkit-cli/actions/workflows/ci.yml/badge.svg)](https://https://github.com/flaglint/flagkit-cli/actions/workflows/ci.yml)
+[![CI](https://github.com/flaglint/flaglint/actions/workflows/ci.yml/badge.svg)](https://github.com/flaglint/flaglint/actions/workflows/ci.yml)
 [![npm version](https://img.shields.io/npm/v/flaglint.svg)](https://www.npmjs.com/package/flaglint)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -83,7 +107,7 @@ Create `.flaglintrc` in your project root:
   "include": ["**/*.{ts,tsx,js,jsx}"],
   "exclude": ["**/node_modules/**", "**/dist/**"],
   "provider": "launchdarkly",
-  "staleThreshold": 1,
+  "minFileCount": 1,
   "reportTitle": "My Project Flag Report"
 }
 ```
@@ -93,7 +117,7 @@ Create `.flaglintrc` in your project root:
 | `include` | `string[]` | `["**/*.{ts,tsx,js,jsx}"]` | Glob patterns to scan |
 | `exclude` | `string[]` | `["**/node_modules/**", ...]` | Glob patterns to ignore |
 | `provider` | `string` | `"launchdarkly"` | Feature flag provider |
-| `staleThreshold` | `number` | `1` | Days before a flag is considered stale |
+| `minFileCount` | `number` | `1` | A flag is stale if it appears in ≤ N files (default: 1) |
 | `reportTitle` | `string` | — | Custom title for generated reports |
 | `outputDir` | `string` | `"."` | Default output directory |
 

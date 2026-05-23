@@ -5,9 +5,11 @@ import type { Command } from "commander";
 import chalk from "chalk";
 import ora from "ora";
 import { scan } from "../scanner/index.js";
+import { LocalFileSource } from "../scanner/local-source.js";
 import { formatReport } from "../reporter/index.js";
 import { loadConfig } from "../config.js";
 import type { ReporterOptions } from "../types.js";
+import { isStale } from "../types.js";
 
 const VALID_FORMATS = ["json", "markdown", "html"];
 
@@ -64,7 +66,7 @@ Examples:
         // Load config — propagate parse errors with clear message
         let config;
         try {
-          config = loadConfig(options.config);
+          config = await loadConfig(options.config);
         } catch (err) {
           process.stderr.write(chalk.red(String(err instanceof Error ? err.message : err)) + "\n");
           process.exit(1);
@@ -88,7 +90,7 @@ Examples:
 
         let result;
         try {
-          result = await scan(dir, config, (filesScanned) => {
+          result = await scan(new LocalFileSource(dir), config, (filesScanned) => {
             if (filesScanned - lastSpinnerUpdate >= 50) {
               spinner.text = `Scanning... (${filesScanned} files)`;
               lastSpinnerUpdate = filesScanned;
@@ -123,7 +125,11 @@ Examples:
           process.exit(0);
         }
 
-        const staleCount = new Set(result.usages.filter((u) => u.isStale).map((u) => u.flagKey)).size;
+        const staleCount = new Set(
+          result.usages
+            .filter((u) => isStale(u) && !u.isDynamic && u.flagKey !== "*")
+            .map((u) => u.flagKey)
+        ).size;
         const dynamicCount = new Set(result.usages.filter((u) => u.isDynamic).map((u) => u.flagKey)).size;
 
         process.stderr.write(

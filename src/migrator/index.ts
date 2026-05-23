@@ -12,13 +12,21 @@ function buildItem(usage: FlagUsage): MigrationItem {
   const k = keyLiteral(usage);
 
   if (usage.isDynamic) {
+    const isDetail = usage.callType === "variationDetail";
+    const methodName = isDetail ? "variationDetail" : "variation";
     return {
       usage,
-      openFeatureEquivalent: "client.getBooleanValue()",
-      codeChangeBefore: `ldClient.variation(flagKey, context, false)`,
-      codeChangeAfter: `await client.getBooleanValue(flagKey, false) // server SDK is async`,
+      openFeatureEquivalent: isDetail
+        ? "client.getBooleanDetails()"
+        : "client.getBooleanValue()",
+      codeChangeBefore: `ldClient.${methodName}(flagKey, context, false)`,
+      codeChangeAfter: isDetail
+        ? `await client.getBooleanDetails(flagKey, false) // server SDK is async`
+        : `await client.getBooleanValue(flagKey, false) // server SDK is async`,
       requiresManualReview: true,
-      reviewReason: "Flag key determined at runtime; OpenFeature server SDK methods are async — add await and make the enclosing function async",
+      reviewReason:
+        "Flag key determined at runtime; OpenFeature server SDK methods " +
+        "are async — add await and make the enclosing function async",
     };
   }
 

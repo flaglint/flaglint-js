@@ -5,6 +5,7 @@ import type { Command } from "commander";
 import chalk from "chalk";
 import ora from "ora";
 import { scan } from "../scanner/index.js";
+import { LocalFileSource } from "../scanner/local-source.js";
 import { analyze, formatMigrationReport } from "../migrator/index.js";
 import { loadConfig } from "../config.js";
 
@@ -51,7 +52,7 @@ Examples:
         // Load config
         let config;
         try {
-          config = loadConfig(options.config);
+          config = await loadConfig(options.config);
         } catch (err) {
           process.stderr.write(chalk.red(String(err instanceof Error ? err.message : err)) + "\n");
           process.exit(1);
@@ -73,7 +74,7 @@ Examples:
 
         let scanResult;
         try {
-          scanResult = await scan(dir, config, (filesScanned) => {
+          scanResult = await scan(new LocalFileSource(dir), config, (filesScanned) => {
             spinner.text = `Scanning files... ${filesScanned}`;
           });
           spinner.text = "Analyzing migration readiness...";
