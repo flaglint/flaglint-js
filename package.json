@@ -1,6 +1,6 @@
 {
   "name": "flaglint",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.",
   "type": "module",
   "bin": {
@@ -34,7 +34,8 @@
     "url": "https://github.com/flaglint/flaglint/issues"
   },
   "scripts": {
-    "build": "tsup",
+    "sync:www": "tsx scripts/sync-www.ts",
+    "build": "npm run sync:www && tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "typecheck:agent": "tsc --project tsconfig.agent.json",

@@ -96,9 +96,26 @@ describe("CLI — json output", () => {
   it("produces valid parseable JSON with --format json", () => {
     const r = cli("scan", "--format", "json", FIXTURES);
     const parsed = JSON.parse(r.stdout) as Record<string, unknown>;
+    expect(parsed).toHaveProperty("scannedAt");
+    expect(parsed).toHaveProperty("scanRoot");
     expect(parsed).toHaveProperty("scannedFiles");
     expect(parsed).toHaveProperty("usages");
     expect(parsed).toHaveProperty("generatedAt");
+  });
+});
+
+// ── sarif output validity ─────────────────────────────────────────────────────
+
+describe("CLI — sarif output", () => {
+  it("produces valid SARIF with --format sarif", () => {
+    const r = cli("scan", "--format", "sarif", FIXTURES);
+    const parsed = JSON.parse(r.stdout) as {
+      version: string;
+      runs: Array<{ tool: { driver: { name: string } }; results: unknown[] }>;
+    };
+    expect(parsed.version).toBe("2.1.0");
+    expect(parsed.runs[0]?.tool.driver.name).toBe("FlagLint");
+    expect(parsed.runs[0]?.results.length).toBeGreaterThan(0);
   });
 });
 

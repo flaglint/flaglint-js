@@ -205,6 +205,7 @@ export async function scan(
   evaluator?: StalenessEvaluator
 ): Promise<ScanResult> {
   const start = Date.now();
+  const scannedAt = new Date().toISOString();
 
   for (const pattern of config.include) {
     if (pattern.startsWith("/") || pattern.startsWith("..")) {
@@ -300,6 +301,8 @@ export async function scan(
   ];
 
   return {
+    scannedAt,
+    scanRoot: source.root ?? ".",
     scannedFiles,
     totalUsages: allUsages.length,
     uniqueFlags,

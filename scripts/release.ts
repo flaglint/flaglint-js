@@ -8,7 +8,8 @@
  *   2. Groups them by conventional-commit prefix
  *   3. Bumps package.json version
  *   4. Prepends a new section to CHANGELOG.md
- *   5. Commits both files and creates an annotated git tag
+ *   5. Syncs www/index.html from package/source metadata
+ *   6. Commits release files and creates an annotated git tag
  *
  * After this script succeeds, push with:
  *   git push origin main && git push origin <tag>
@@ -224,9 +225,11 @@ console.log('Tests passed.\n');
   // Update CHANGELOG.md
   await prependChangelog(changelogPath, entry);
 
+  // Keep the static website aligned with release metadata after the version bump.
+  await run('npm run sync:www');
+
   // Commit and tag
-  await run('git add package.json CHANGELOG.md');
-  await run('git add package.json package-lock.json CHANGELOG.md');
+  await run('git add package.json package-lock.json CHANGELOG.md www/index.html');
   await run(`git commit -m "chore: release ${tagName}"`);
   await run(`git tag -a ${tagName} -m "Release ${tagName}"`);
 

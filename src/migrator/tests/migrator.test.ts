@@ -19,6 +19,8 @@ function makeUsage(overrides: Partial<FlagUsage>): FlagUsage {
 
 function makeResult(usages: FlagUsage[]): ScanResult {
   return {
+    scannedAt: "2026-05-23T06:00:00.000Z",
+    scanRoot: "/repo",
     scannedFiles: 1,
     totalUsages: usages.length,
     uniqueFlags: [

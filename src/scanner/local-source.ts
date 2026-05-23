@@ -1,11 +1,15 @@
 import fg from "fast-glob";
 import { readFile } from "fs/promises";
-import { join, relative } from "path";
+import { join, relative, resolve } from "path";
 import type { FileSource } from "../types.js";
 import { DEFAULT_EXCLUDE } from "./index.js";
 
 export class LocalFileSource implements FileSource {
-  constructor(private readonly dir: string) {}
+  readonly root: string;
+
+  constructor(private readonly dir: string) {
+    this.root = resolve(dir);
+  }
 
   async listFiles(include: string[], exclude: string[]): Promise<string[]> {
     const files = await fg(include, {

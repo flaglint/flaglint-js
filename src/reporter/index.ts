@@ -1,3 +1,5 @@
+import { resolve } from "path";
+import { pathToFileURL } from "url";
 import type { FlagUsage, ReporterOptions, ScanResult } from "../types.js";
 import { isStale } from "../types.js";
 import { staleReason } from "../stale.js";
@@ -47,12 +49,12 @@ function sortedFlagEntries(map: Map<string, FlagEntry>): [string, FlagEntry][] {
 
 function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
   const { scannedFiles, totalUsages, uniqueFlags, usages, scanDurationMs } = result;
-  const staleUsages = usages.filter(isStale);
+  const staleUsages = usages.filter((u) => isStale(u) && !u.isDynamic && u.flagKey !== "*");
   const dynamicUsages = usages.filter((u) => u.isDynamic);
 
   const flagMap = buildFlagMap(usages);
   const sorted = sortedFlagEntries(flagMap);
-  const staleFlags = sorted.filter(([, d]) => d.isStale);
+  const staleFlags = sorted.filter(([key, d]) => key !== "*" && d.isStale);
 
   const lines: string[] = [];
 
@@ -122,16 +124,139 @@ function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
 // ── json ─────────────────────────────────────────────────────────────────────
 
 function formatJSON(result: ScanResult): string {
-  return JSON.stringify({ generatedAt: new Date().toISOString(), ...result }, null, 2);
+  return JSON.stringify({ generatedAt: result.scannedAt, ...result }, null, 2);
+}
+
+// ── sarif ────────────────────────────────────────────────────────────────────
+
+function signalRuleId(usage: FlagUsage): string {
+  const signal = usage.stalenessSignals[0];
+  if (!signal) return "flaglint.stale";
+  return `flaglint.${signal.source}`;
+}
+
+function signalMessage(usage: FlagUsage): string {
+  const reasons = usage.stalenessSignals.map((signal) => {
+    switch (signal.source) {
+      case "keyword":
+        return `keyword "${signal.keyword}"`;
+      case "path":
+        return `path pattern "${signal.pattern}"`;
+      case "minFileCount":
+        return `file count ${signal.fileCount} <= ${signal.threshold}`;
+    }
+  });
+  return reasons.length > 0 ? reasons.join(", ") : "staleness signal";
+}
+
+function sarifUri(file: string): string {
+  return file.split(/[\\/]/).join("/");
+}
+
+function sarifRootUri(scanRoot: string): string {
+  const uri = pathToFileURL(resolve(scanRoot)).href;
+  return uri.endsWith("/") ? uri : `${uri}/`;
+}
+
+function formatSARIF(result: ScanResult): string {
+  const staleUsages = result.usages.filter((u) => isStale(u) && !u.isDynamic && u.flagKey !== "*");
+  const rules = [
+    {
+      id: "flaglint.keyword",
+      name: "Stale flag keyword",
+      shortDescription: { text: "Flag key contains a stale keyword" },
+      helpUri: "https://github.com/flaglint/flaglint#what-flaglint-detects",
+    },
+    {
+      id: "flaglint.path",
+      name: "Stale flag path",
+      shortDescription: { text: "Flag usage appears in a stale path" },
+      helpUri: "https://github.com/flaglint/flaglint#what-flaglint-detects",
+    },
+    {
+      id: "flaglint.minFileCount",
+      name: "Low file count",
+      shortDescription: { text: "Flag appears in too few files" },
+      helpUri: "https://github.com/flaglint/flaglint#configuration",
+    },
+  ];
+
+  return JSON.stringify(
+    {
+      $schema: "https://json.schemastore.org/sarif-2.1.0.json",
+      version: "2.1.0",
+      runs: [
+        {
+          tool: {
+            driver: {
+              name: "FlagLint",
+              informationUri: "https://github.com/flaglint/flaglint",
+              rules,
+            },
+          },
+          invocations: [
+            {
+              executionSuccessful: true,
+              startTimeUtc: result.scannedAt,
+              properties: {
+                scannedFiles: result.scannedFiles,
+                totalUsages: result.totalUsages,
+                uniqueFlags: result.uniqueFlags.length,
+                scanDurationMs: result.scanDurationMs,
+              },
+            },
+          ],
+          originalUriBaseIds: {
+            "%SRCROOT%": {
+              uri: sarifRootUri(result.scanRoot),
+            },
+          },
+          results: staleUsages.map((usage) => ({
+            ruleId: signalRuleId(usage),
+            level: "warning",
+            message: {
+              text: `Potentially stale feature flag "${usage.flagKey}" detected: ${signalMessage(usage)}.`,
+            },
+            locations: [
+              {
+                physicalLocation: {
+                  artifactLocation: {
+                    uri: sarifUri(usage.file),
+                    uriBaseId: "%SRCROOT%",
+                  },
+                  region: {
+                    startLine: Math.max(usage.line, 1),
+                    startColumn: Math.max(usage.column + 1, 1),
+                  },
+                },
+              },
+            ],
+            partialFingerprints: {
+              "flagKey/v1": usage.flagKey,
+            },
+            properties: {
+              flagKey: usage.flagKey,
+              callType: usage.callType,
+              stalenessSignals: usage.stalenessSignals,
+            },
+          })),
+        },
+      ],
+    },
+    null,
+    2
+  );
 }
 
 // ── html ─────────────────────────────────────────────────────────────────────
 
 function formatHTML(result: ScanResult, options: ReporterOptions): string {
   const { scannedFiles, totalUsages, uniqueFlags, usages, scanDurationMs } = result;
-  const staleCount = new Set(usages.filter(isStale).map((u) => u.flagKey)).size;
+  const staleCount = new Set(
+    usages.filter((u) => isStale(u) && !u.isDynamic && u.flagKey !== "*").map((u) => u.flagKey)
+  ).size;
   const dynamicCount = usages.filter((u) => u.isDynamic).length;
-  const date = new Date().toLocaleString();
+  const date = new Date(result.scannedAt).toLocaleString();
 
   const flagMap = buildFlagMap(usages);
   const sorted = sortedFlagEntries(flagMap);
@@ -225,7 +350,9 @@ export function formatReport(result: ScanResult, options: ReporterOptions): stri
       return formatJSON(result);
     case "html":
       return formatHTML(result, options);
-    default:
+    case "markdown":
       return formatMarkdown(result, options);
+    case "sarif":
+      return formatSARIF(result);
   }
 }

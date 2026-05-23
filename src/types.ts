@@ -2,6 +2,7 @@ import type { FlagLintConfig, ScanConfig } from "./config.js";
 export type { FlagLintConfig, ScanConfig };
 
 export interface FileSource {
+  root?: string;
   listFiles(include: string[], exclude: string[]): Promise<string[]>;
   readFile(path: string): Promise<string>;
 }
@@ -43,6 +44,8 @@ export interface FlagUsage {
 export const isStale = (u: FlagUsage): boolean => u.stalenessSignals.length > 0;
 
 export interface ScanResult {
+  scannedAt: string;
+  scanRoot: string;
   scannedFiles: number;
   totalUsages: number;
   uniqueFlags: string[];
@@ -53,13 +56,15 @@ export interface ScanResult {
 
 export interface ScanOptions {
   dir: string;
-  format: "json" | "markdown" | "html";
+  format: ReportFormat;
   output?: string;
   config?: string;
 }
 
+export type ReportFormat = "json" | "markdown" | "html" | "sarif";
+
 export interface ReporterOptions {
-  format: "json" | "markdown" | "html";
+  format: ReportFormat;
   title?: string;
 }
 
@@ -79,4 +84,3 @@ export interface MigrationAnalysis {
   manualReviewCount: number;
   autoMigrateCount: number;
 }
-

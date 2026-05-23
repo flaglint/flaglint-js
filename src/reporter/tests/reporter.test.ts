@@ -6,7 +6,7 @@ import { isStale } from "../../types.js";
 const staleUsage: FlagUsage = {
   flagKey: "old-flag",
   isDynamic: false,
-  file: "/src/legacy.ts",
+  file: "src/legacy.ts",
   line: 5,
   column: 0,
   callType: "variation",
@@ -16,7 +16,7 @@ const staleUsage: FlagUsage = {
 const activeUsage: FlagUsage = {
   flagKey: "my-flag",
   isDynamic: false,
-  file: "/src/Header.tsx",
+  file: "src/Header.tsx",
   line: 10,
   column: 0,
   callType: "variation",
@@ -26,7 +26,7 @@ const activeUsage: FlagUsage = {
 const dynamicUsage: FlagUsage = {
   flagKey: "dynamic",
   isDynamic: true,
-  file: "/src/util.ts",
+  file: "src/util.ts",
   line: 3,
   column: 0,
   callType: "variation",
@@ -34,6 +34,8 @@ const dynamicUsage: FlagUsage = {
 };
 
 const resultWithStale: ScanResult = {
+  scannedAt: "2026-05-23T06:00:00.000Z",
+  scanRoot: "/repo",
   scannedFiles: 2,
   totalUsages: 3,
   uniqueFlags: ["my-flag", "old-flag"],
@@ -43,6 +45,8 @@ const resultWithStale: ScanResult = {
 };
 
 const resultNoStale: ScanResult = {
+  scannedAt: "2026-05-23T06:00:00.000Z",
+  scanRoot: "/repo",
   scannedFiles: 1,
   totalUsages: 1,
   uniqueFlags: ["my-flag"],
@@ -93,13 +97,15 @@ describe("reporter — markdown format", () => {
     const staleUsage2: FlagUsage = {
       flagKey: "old-flag",
       isDynamic: false,
-      file: "/src/other.ts",
+      file: "src/other.ts",
       line: 20,
       column: 0,
       callType: "variation",
       stalenessSignals: [{ source: "keyword", keyword: "old" }],
     };
     const result: ScanResult = {
+      scannedAt: "2026-05-23T06:00:00.000Z",
+      scanRoot: "/repo",
       scannedFiles: 2,
       totalUsages: 2,
       uniqueFlags: ["old-flag"],
@@ -109,6 +115,31 @@ describe("reporter — markdown format", () => {
     };
     const output = formatReport(result, { format: "markdown" });
     expect(output).toContain("**Stale candidates:** 1 flags flagged for review");
+  });
+
+  it("excludes wildcard usages from stale candidate counts", () => {
+    const wildcardUsage: FlagUsage = {
+      flagKey: "*",
+      isDynamic: false,
+      file: "src/provider.test.tsx",
+      line: 1,
+      column: 0,
+      callType: "provider",
+      stalenessSignals: [{ source: "path", pattern: "test/spec/mock file" }],
+    };
+    const result: ScanResult = {
+      scannedAt: "2026-05-23T06:00:00.000Z",
+      scanRoot: "/repo",
+      scannedFiles: 1,
+      totalUsages: 1,
+      uniqueFlags: [],
+      usages: [wildcardUsage],
+      scanDurationMs: 5,
+      warnings: [],
+    };
+    const output = formatReport(result, { format: "markdown" });
+    expect(output).toContain("**Stale candidates:** 0 flags flagged for review");
+    expect(output).not.toContain("## ⚠ Stale Flag Candidates");
   });
 
   it("renders optional title when provided", () => {
@@ -149,6 +180,8 @@ describe("reporter — json format", () => {
   it("includes expected ScanResult fields", () => {
     const output = formatReport(resultWithStale, { format: "json" });
     const parsed = JSON.parse(output) as Record<string, unknown>;
+    expect(parsed).toHaveProperty("scannedAt");
+    expect(parsed).toHaveProperty("scanRoot");
     expect(parsed).toHaveProperty("scannedFiles");
     expect(parsed).toHaveProperty("totalUsages");
     expect(parsed).toHaveProperty("uniqueFlags");
@@ -162,6 +195,42 @@ describe("reporter — json format", () => {
     const keys = parsed.usages.map((u) => u.flagKey);
     expect(keys).toContain("my-flag");
     expect(keys).toContain("old-flag");
+  });
+});
+
+// ── sarif ─────────────────────────────────────────────────────────────────────
+
+describe("reporter — sarif format", () => {
+  it("produces valid SARIF 2.1.0 JSON", () => {
+    const output = formatReport(resultWithStale, { format: "sarif" });
+    const parsed = JSON.parse(output) as {
+      version: string;
+      runs: Array<{ tool: { driver: { name: string } }; results: unknown[] }>;
+    };
+    expect(parsed.version).toBe("2.1.0");
+    expect(parsed.runs[0]?.tool.driver.name).toBe("FlagLint");
+    expect(parsed.runs[0]?.results).toHaveLength(1);
+  });
+
+  it("emits stale flag findings with file locations", () => {
+    const output = formatReport(resultWithStale, { format: "sarif" });
+    const parsed = JSON.parse(output) as {
+      runs: Array<{
+        results: Array<{
+          ruleId: string;
+          message: { text: string };
+          locations: Array<{ physicalLocation: { artifactLocation: { uri: string } } }>;
+          partialFingerprints: { "flagKey/v1": string };
+          properties: { flagKey: string };
+        }>;
+      }>;
+    };
+    const finding = parsed.runs[0]!.results[0]!;
+    expect(finding.ruleId).toBe("flaglint.keyword");
+    expect(finding.message.text).toContain("old-flag");
+    expect(finding.locations[0]!.physicalLocation.artifactLocation.uri).toContain("src/legacy.ts");
+    expect(finding.partialFingerprints).toEqual({ "flagKey/v1": "old-flag" });
+    expect(finding.properties.flagKey).toBe("old-flag");
   });
 });
 

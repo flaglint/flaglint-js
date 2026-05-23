@@ -5,7 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.2] - 2026-05-23
+## [0.3.0] - 2026-05-23
+
+### Added
+
+- **SARIF output**: `flaglint scan --format sarif --output flaglint.sarif` now emits SARIF 2.1.0 for GitHub Code Scanning / PR annotations.
+- **Persistent scan metadata**: `ScanResult` now includes `scannedAt` and `scanRoot`, giving JSON/SARIF/HTML reports a stable scan timestamp and source-root context.
 
 ### Fixed
 
@@ -13,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Typed scan warnings**: `ScanResult.warnings` is now a typed `ScanWarning` union (`read-failure` | `parse-failure`) instead of opaque strings, preserving structured data at the domain boundary.
 - **StalenessEvaluator wired**: The `StalenessEvaluator` interface now has a call site in `scan()` — pass an `evaluator` to inject API-based staleness signals without touching core scanner logic.
 - **ScanConfig boundary**: `scan()` now accepts `ScanConfig` (scan-relevant fields only) rather than the full `FlagLintConfig`, decoupling the scanner from CLI output concerns (`reportTitle`, `outputDir`).
+- **Report count consistency**: Markdown and HTML stale candidate counts now exclude wildcard (`*`) usages, matching the CLI summary.
 
 ## [0.2.1] - 2026-05-23
 

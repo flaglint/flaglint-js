@@ -8,17 +8,17 @@ import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { formatReport } from "../reporter/index.js";
 import { loadConfig } from "../config.js";
-import type { ReporterOptions } from "../types.js";
+import type { ReportFormat, ReporterOptions } from "../types.js";
 import { isStale } from "../types.js";
 
-const VALID_FORMATS = ["json", "markdown", "html"];
+const VALID_FORMATS: ReportFormat[] = ["json", "markdown", "html", "sarif"];
 
 export function registerScanCommand(program: Command): void {
   program
     .command("scan")
     .description("Scan a directory for feature flag usages and detect stale flags")
     .argument("[dir]", "directory to scan", process.cwd())
-    .option("-f, --format <format>", "output format: json | markdown | html", "markdown")
+    .option("-f, --format <format>", "output format: json | markdown | html | sarif", "markdown")
     .option("-o, --output <file>", "write report to file")
     .option("-c, --config <path>", "path to .flaglintrc config file")
     .option("--exclude-tests", "exclude test files (*.test.*, *.spec.*, __tests__/, tests/)")
@@ -29,13 +29,14 @@ Examples:
   $ flaglint scan                    scan current directory
   $ flaglint scan ./src              scan specific directory
   $ flaglint scan --format json      output as JSON
+  $ flaglint scan --format sarif     output as SARIF for GitHub Code Scanning
   $ flaglint scan --output report.md save to file
   $ flaglint scan --exclude-tests    skip test and spec files`
     )
     .action(
       async (dir: string, options: { format: string; output?: string; config?: string; excludeTests?: boolean }) => {
         // Validate format before doing any I/O
-        if (!VALID_FORMATS.includes(options.format)) {
+        if (!(VALID_FORMATS as readonly string[]).includes(options.format)) {
           process.stderr.write(
             chalk.red(
               `Error: Invalid format '${options.format}'. Must be one of: ${VALID_FORMATS.join(", ")}\n`
