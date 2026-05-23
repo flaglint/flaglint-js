@@ -1,4 +1,6 @@
 import type { FlagUsage, ReporterOptions, ScanResult } from "../types.js";
+import { isStale } from "../types.js";
+import { staleReason } from "../stale.js";
 
 declare const __PKG_VERSION__: string;
 
@@ -10,15 +12,6 @@ function esc(s: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
-}
-
-function staleReason(u: FlagUsage): string {
-  if (/\.(test|spec|mock)\.[jt]sx?$/.test(u.file)) return "Located in test file";
-  if (/\/deprecated\/|\/old\/|\/legacy\//.test(u.file)) return "Located in deprecated path";
-  const kw = ["old", "deprecated", "legacy", "temp", "tmp", "test", "demo"].find((k) =>
-    u.flagKey.toLowerCase().includes(k)
-  );
-  return kw ? `Contains "${kw}" in key` : "Flagged as stale";
 }
 
 type FlagEntry = {
@@ -38,7 +31,7 @@ function buildFlagMap(usages: FlagUsage[]): Map<string, FlagEntry> {
     entry.usages.push(u);
     entry.files.add(u.file);
     entry.callTypes.add(u.callType);
-    if (u.isStale) entry.isStale = true;
+    if (isStale(u)) entry.isStale = true;
   }
   return map;
 }
@@ -54,7 +47,7 @@ function sortedFlagEntries(map: Map<string, FlagEntry>): [string, FlagEntry][] {
 
 function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
   const { scannedFiles, totalUsages, uniqueFlags, usages, scanDurationMs } = result;
-  const staleUsages = usages.filter((u) => u.isStale);
+  const staleUsages = usages.filter(isStale);
   const dynamicUsages = usages.filter((u) => u.isDynamic);
 
   const flagMap = buildFlagMap(usages);
@@ -105,7 +98,7 @@ function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
     lines.push("| Flag Key | Reason | Location |");
     lines.push("|----------|--------|----------|");
     for (const [key, data] of staleFlags) {
-      const first = data.usages.find((u) => u.isStale) ?? data.usages[0]!;
+      const first = data.usages.find(isStale) ?? data.usages[0]!;
       lines.push(`| ${key} | ${staleReason(first)} | ${first.file}:${first.line} |`);
     }
     lines.push("");
@@ -136,7 +129,7 @@ function formatJSON(result: ScanResult): string {
 
 function formatHTML(result: ScanResult, options: ReporterOptions): string {
   const { scannedFiles, totalUsages, uniqueFlags, usages, scanDurationMs } = result;
-  const staleCount = new Set(usages.filter((u) => u.isStale).map((u) => u.flagKey)).size;
+  const staleCount = new Set(usages.filter(isStale).map((u) => u.flagKey)).size;
   const dynamicCount = usages.filter((u) => u.isDynamic).length;
   const date = new Date().toLocaleString();
 

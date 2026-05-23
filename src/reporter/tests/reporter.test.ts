@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { formatReport } from "../index.js";
 import type { FlagUsage, ScanResult } from "../../types.js";
+import { isStale } from "../../types.js";
 
 const staleUsage: FlagUsage = {
   flagKey: "old-flag",
@@ -9,7 +10,7 @@ const staleUsage: FlagUsage = {
   line: 5,
   column: 0,
   callType: "variation",
-  isStale: true,
+  stalenessSignals: [{ source: "keyword", keyword: "old" }],
 };
 
 const activeUsage: FlagUsage = {
@@ -19,7 +20,7 @@ const activeUsage: FlagUsage = {
   line: 10,
   column: 0,
   callType: "variation",
-  isStale: false,
+  stalenessSignals: [],
 };
 
 const dynamicUsage: FlagUsage = {
@@ -29,7 +30,7 @@ const dynamicUsage: FlagUsage = {
   line: 3,
   column: 0,
   callType: "variation",
-  isStale: false,
+  stalenessSignals: [],
 };
 
 const resultWithStale: ScanResult = {
@@ -96,7 +97,7 @@ describe("reporter — markdown format", () => {
       line: 20,
       column: 0,
       callType: "variation",
-      isStale: true,
+      stalenessSignals: [{ source: "keyword", keyword: "old" }],
     };
     const result: ScanResult = {
       scannedFiles: 2,

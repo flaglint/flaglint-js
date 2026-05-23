@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "fs";
+import { readFile, access } from "fs/promises";
 import { resolve } from "path";
 import { z, ZodError } from "zod";
 
@@ -17,7 +17,8 @@ export const FlagLintConfigSchema = z.object({
   provider: z
     .enum(["launchdarkly", "unleash", "growthbook", "custom"])
     .default("launchdarkly"),
-  staleThreshold: z.number().int().min(0).default(1),
+  // TODO v0.3: replace minFileCount with real date-based staleness via git log
+  minFileCount: z.number().int().min(0).default(1),
   reportTitle: z.string().optional(),
   outputDir: z.string().default("."),
 });
@@ -26,16 +27,20 @@ export type FlagLintConfig = z.infer<typeof FlagLintConfigSchema>;
 
 const SEARCH_PATHS = [".flaglintrc", ".flaglintrc.json", "flaglint.config.json"];
 
-export function loadConfig(configPath?: string): FlagLintConfig {
+export async function loadConfig(configPath?: string): Promise<FlagLintConfig> {
   const candidates = configPath ? [configPath] : SEARCH_PATHS;
 
   for (const candidate of candidates) {
     const full = resolve(candidate);
-    if (!existsSync(full)) continue;
+    try {
+      await access(full);
+    } catch {
+      continue;
+    }
 
     let raw: unknown;
     try {
-      raw = JSON.parse(readFileSync(full, "utf8"));
+      raw = JSON.parse(await readFile(full, "utf8"));
     } catch (err) {
       throw new Error(`Error reading ${candidate}: ${String(err)}`);
     }
