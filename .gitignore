@@ -10,7 +10,7 @@ coverage/
 
 # Strategy and business docs — never commit
 VISION.md
-Company.vision.md
+company-vision.md
 *.vision.md
 
 # Content docs — local only
