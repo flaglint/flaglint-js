@@ -41,10 +41,6 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "agent": "tsx scripts/agent/agent.ts",
-    "agent:launch": "tsx scripts/agent/agent.ts launch",
-    "agent:parallel": "tsx scripts/agent/agent.ts parallel",
-    "agent:sync": "tsx scripts/agent/agent.ts sync-docs",
     "release:patch": "tsx scripts/release.ts patch",
     "release:minor": "tsx scripts/release.ts minor",
     "release:major": "tsx scripts/release.ts major"
