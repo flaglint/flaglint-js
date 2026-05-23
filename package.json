@@ -41,6 +41,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "new-branch": "tsx scripts/new-branch.ts",
     "release:patch": "tsx scripts/release.ts patch",
     "release:minor": "tsx scripts/release.ts minor",
     "release:major": "tsx scripts/release.ts major"
