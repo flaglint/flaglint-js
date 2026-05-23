@@ -58,23 +58,21 @@ Examples:
           process.exit(1);
         }
 
-        if (options.excludeTests) {
-          config.exclude.push(
-            "**/*.test.ts",
-            "**/*.test.tsx",
-            "**/*.spec.ts",
-            "**/*.spec.tsx",
-            "**/__tests__/**",
-            "**/tests/**"
-          );
-        }
+        const TEST_PATTERNS = [
+          "**/*.test.ts", "**/*.test.tsx",
+          "**/*.spec.ts", "**/*.spec.tsx",
+          "**/__tests__/**", "**/tests/**",
+        ];
+        const scanConfig = options.excludeTests
+          ? { ...config, exclude: [...config.exclude, ...TEST_PATTERNS] }
+          : config;
 
         const spinner = ora(`Scanning ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
 
         let scanResult;
         try {
-          scanResult = await scan(new LocalFileSource(dir), config, (filesScanned) => {
+          scanResult = await scan(new LocalFileSource(dir), scanConfig, (filesScanned) => {
             spinner.text = `Scanning files... ${filesScanned}`;
           });
           spinner.text = "Analyzing migration readiness...";
@@ -108,7 +106,10 @@ Examples:
         spinner.stop();
 
         for (const w of scanResult.warnings) {
-          process.stderr.write(chalk.yellow(w + "\n"));
+          const msg = w.kind === "read-failure"
+            ? `warn: could not read ${w.file} (${w.fsCode})`
+            : `warn: failed to parse ${w.file}`;
+          process.stderr.write(chalk.yellow(msg + "\n"));
         }
 
         const { readinessScore } = analysis;

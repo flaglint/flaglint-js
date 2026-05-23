@@ -26,6 +26,11 @@ export const FlagLintConfigSchema = z.object({
 
 export type FlagLintConfig = z.infer<typeof FlagLintConfigSchema>;
 
+// Scan-relevant config only — the subset scan() needs. CLI output fields
+// (reportTitle, outputDir) are stripped so the Cloud can pass its own config
+// without dummy values for fields that have no meaning outside the CLI.
+export type ScanConfig = Pick<FlagLintConfig, "include" | "exclude" | "provider" | "minFileCount" | "wrappers">;
+
 const SEARCH_PATHS = [".flaglintrc", ".flaglintrc.json", "flaglint.config.json"];
 
 export async function loadConfig(configPath?: string): Promise<FlagLintConfig> {
