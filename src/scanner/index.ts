@@ -54,7 +54,7 @@ function walk(root: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) 
   }
 }
 
-function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
+function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[]): FlagUsage[] {
   const usages: FlagUsage[] = [];
 
   walk(ast, (node) => {
@@ -133,6 +133,27 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
           });
           return;
         }
+      }
+
+      // Wrapper function detection — e.g. flagPredicate('my-flag', false)
+      if (
+        wrappers.length > 0 &&
+        callee.type === "Identifier" &&
+        wrappers.includes((callee as TSESTree.Identifier).name) &&
+        call.arguments.length >= 1
+      ) {
+        const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
+        const sig = checkStale(flagKey, filePath);
+        usages.push({
+          flagKey,
+          isDynamic,
+          file: filePath,
+          line: loc.line,
+          column: loc.column,
+          callType: "variation",
+          stalenessSignals: sig ? [sig] : [],
+        });
+        return;
       }
 
       // withLDConsumer()(...) — callee is itself a CallExpression
@@ -215,12 +236,13 @@ export async function scan(
         range: false,
         comment: false,
         tokens: false,
+        filePath: file,
       });
     } catch {
       return { usages: [], warning: `warn: failed to parse ${file}` };
     }
 
-    return { usages: detectUsages(ast, file), warning: null };
+    return { usages: detectUsages(ast, file, config.wrappers), warning: null };
   }
 
   const limit = pLimit(50);

@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-05-23
+
+### Fixed
+
+- **Parse failure on generic TypeScript arrow functions** — `flagPredicate = <T>(...)` and similar generic arrows in `.ts` files now parse correctly. Root cause: `@typescript-eslint/typescript-estree` wasn't receiving a `filePath`, so it couldn't apply TypeScript's extension-based JSX rules. Adding `filePath` tells the compiler to treat `.ts` files as non-JSX (generics parse cleanly) and `.tsx` as JSX (LDProvider detection still works). Validated against LaunchDarkly's own docs codebase.
+
+### Added
+
+- **`wrappers` config option** — detect custom wrapper functions as flag usages. Add your wrapper names to `.flaglintrc`:
+  ```json
+  { "wrappers": ["flagPredicate", "useFlag", "getFlag", "isEnabled"] }
+  ```
+  FlagLint will treat calls to these functions as `variation`-equivalent. Supports static and dynamic flag keys. Default is `[]` — no behaviour change for existing users.
+
 ## [0.2.0] - 2026-05-22
 
 ### Breaking Changes
