@@ -6,7 +6,7 @@ coverage/
 *.log
 *.tsbuildinfo
 
-# Local environment and credentials
+# Environment and credentials
 .env
 .env.*
 !.env.example
@@ -15,15 +15,18 @@ coverage/
 # OS files
 .DS_Store
 
-# Claude tooling local state
+# Local AI / agent tooling
 .claude/
+CLAUDE.md
+scripts/agent/
+docs/agents/
+tsconfig.agent.json
 
-# Private founder/business documents
+# Private founder and strategy documents
 VISION.md
 company-vision.md
 *.vision.md
-MEMORY.md
 CONTENT.md
-
-# Generated local codebase snapshots
+MEMORY.md
+CONTEXT.md
 CODEBASE.md
