@@ -1,4 +1,19 @@
-export type { FlagLintConfig } from "./config.js";
+import type { FlagLintConfig } from "./config.js";
+export type { FlagLintConfig };
+
+export interface FileSource {
+  listFiles(include: string[], exclude: string[]): Promise<string[]>;
+  readFile(path: string): Promise<string>;
+}
+
+export type StalenessSignal =
+  | { source: "keyword"; keyword: string }
+  | { source: "path"; pattern: string }
+  | { source: "minFileCount"; fileCount: number; threshold: number };
+
+export interface StalenessEvaluator {
+  evaluate(usages: FlagUsage[], config: FlagLintConfig): Promise<void>;
+}
 
 export type CallType =
   | "variation"
@@ -13,12 +28,15 @@ export type CallType =
 export interface FlagUsage {
   flagKey: string;
   isDynamic: boolean;
+  // always relative to scan root — never an absolute path
   file: string;
   line: number;
   column: number;
   callType: CallType;
-  isStale: boolean;
+  stalenessSignals: StalenessSignal[];
 }
+
+export const isStale = (u: FlagUsage): boolean => u.stalenessSignals.length > 0;
 
 export interface ScanResult {
   scannedFiles: number;

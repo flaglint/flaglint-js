@@ -142,12 +142,29 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // Must be on main branch
+  const currentBranch = await run('git rev-parse --abbrev-ref HEAD');
+  if (currentBranch !== 'main') {
+    console.error(`Error: releases must be cut from main (currently on "${currentBranch}").`);
+    process.exit(1);
+  }
+
   // Abort if there are uncommitted changes
   const dirty = await run('git status --porcelain');
   if (dirty) {
     console.error('Error: working tree has uncommitted changes. Commit or stash them first.');
     process.exit(1);
   }
+
+  // Verify tests pass before touching any files
+  console.log('Running tests...');
+  await run('npm test');
+  console.log('Tests passed.\n');
+
+  // Verify build is clean before tagging
+  console.log('Running build...');
+  await run('npm run build');
+  console.log('Build succeeded.\n');
 
   const root = process.cwd();
   const pkgPath = join(root, 'package.json');
@@ -159,6 +176,13 @@ async function main(): Promise<void> {
   const newVersion = bumpVersion(oldVersion, bumpType);
   const tagName = `v${newVersion}`;
   const today = new Date().toISOString().split('T')[0];
+
+  // Abort if tag already exists — avoids dirty state from a mid-script failure
+  const existingTag = await run(`git tag -l ${tagName}`);
+  if (existingTag) {
+    console.error(`Error: tag ${tagName} already exists. Has this version already been released?`);
+    process.exit(1);
+  }
 
   console.log(`\nBumping ${oldVersion} → ${newVersion} (${bumpType})\n`);
 

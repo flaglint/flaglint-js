@@ -1,6 +1,6 @@
 {
   "name": "flaglint",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.",
   "type": "module",
   "bin": {
@@ -27,11 +27,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/flaglint/flagkit-cli.git"
+    "url": "https://github.com/flaglint/flaglint.git"
   },
   "homepage": "https://flaglint.dev",
   "bugs": {
-    "url": "https://github.com/flaglint/flagkit-cli/issues"
+    "url": "https://github.com/flaglint/flaglint/issues"
   },
   "scripts": {
     "build": "tsup",
@@ -56,6 +56,7 @@
     "commander": "^12.1.0",
     "fast-glob": "^3.3.2",
     "ora": "^8.1.0",
+    "p-limit": "^7.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
