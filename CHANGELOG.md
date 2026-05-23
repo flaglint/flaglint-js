@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-05-23
+
+### Tests
+
+- **P1 — unreadable file warning coverage**: added in-process tests verifying that a file failing with `EACCES` or any other fs error emits a typed `{ kind: "read-failure", fsCode }` warning and that the scan continues collecting usages from remaining files. Previously untested.
+- **P2/P1 — LD_CLIENT_PATTERN false-positive guard expanded**: added fixture `ld-false-positive-names.ts` covering `child`, `world`, `bold`, `fields` (all contain "ld" as a substring — must not be detected), and fixture `ld-client-variants.ts` covering `myClient`, `featureClient` (contain "client" — must be detected). Previously only `build` was tested.
+- **P2 — dynamic `variationDetail` migration**: confirmed existing tests cover `codeChangeBefore`, `openFeatureEquivalent`, and `codeChangeAfter` for dynamic `variationDetail` calls. No code change needed — fix was already in place.
+
 ## [0.2.2] - 2026-05-23
 
 ### Fixed
