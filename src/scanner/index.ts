@@ -1,7 +1,7 @@
 import pLimit from "p-limit";
 import { parse } from "@typescript-eslint/typescript-estree";
 import type { TSESTree } from "@typescript-eslint/types";
-import type { CallType, FileSource, FlagUsage, ScanResult, FlagLintConfig } from "../types.js";
+import type { CallType, FileSource, FlagUsage, ScanResult, ScanConfig, StalenessEvaluator, ScanWarning } from "../types.js";
 import { checkStale } from "../stale.js";
 
 const LD_MEMBER_METHODS = new Set(["variation", "variationDetail", "allFlags"]);
@@ -200,8 +200,9 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
 
 export async function scan(
   source: FileSource,
-  config: FlagLintConfig,
-  onProgress?: (filesScanned: number) => void
+  config: ScanConfig,
+  onProgress?: (filesScanned: number) => void,
+  evaluator?: StalenessEvaluator
 ): Promise<ScanResult> {
   const start = Date.now();
 
@@ -216,16 +217,16 @@ export async function scan(
   const files = await source.listFiles(config.include, config.exclude);
 
   const allUsages: FlagUsage[] = [];
-  const warnings: string[] = [];
+  const warnings: ScanWarning[] = [];
   let scannedFiles = 0;
 
-  async function processFile(file: string): Promise<{ usages: FlagUsage[]; warning: string | null }> {
+  async function processFile(file: string): Promise<{ usages: FlagUsage[]; warning: ScanWarning | null }> {
     let code: string;
     try {
       code = await source.readFile(file);
     } catch (err) {
       const fsCode = (err as NodeJS.ErrnoException).code ?? "UNKNOWN";
-      return { usages: [], warning: `warn: could not read ${file} (${fsCode})` };
+      return { usages: [], warning: { kind: "read-failure", file, fsCode } };
     }
 
     let ast: TSESTree.Program;
@@ -239,7 +240,7 @@ export async function scan(
         filePath: file,
       });
     } catch {
-      return { usages: [], warning: `warn: failed to parse ${file}` };
+      return { usages: [], warning: { kind: "parse-failure", file } };
     }
 
     return { usages: detectUsages(ast, file, config.wrappers), warning: null };
@@ -284,6 +285,10 @@ export async function scan(
         }
       }
     }
+  }
+
+  if (evaluator) {
+    await evaluator.evaluate(allUsages, config);
   }
 
   const uniqueFlags = [

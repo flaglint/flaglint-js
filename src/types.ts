@@ -1,5 +1,5 @@
-import type { FlagLintConfig } from "./config.js";
-export type { FlagLintConfig };
+import type { FlagLintConfig, ScanConfig } from "./config.js";
+export type { FlagLintConfig, ScanConfig };
 
 export interface FileSource {
   listFiles(include: string[], exclude: string[]): Promise<string[]>;
@@ -12,8 +12,12 @@ export type StalenessSignal =
   | { source: "minFileCount"; fileCount: number; threshold: number };
 
 export interface StalenessEvaluator {
-  evaluate(usages: FlagUsage[], config: FlagLintConfig): Promise<void>;
+  evaluate(usages: FlagUsage[], config: ScanConfig): Promise<void>;
 }
+
+export type ScanWarning =
+  | { kind: "read-failure"; file: string; fsCode: string }
+  | { kind: "parse-failure"; file: string };
 
 export type CallType =
   | "variation"
@@ -44,7 +48,7 @@ export interface ScanResult {
   uniqueFlags: string[];
   usages: FlagUsage[];
   scanDurationMs: number;
-  warnings: readonly string[];
+  warnings: readonly ScanWarning[];
 }
 
 export interface ScanOptions {

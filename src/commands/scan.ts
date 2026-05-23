@@ -72,16 +72,14 @@ Examples:
           process.exit(1);
         }
 
-        if (options.excludeTests) {
-          config.exclude.push(
-            "**/*.test.ts",
-            "**/*.test.tsx",
-            "**/*.spec.ts",
-            "**/*.spec.tsx",
-            "**/__tests__/**",
-            "**/tests/**"
-          );
-        }
+        const TEST_PATTERNS = [
+          "**/*.test.ts", "**/*.test.tsx",
+          "**/*.spec.ts", "**/*.spec.tsx",
+          "**/__tests__/**", "**/tests/**",
+        ];
+        const scanConfig = options.excludeTests
+          ? { ...config, exclude: [...config.exclude, ...TEST_PATTERNS] }
+          : config;
 
         const format = options.format as ReporterOptions["format"];
         const spinner = ora(`Scanning ${dir}...`).start();
@@ -90,7 +88,7 @@ Examples:
 
         let result;
         try {
-          result = await scan(new LocalFileSource(dir), config, (filesScanned) => {
+          result = await scan(new LocalFileSource(dir), scanConfig, (filesScanned) => {
             if (filesScanned - lastSpinnerUpdate >= 50) {
               spinner.text = `Scanning... (${filesScanned} files)`;
               lastSpinnerUpdate = filesScanned;
@@ -104,7 +102,10 @@ Examples:
         }
 
         for (const w of result.warnings) {
-          process.stderr.write(chalk.yellow(w + "\n"));
+          const msg = w.kind === "read-failure"
+            ? `warn: could not read ${w.file} (${w.fsCode})`
+            : `warn: failed to parse ${w.file}`;
+          process.stderr.write(chalk.yellow(msg + "\n"));
         }
 
         // Guard: no matching files
