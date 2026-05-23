@@ -1,20 +1,32 @@
-# Build outputs
+# Dependencies and build outputs
 node_modules/
 dist/
 coverage/
 *.tgz
 *.log
+*.tsbuildinfo
 
-# Claude tooling (local only)
+# Environment and credentials
+.env
+.env.*
+!.env.example
+.npmrc
+
+# OS files
+.DS_Store
+
+# Local AI / agent tooling
 .claude/
+CLAUDE.md
+scripts/agent/
+docs/agents/
+tsconfig.agent.json
 
-# Strategy and business docs — never commit
+# Private founder and strategy documents
 VISION.md
 company-vision.md
 *.vision.md
-
-# Content docs — local only
-CONTEXT.md
 CONTENT.md
+MEMORY.md
+CONTEXT.md
 CODEBASE.md
-
