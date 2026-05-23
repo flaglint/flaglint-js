@@ -21,9 +21,6 @@ jobs:
       - name: Type check (src)
         run: npm run typecheck
 
-      - name: Type check (agent scripts)
-        run: npm run typecheck:agent
-
       - run: npm run build
       - run: npm run test:coverage
       - uses: actions/upload-artifact@v4

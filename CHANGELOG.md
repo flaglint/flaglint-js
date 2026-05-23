@@ -14,6 +14,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **StalenessEvaluator wired**: The `StalenessEvaluator` interface now has a call site in `scan()` — pass an `evaluator` to inject API-based staleness signals without touching core scanner logic.
 - **ScanConfig boundary**: `scan()` now accepts `ScanConfig` (scan-relevant fields only) rather than the full `FlagLintConfig`, decoupling the scanner from CLI output concerns (`reportTitle`, `outputDir`).
 
+## [0.2.2] - 2026-05-23
+
+### Fixed
+
+- **Config mutation**: `--exclude-tests` no longer mutates the loaded config object in both `scan` and `migrate` commands — uses spread instead of `push()` so the original config is never modified.
+- **Typed scan warnings**: `ScanResult.warnings` is now a typed `ScanWarning` union (`read-failure` | `parse-failure`) instead of opaque strings, preserving structured data at the domain boundary.
+- **StalenessEvaluator wired**: The `StalenessEvaluator` interface now has a call site in `scan()` — pass an `evaluator` to inject API-based staleness signals without touching core scanner logic.
+- **ScanConfig boundary**: `scan()` now accepts `ScanConfig` (scan-relevant fields only) rather than the full `FlagLintConfig`, decoupling the scanner from CLI output concerns (`reportTitle`, `outputDir`).
+
+## [0.2.1] - 2026-05-23
+
+### Fixed
+
+- **Parse failure on generic TypeScript arrow functions** — `flagPredicate = <T>(...)` and similar generic arrows in `.ts` files now parse correctly. Root cause: `@typescript-eslint/typescript-estree` wasn't receiving a `filePath`, so it couldn't apply TypeScript's extension-based JSX rules. Adding `filePath` tells the compiler to treat `.ts` files as non-JSX (generics parse cleanly) and `.tsx` as JSX (LDProvider detection still works). Validated against LaunchDarkly's own docs codebase.
+
+### Added
+
+- **`wrappers` config option** — detect custom wrapper functions as flag usages. Add your wrapper names to `.flaglintrc`:
+  ```json
+  { "wrappers": ["flagPredicate", "useFlag", "getFlag", "isEnabled"] }
+  ```
+  FlagLint will treat calls to these functions as `variation`-equivalent. Supports static and dynamic flag keys. Default is `[]` — no behaviour change for existing users.
+
 ## [0.2.0] - 2026-05-22
 
 ### Breaking Changes

@@ -19,6 +19,7 @@ export const FlagLintConfigSchema = z.object({
     .default("launchdarkly"),
   // TODO v0.3: replace minFileCount with real date-based staleness via git log
   minFileCount: z.number().int().min(0).default(1),
+  wrappers: z.array(z.string()).default([]),
   reportTitle: z.string().optional(),
   outputDir: z.string().default("."),
 });
@@ -28,7 +29,7 @@ export type FlagLintConfig = z.infer<typeof FlagLintConfigSchema>;
 // Scan-relevant config only — the subset scan() needs. CLI output fields
 // (reportTitle, outputDir) are stripped so the Cloud can pass its own config
 // without dummy values for fields that have no meaning outside the CLI.
-export type ScanConfig = Pick<FlagLintConfig, "include" | "exclude" | "provider" | "minFileCount">;
+export type ScanConfig = Pick<FlagLintConfig, "include" | "exclude" | "provider" | "minFileCount" | "wrappers">;
 
 const SEARCH_PATHS = [".flaglintrc", ".flaglintrc.json", "flaglint.config.json"];
 

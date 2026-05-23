@@ -1,6 +1,6 @@
 {
   "name": "flaglint",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.",
   "type": "module",
   "bin": {
@@ -41,6 +41,7 @@
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "new-branch": "tsx scripts/new-branch.ts",
     "release:patch": "tsx scripts/release.ts patch",
     "release:minor": "tsx scripts/release.ts minor",
     "release:major": "tsx scripts/release.ts major"
