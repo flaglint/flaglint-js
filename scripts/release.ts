@@ -157,9 +157,14 @@ async function main(): Promise<void> {
   }
 
   // Verify tests pass before touching any files
-  console.log('Running tests...');
-  await run('npm test');
-  console.log('Tests passed.\n');
+console.log('Running typecheck...');
+await run('npm run typecheck');
+console.log('Typecheck passed.\n');
+
+console.log('Running tests...');
+await run('npm run test:run');
+console.log('Tests passed.\n');
+
 
   // Verify build is clean before tagging
   console.log('Running build...');
@@ -169,6 +174,7 @@ async function main(): Promise<void> {
   const root = process.cwd();
   const pkgPath = join(root, 'package.json');
   const changelogPath = join(root, 'CHANGELOG.md');
+  const lockPath = join(root, 'package-lock.json');
 
   // Read current version
   const pkg = JSON.parse(await readFile(pkgPath, 'utf8')) as { version: string; [k: string]: unknown };
@@ -199,11 +205,28 @@ async function main(): Promise<void> {
   pkg.version = newVersion;
   await writeFile(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 
+
+  // Keep package-lock.json version metadata aligned with package.json
+  const lock = JSON.parse(await readFile(lockPath, 'utf8')) as {
+    version?: string;
+    packages?: Record<string, { version?: string }>;
+    [key: string]: unknown;
+  };
+
+  lock.version = newVersion;
+
+  if (lock.packages?.['']) {
+    lock.packages[''].version = newVersion;
+  }
+
+  await writeFile(lockPath, JSON.stringify(lock, null, 2) + '\n');
+
   // Update CHANGELOG.md
   await prependChangelog(changelogPath, entry);
 
   // Commit and tag
   await run('git add package.json CHANGELOG.md');
+  await run('git add package.json package-lock.json CHANGELOG.md');
   await run(`git commit -m "chore: release ${tagName}"`);
   await run(`git tag -a ${tagName} -m "Release ${tagName}"`);
 
