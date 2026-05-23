@@ -118,6 +118,7 @@ Create `.flaglintrc` in your project root:
 | `exclude` | `string[]` | `["**/node_modules/**", ...]` | Glob patterns to ignore |
 | `provider` | `string` | `"launchdarkly"` | Feature flag provider |
 | `minFileCount` | `number` | `1` | A flag is stale if it appears in ≤ N files (default: 1) |
+| `wrappers` | `string[]` | `[]` | Function names that wrap LD SDK calls. FlagLint will detect calls to these functions as flag usages. Example: `["flagPredicate", "useFlag", "getFlag", "isEnabled"]` |
 | `reportTitle` | `string` | — | Custom title for generated reports |
 | `outputDir` | `string` | `"."` | Default output directory |
 

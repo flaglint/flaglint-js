@@ -244,6 +244,66 @@ describe("scanner — LD_CLIENT_PATTERN false positive guard", () => {
   });
 });
 
+describe("scanner — generic arrow function parse fix", () => {
+  it("parses generic arrow function in .ts file without warnings", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-generic-ts.ts"));
+    expect(result.warnings).toHaveLength(0);
+    expect(result.scannedFiles).toBe(1);
+  });
+});
+
+describe("scanner — wrapper functions", () => {
+  it("detects wrapper function calls when wrappers config is set", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts"],
+      exclude: [],
+      wrappers: ["flagPredicate"],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.uniqueFlags).toContain("show-banner");
+    expect(result.uniqueFlags).toContain("enable-dark-mode");
+    expect(result.totalUsages).toBe(3);
+    const dynamic = result.usages.find((u) => u.isDynamic);
+    expect(dynamic).toBeDefined();
+  });
+
+  it("does not detect wrapper calls when wrappers config is empty", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts"],
+      exclude: [],
+      wrappers: [],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.uniqueFlags).not.toContain("show-banner");
+    expect(result.totalUsages).toBe(0);
+  });
+
+  it("wrapper static key appears in uniqueFlags", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts"],
+      exclude: [],
+      wrappers: ["flagPredicate"],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.uniqueFlags).toContain("show-banner");
+    expect(result.uniqueFlags).toContain("enable-dark-mode");
+    expect(result.uniqueFlags).not.toContain("dynamic");
+  });
+
+  it("wrapper dynamic key is not added to uniqueFlags", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts"],
+      exclude: [],
+      wrappers: ["flagPredicate"],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    const dynamic = result.usages.find((u) => u.isDynamic);
+    expect(dynamic).toBeDefined();
+    expect(dynamic!.callType).toBe("variation");
+    expect(result.uniqueFlags).not.toContain("dynamic");
+  });
+});
+
 describe("scanner — path-traversal protection", () => {
   it("throws on include pattern starting with '..'", async () => {
     const config = FlagLintConfigSchema.parse({ include: ["../../../etc/**"], exclude: [] });
