@@ -1,20 +1,29 @@
-# Build outputs
+# Dependencies and build outputs
 node_modules/
 dist/
 coverage/
 *.tgz
 *.log
+*.tsbuildinfo
 
-# Claude tooling (local only)
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+.npmrc
+
+# OS files
+.DS_Store
+
+# Claude tooling local state
 .claude/
 
-# Strategy and business docs — never commit
+# Private founder/business documents
 VISION.md
 company-vision.md
 *.vision.md
-
-# Content docs — local only
-CONTEXT.md
+MEMORY.md
 CONTENT.md
-CODEBASE.md
 
+# Generated local codebase snapshots
+CODEBASE.md
