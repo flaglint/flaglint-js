@@ -304,6 +304,39 @@ describe("scanner — wrapper functions", () => {
   });
 });
 
+describe("scanner — unreadable file warning (P1)", () => {
+  it("emits a read-failure warning and continues scanning readable files", async () => {
+    const readable = "ldClient.variation('show-banner', ctx, false);";
+    const source: import("../../types.js").FileSource = {
+      listFiles: async () => ["readable.ts", "unreadable.ts"],
+      readFile: async (file) => {
+        if (file === "unreadable.ts") {
+          const err = new Error("permission denied") as NodeJS.ErrnoException;
+          err.code = "EACCES";
+          throw err;
+        }
+        return readable;
+      },
+    };
+    const config = FlagLintConfigSchema.parse({ include: ["*.ts"], exclude: [] });
+    const result = await scan(source, config);
+    expect(result.warnings).toHaveLength(1);
+    expect(result.warnings[0]).toMatchObject({ kind: "read-failure", file: "unreadable.ts", fsCode: "EACCES" });
+    expect(result.usages).toHaveLength(1);
+    expect(result.uniqueFlags).toContain("show-banner");
+  });
+
+  it("emits UNKNOWN fsCode when error has no code property", async () => {
+    const source: import("../../types.js").FileSource = {
+      listFiles: async () => ["bad.ts"],
+      readFile: async () => { throw new Error("weird error"); },
+    };
+    const config = FlagLintConfigSchema.parse({ include: ["*.ts"], exclude: [] });
+    const result = await scan(source, config);
+    expect(result.warnings[0]).toMatchObject({ kind: "read-failure", fsCode: "UNKNOWN" });
+  });
+});
+
 describe("scanner — path-traversal protection", () => {
   it("throws on include pattern starting with '..'", async () => {
     const config = FlagLintConfigSchema.parse({ include: ["../../../etc/**"], exclude: [] });
