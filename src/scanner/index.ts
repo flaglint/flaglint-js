@@ -1,17 +1,13 @@
-import { readFile } from "fs/promises";
-import { relative } from "path";
-import fg from "fast-glob";
+import pLimit from "p-limit";
 import { parse } from "@typescript-eslint/typescript-estree";
 import type { TSESTree } from "@typescript-eslint/types";
-import type { CallType, FlagUsage, ScanResult, FlagLintConfig } from "../types.js";
+import type { CallType, FileSource, FlagUsage, ScanResult, FlagLintConfig } from "../types.js";
+import { checkStale } from "../stale.js";
 
 const LD_MEMBER_METHODS = new Set(["variation", "variationDetail", "allFlags"]);
-const LD_CLIENT_PATTERN = /ld|client/i;
+const LD_CLIENT_PATTERN = /^ld|client/i;
 const LD_HOOKS = new Set(["useFlags", "useLDClient"]);
-const STALE_KEY_WORDS = ["old", "deprecated", "legacy", "temp", "tmp", "test", "demo"];
-const STALE_FILE_RE = /\.(test|spec|mock)\.[jt]sx?$/;
-const STALE_PATH_RE = /\/deprecated\/|\/old\/|\/legacy\//;
-const DEFAULT_EXCLUDE = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.next/**"];
+export const DEFAULT_EXCLUDE = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.next/**"];
 
 function extractFlagKey(arg: TSESTree.Node | undefined): { flagKey: string; isDynamic: boolean } {
   if (!arg) return { flagKey: "dynamic", isDynamic: true };
@@ -31,27 +27,29 @@ function extractFlagKey(arg: TSESTree.Node | undefined): { flagKey: string; isDy
   return { flagKey: "dynamic", isDynamic: true };
 }
 
-function checkStale(flagKey: string, filePath: string): boolean {
-  if (STALE_FILE_RE.test(filePath)) return true;
-  if (STALE_PATH_RE.test(filePath)) return true;
-  const lk = flagKey.toLowerCase();
-  return STALE_KEY_WORDS.some((kw) => lk.includes(kw));
-}
-
-function walk(node: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) => void): void {
-  if (!node || typeof node !== "object") return;
-  visit(node);
-  for (const key of Object.keys(node)) {
-    if (key === "parent") continue;
-    const val = (node as unknown as Record<string, unknown>)[key];
-    if (Array.isArray(val)) {
-      for (const item of val) {
-        if (item && typeof item === "object" && "type" in item) {
-          walk(item as TSESTree.Node, visit);
+function walk(root: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) => void): void {
+  if (!root || typeof root !== "object") return;
+  const stack: TSESTree.Node[] = [root];
+  while (stack.length > 0) {
+    const node = stack.pop()!;
+    visit(node);
+    const children: TSESTree.Node[] = [];
+    for (const key of Object.keys(node)) {
+      if (key === "parent") continue;
+      const val = (node as unknown as Record<string, unknown>)[key];
+      if (Array.isArray(val)) {
+        for (const item of val) {
+          if (item && typeof item === "object" && "type" in item) {
+            children.push(item as TSESTree.Node);
+          }
         }
+      } else if (val && typeof val === "object" && "type" in val) {
+        children.push(val as TSESTree.Node);
       }
-    } else if (val && typeof val === "object" && "type" in val) {
-      walk(val as TSESTree.Node, visit);
+    }
+    // Push in reverse so pop() processes children in original Object.keys() order
+    for (let i = children.length - 1; i >= 0; i--) {
+      stack.push(children[i]!);
     }
   }
 }
@@ -76,6 +74,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
       ) {
         const method = (callee.property as TSESTree.Identifier).name as CallType;
         if (method === "allFlags") {
+          const sig = checkStale("*", filePath);
           usages.push({
             flagKey: "*",
             isDynamic: false,
@@ -83,10 +82,11 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
             line: loc.line,
             column: loc.column,
             callType: "allFlags",
-            isStale: checkStale("*", filePath),
+            stalenessSignals: sig ? [sig] : [],
           });
         } else {
           const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
+          const sig = checkStale(flagKey, filePath);
           usages.push({
             flagKey,
             isDynamic,
@@ -94,7 +94,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
             line: loc.line,
             column: loc.column,
             callType: method,
-            isStale: checkStale(flagKey, filePath),
+            stalenessSignals: sig ? [sig] : [],
           });
         }
         return;
@@ -106,6 +106,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
         // isFeatureEnabled(flagKey, ...)
         if (name === "isFeatureEnabled") {
           const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
+          const sig = checkStale(flagKey, filePath);
           usages.push({
             flagKey,
             isDynamic,
@@ -113,13 +114,14 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
             line: loc.line,
             column: loc.column,
             callType: "isFeatureEnabled",
-            isStale: checkStale(flagKey, filePath),
+            stalenessSignals: sig ? [sig] : [],
           });
           return;
         }
 
         // useFlags() / useLDClient()
         if (LD_HOOKS.has(name)) {
+          const sig = checkStale("*", filePath);
           usages.push({
             flagKey: "*",
             isDynamic: false,
@@ -127,7 +129,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
             line: loc.line,
             column: loc.column,
             callType: name === "useFlags" ? "hook-useFlags" : "hook-useLDClient",
-            isStale: checkStale("*", filePath),
+            stalenessSignals: sig ? [sig] : [],
           });
           return;
         }
@@ -139,6 +141,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
         (callee as TSESTree.CallExpression).callee.type === "Identifier" &&
         ((callee as TSESTree.CallExpression).callee as TSESTree.Identifier).name === "withLDConsumer"
       ) {
+        const sig = checkStale("*", filePath);
         usages.push({
           flagKey: "*",
           isDynamic: false,
@@ -146,7 +149,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
           line: loc.line,
           column: loc.column,
           callType: "hoc",
-          isStale: checkStale("*", filePath),
+          stalenessSignals: sig ? [sig] : [],
         });
         return;
       }
@@ -157,6 +160,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
       const jsx = node as TSESTree.JSXOpeningElement;
       if (jsx.name.type === "JSXIdentifier" && (jsx.name as TSESTree.JSXIdentifier).name === "LDProvider") {
         const loc = jsx.loc?.start ?? { line: 0, column: 0 };
+        const sigP = checkStale("*", filePath);
         usages.push({
           flagKey: "*",
           isDynamic: false,
@@ -164,7 +168,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
           line: loc.line,
           column: loc.column,
           callType: "provider",
-          isStale: checkStale("*", filePath),
+          stalenessSignals: sigP ? [sigP] : [],
         });
       }
     }
@@ -174,7 +178,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string): FlagUsage[] {
 }
 
 export async function scan(
-  dir: string,
+  source: FileSource,
   config: FlagLintConfig,
   onProgress?: (filesScanned: number) => void
 ): Promise<ScanResult> {
@@ -188,26 +192,19 @@ export async function scan(
     }
   }
 
-  const files = await fg(config.include, {
-    cwd: dir,
-    absolute: true,
-    ignore: [...DEFAULT_EXCLUDE, ...config.exclude],
-    onlyFiles: true,
-  });
+  const files = await source.listFiles(config.include, config.exclude);
 
   const allUsages: FlagUsage[] = [];
   const warnings: string[] = [];
   let scannedFiles = 0;
 
-  for (const file of files) {
-    scannedFiles++;
-    onProgress?.(scannedFiles);
-
+  async function processFile(file: string): Promise<{ usages: FlagUsage[]; warning: string | null }> {
     let code: string;
     try {
-      code = await readFile(file, "utf8");
-    } catch {
-      continue;
+      code = await source.readFile(file);
+    } catch (err) {
+      const fsCode = (err as NodeJS.ErrnoException).code ?? "UNKNOWN";
+      return { usages: [], warning: `warn: could not read ${file} (${fsCode})` };
     }
 
     let ast: TSESTree.Program;
@@ -220,14 +217,30 @@ export async function scan(
         tokens: false,
       });
     } catch {
-      warnings.push(`warn: failed to parse ${relative(dir, file)}`);
-      continue;
+      return { usages: [], warning: `warn: failed to parse ${file}` };
     }
 
-    allUsages.push(...detectUsages(ast, file));
+    return { usages: detectUsages(ast, file), warning: null };
   }
 
-  if (config.staleThreshold > 0) {
+  const limit = pLimit(50);
+
+  const results = await Promise.all(
+    files.map((file) =>
+      limit(async () => {
+        scannedFiles++;
+        onProgress?.(scannedFiles);
+        return processFile(file);
+      })
+    )
+  );
+
+  for (const r of results) {
+    allUsages.push(...r.usages);
+    if (r.warning) warnings.push(r.warning);
+  }
+
+  if (config.minFileCount > 0) {
     const flagFileCount = new Map<string, Set<string>>();
     for (const usage of allUsages) {
       if (!usage.isDynamic && usage.flagKey !== "*") {
@@ -240,8 +253,12 @@ export async function scan(
     for (const usage of allUsages) {
       if (!usage.isDynamic && usage.flagKey !== "*") {
         const fileCount = flagFileCount.get(usage.flagKey)?.size ?? 0;
-        if (fileCount <= config.staleThreshold) {
-          usage.isStale = true;
+        if (fileCount <= config.minFileCount) {
+          usage.stalenessSignals.push({
+            source: "minFileCount",
+            fileCount,
+            threshold: config.minFileCount,
+          });
         }
       }
     }

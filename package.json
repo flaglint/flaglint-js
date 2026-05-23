@@ -1,6 +1,6 @@
 {
   "name": "flaglint",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Find stale feature flags. Detect flag debt. Plan your OpenFeature migration.",
   "type": "module",
   "bin": {
@@ -56,6 +56,7 @@
     "commander": "^12.1.0",
     "fast-glob": "^3.3.2",
     "ora": "^8.1.0",
+    "p-limit": "^7.3.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {

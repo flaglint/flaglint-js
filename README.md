@@ -107,7 +107,7 @@ Create `.flaglintrc` in your project root:
   "include": ["**/*.{ts,tsx,js,jsx}"],
   "exclude": ["**/node_modules/**", "**/dist/**"],
   "provider": "launchdarkly",
-  "staleThreshold": 1,
+  "minFileCount": 1,
   "reportTitle": "My Project Flag Report"
 }
 ```
@@ -117,7 +117,7 @@ Create `.flaglintrc` in your project root:
 | `include` | `string[]` | `["**/*.{ts,tsx,js,jsx}"]` | Glob patterns to scan |
 | `exclude` | `string[]` | `["**/node_modules/**", ...]` | Glob patterns to ignore |
 | `provider` | `string` | `"launchdarkly"` | Feature flag provider |
-| `staleThreshold` | `number` | `1` | Days before a flag is considered stale |
+| `minFileCount` | `number` | `1` | A flag is stale if it appears in ≤ N files (default: 1) |
 | `reportTitle` | `string` | — | Custom title for generated reports |
 | `outputDir` | `string` | `"."` | Default output directory |
 

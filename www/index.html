@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlagLint — Find stale feature flags. Plan your OpenFeature migration.</title>
-  <meta name="description" content="FlagLint scans your codebase for LaunchDarkly flag debt and generates your OpenFeature migration plan. Free, open source CLI for JavaScript and TypeScript.">
-  <meta property="og:title" content="FlagLint — Feature Flag Debt Scanner">
-  <meta property="og:description" content="Find stale LaunchDarkly flags. Generate your OpenFeature migration plan. Free CLI.">
+  <title>FlagLint — Find zombie flags. Escape LaunchDarkly. Ship clean code.</title>
+  <meta name="description" content="FlagLint finds zombie flags and feature flag technical debt in your codebase. AST-based scanner for LaunchDarkly SDK calls. Generates your OpenFeature migration plan. Free CLI for JavaScript and TypeScript.">
+  <meta property="og:title" content="FlagLint — Find zombie flags. Generate your OpenFeature migration plan.">
+  <meta property="og:description" content="Find stale LaunchDarkly flags, eliminate flag hell, and generate your OpenFeature migration plan. Free CLI. Like Uber's Piranha, for any JS/TS codebase.">
   <meta property="og:url" content="https://flaglint.dev">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:site" content="@flaglint">
+  <meta name="twitter:site" content="@flaglintdev">
   <link rel="canonical" href="https://flaglint.dev">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -131,6 +131,22 @@
       margin: 0 auto;
       line-height: 1.6;
     }
+    .hero-sub strong { color: var(--text-primary); font-weight: 500; }
+
+    .piranha-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 16px;
+    }
+    .piranha-tag span { color: var(--accent); }
 
     /* Terminal */
     .terminal {
@@ -164,6 +180,7 @@
     .c-white { color: #f0f0f0; }
     .c-green { color: #00d97e; }
     .c-amber { color: #f0a500; }
+    .c-red { color: #f85149; }
     .c-muted { color: #888; }
     .cursor {
       display: inline-block;
@@ -547,12 +564,16 @@
     <div class="hero-inner">
       <div class="badge">★ Open Source · MIT License</div>
 
-      <h1>Your LaunchDarkly flags<br>are costing you money.</h1>
+      <h1>Your codebase is full<br>of zombie flags.</h1>
 
       <p class="hero-sub">
-        FlagLint scans your codebase, finds stale feature flags, and
-        generates your OpenFeature migration plan. Free and open source.
+        FlagLint scans for <strong>LaunchDarkly flag debt</strong>, identifies dead code paths,
+        and generates your <strong>OpenFeature migration plan</strong>. Free and open source.
       </p>
+
+      <div class="piranha-tag">
+        ✓ Like Uber's Piranha — <span>for any JS/TS codebase</span>
+      </div>
 
       <div class="terminal" role="region" aria-label="Terminal demo">
         <div class="terminal-header">
@@ -561,7 +582,7 @@
             <div class="dot dot-y"></div>
             <div class="dot dot-g"></div>
           </div>
-          <span class="term-version">flaglint v0.1.2</span>
+          <span class="term-version">flaglint v0.1.5</span>
         </div>
         <div class="term-body" id="term-body" aria-live="polite">
         </div>
@@ -601,18 +622,18 @@
       <div class="cards-grid">
         <div class="card">
           <span class="card-icon">💸</span>
-          <div class="card-title">LaunchDarkly bills by MAU</div>
-          <p class="card-body">Your flag count grows. Your bill grows with it. Half those flags haven't been touched in months. You're paying for flags nobody manages.</p>
+          <div class="card-title">You're paying for flags nobody owns</div>
+          <p class="card-body">LaunchDarkly bills by MAU. Your flag count grows, your bill grows with it. Half those flags are zombie flags — dead code paths that haven't been touched in months. You're paying for debt, not value.</p>
         </div>
         <div class="card">
-          <span class="card-icon">🔍</span>
-          <div class="card-title">Nobody knows what's safe to remove</div>
-          <p class="card-body">Flags accumulate across codebases. Engineers are afraid to delete them. The debt compounds silently while your codebase gets harder to reason about.</p>
+          <span class="card-icon">👻</span>
+          <div class="card-title">Flag hell is real</div>
+          <p class="card-body">Repositories littered with forgotten toggles. Engineers afraid to delete anything because "something might break." Nobody knows what's safe to remove. The debt compounds silently while your codebase gets harder to reason about.</p>
         </div>
         <div class="card">
           <span class="card-icon">🔒</span>
           <div class="card-title">Vendor lock-in has a hidden cost</div>
-          <p class="card-body">Every <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">ldClient.variation()</code> call is a dependency you never chose to own. OpenFeature exists. Migration feels impossible without a map.</p>
+          <p class="card-body">Every <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">ldClient.variation()</code> call is a dependency you never chose to own. Uber built Piranha to solve this — it only works for Uber's stack. FlagLint is the general-purpose version. OpenFeature-native. Vendor-neutral.</p>
         </div>
       </div>
     </div>
@@ -668,8 +689,8 @@
         </div>
         <div class="feature-tile">
           <span class="feature-icon">🎯</span>
-          <div class="feature-title">Stale flag detection</div>
-          <p class="feature-body">Configurable thresholds. Know what's safe to remove.</p>
+          <div class="feature-title">Zombie flag detection</div>
+          <p class="feature-body">Configurable thresholds. Know exactly which flags are dead code.</p>
         </div>
         <div class="feature-tile">
           <span class="feature-icon">⚡</span>
@@ -684,7 +705,7 @@
         <div class="feature-tile">
           <span class="feature-icon">🚦</span>
           <div class="feature-title">CI/CD integration</div>
-          <p class="feature-body">Exit code 1 on stale flags. Block PRs. Enforce hygiene.</p>
+          <p class="feature-body">Exit code 1 on zombie flags. Block PRs. Enforce hygiene.</p>
         </div>
       </div>
     </div>
@@ -746,7 +767,7 @@
       <div class="footer-links">
         <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
-        <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglint on X</a>
+        <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglintdev on X</a>
       </div>
     </div>
   </footer>
@@ -757,9 +778,9 @@
       { text: '$ npx flaglint scan ./src', cls: 'c-white' },
       { text: '', cls: '' },
       { text: '✔ Scanning 142 files...', cls: 'c-green' },
-      { text: '✔ Found 23 LaunchDarkly flags', cls: 'c-green' },
-      { text: '⚠ 8 stale candidates detected', cls: 'c-amber' },
-      { text: '⚡ 2 dynamic flags (manual review)', cls: 'c-muted' },
+      { text: '✔ Found 31 LaunchDarkly flags', cls: 'c-green' },
+      { text: '☠ 12 zombie flags detected', cls: 'c-red' },
+      { text: '⚡ 3 dynamic flags (manual review)', cls: 'c-amber' },
       { text: '', cls: '' },
       { text: '→ Run flaglint migrate . for migration plan', cls: 'c-green' },
     ];
@@ -777,7 +798,7 @@
         const line = termLines[i++];
         const span = document.createElement('span');
         span.className = 'term-line' + (line.cls ? ' ' + line.cls : '');
-        span.textContent = line.text || ' ';
+        span.textContent = line.text || ' ';
         body.appendChild(span);
         setTimeout(showNext, 400);
       }
@@ -807,9 +828,7 @@
       });
     }
 
-    // ── 4. SMOOTH SCROLL (btn-primary already uses inline onclick) ─
-
-    // ── 5. LOOPS FORM — verbatim submitHandler & resetFormHandler ──
+    // ── 4. LOOPS FORM ──────────────────────────────────────────────
     var loopsForm = document.getElementById('loops-form');
     var loopsEmail = document.getElementById('loops-email');
     var loopsSubmit = document.getElementById('loops-submit');
