@@ -53,6 +53,35 @@ describe("scanner — ld-basic.ts", () => {
   });
 });
 
+describe("scanner — default stale heuristics", () => {
+  it("does not mark a normal one-file flag stale by default", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-one-file-legit.ts"));
+    const usage = result.usages.find((u) => u.flagKey === "checkout-enabled");
+
+    expect(usage).toBeDefined();
+    expect(usage?.stalenessSignals).toEqual([]);
+    expect(isStale(usage!)).toBe(false);
+  });
+
+  it("preserves explicit minFileCount: 1 staleness heuristic as opt-in behavior", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-one-file-legit.ts"],
+      exclude: [],
+      minFileCount: 1,
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    const usage = result.usages.find((u) => u.flagKey === "checkout-enabled");
+
+    expect(usage).toBeDefined();
+    expect(usage?.stalenessSignals).toContainEqual({
+      source: "minFileCount",
+      fileCount: 1,
+      threshold: 1,
+    });
+    expect(isStale(usage!)).toBe(true);
+  });
+});
+
 describe("scanner — ld-dynamic.ts", () => {
   it("marks variable flag key as isDynamic: true", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-dynamic.ts"));

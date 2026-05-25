@@ -21,9 +21,12 @@
   </a>
 </p>
 
-> ⚠️ **Early preview.** Current scope: **LaunchDarkly Node.js server-side SDK** only.
-> React hooks, HOC, and client-side SDK patterns are detected by `scan` but are not
-> automatically migrated.
+> [!WARNING]
+> FlagLint is currently an early preview.
+>
+> Automatic migration currently supports LaunchDarkly Node.js server-side SDK evaluation calls only. Generated changes must be reviewed and tested before merging.
+>
+> React hooks, higher-order components, browser/client-side SDK usage, bulk flag-state calls, detail evaluations, dynamic keys, and custom wrappers are not automatically migrated in this release.
 
 # FlagLint
 
@@ -209,10 +212,8 @@ Run `flaglint migrate --dry-run` to review the migration plan.
 | Dynamic flag key | ✗ manual | Key must be a static string literal |
 | `ldClient.allFlags()` / `allFlagsState()` | ✗ manual | Bulk calls — no single-flag codemod |
 | Unknown fallback type | ✗ manual | Fallback type must be determinable statically |
-| React `useFlags()`, `useLDClient()` | detect only | Client-side — outside Node.js server SDK scope |
-| React HOC / `<LDProvider>` | detect only | Client-side — outside Node.js server SDK scope |
 
-`flaglint scan` and `flaglint migrate --dry-run` report all detected patterns including manual-review cases.
+`flaglint scan` and `flaglint migrate --dry-run` report detected LaunchDarkly Node.js server-side SDK patterns, including manual-review cases.
 `flaglint migrate --apply` rewrites only the ✓ rows above.
 
 ---
@@ -231,15 +232,15 @@ npm install @openfeature/server-sdk \
 Bootstrap file (do not apply automatically — bootstrap is intentionally manual):
 
 ```typescript
-import LaunchDarkly from "@launchdarkly/node-server-sdk";
 import { LaunchDarklyProvider } from "@launchdarkly/openfeature-node-server";
 import { OpenFeature } from "@openfeature/server-sdk";
 
-const ldClient = LaunchDarkly.init(process.env.LD_SDK_KEY!);
-await OpenFeature.setProviderAndWait(new LaunchDarklyProvider(ldClient));
+const ldProvider = new LaunchDarklyProvider(process.env.LD_SDK_KEY!);
+await OpenFeature.setProviderAndWait(ldProvider);
 
-// Evaluation context must include targetingKey (or key):
-// { targetingKey: user.id }
+// Evaluation context needs a targeting key.
+// Use OpenFeature `targetingKey` or keep an existing LaunchDarkly `key`:
+// { targetingKey: user.id } or { key: user.id }
 export const openFeatureClient = OpenFeature.getClient();
 ```
 
@@ -278,7 +279,7 @@ Create `.flaglintrc`, `.flaglintrc.json`, or `flaglint.config.json` in your proj
   "include": ["**/*.{ts,tsx,js,jsx}"],
   "exclude": ["**/node_modules/**", "**/dist/**"],
   "provider": "launchdarkly",
-  "minFileCount": 1,
+  "minFileCount": 0,
   "reportTitle": "My Project Flag Report"
 }
 ```
@@ -288,7 +289,7 @@ Create `.flaglintrc`, `.flaglintrc.json`, or `flaglint.config.json` in your proj
 | `include` | `string[]` | `["**/*.{ts,tsx,js,jsx}"]` | Glob patterns to scan |
 | `exclude` | `string[]` | `["**/node_modules/**", ...]` | Glob patterns to ignore |
 | `provider` | `string` | `"launchdarkly"` | Feature flag provider |
-| `minFileCount` | `number` | `1` | A flag is a staleness candidate if it appears in ≤ N files |
+| `minFileCount` | `number` | `0` | Opt-in staleness heuristic. When set above 0, a flag is a staleness candidate if it appears in ≤ N files |
 | `wrappers` | `string[]` | `[]` | Function names wrapping LD SDK calls. Example: `["flagPredicate", "useFlag"]` |
 | `reportTitle` | `string` | — | Custom title for generated reports |
 | `outputDir` | `string` | `"."` | Default output directory |

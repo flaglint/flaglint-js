@@ -60,6 +60,33 @@ describe("CLI — exit codes", () => {
     expect(r.status).toBe(0);
   });
 
+  it("exits 0 for a normal one-file LaunchDarkly flag with default config", () => {
+    const dir = makeTmpDir({
+      "flag.ts": [
+        "import LaunchDarkly from 'launchdarkly-node-server-sdk';",
+        "const ldClient = LaunchDarkly.init('sdk-key');",
+        "export const enabled = ldClient.boolVariation('checkout-enabled', context, false);",
+      ].join("\n"),
+    });
+    const r = cli("scan", dir);
+    expect(r.status).toBe(0);
+    expect(r.stderr).not.toContain("potentially stale");
+  });
+
+  it("preserves explicit minFileCount: 1 scan failure behavior", () => {
+    const dir = makeTmpDir({
+      "flaglint.config.json": JSON.stringify({ minFileCount: 1 }),
+      "flag.ts": [
+        "import LaunchDarkly from 'launchdarkly-node-server-sdk';",
+        "const ldClient = LaunchDarkly.init('sdk-key');",
+        "export const enabled = ldClient.boolVariation('checkout-enabled', context, false);",
+      ].join("\n"),
+    });
+    const r = spawnSync(process.execPath, [ENTRY, "scan", dir], { cwd: dir, encoding: "utf8", timeout: 30000 });
+    expect(r.status).toBe(1);
+    expect(r.stderr).toContain("potentially stale");
+  });
+
   it("exits 1 on directory not found", () => {
     const r = cli("scan", "/nonexistent-flaglint-test-dir-xyz");
     expect(r.status).toBe(1);

@@ -77,6 +77,8 @@ function reasonLabel(reason: MigrationManualReviewReason | undefined): string {
       return "dynamic key";
     case "unknown-fallback":
       return "unsupported or unknown fallback";
+    case "detail-method":
+      return "detail method";
     case "bulk-inventory-call":
       return "bulk inventory call";
     default:

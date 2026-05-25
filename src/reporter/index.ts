@@ -96,7 +96,7 @@ function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
   // Stale candidates
   if (staleFlags.length > 0) {
     lines.push("## ⚠ Stale Flag Candidates");
-    lines.push("Flags that may be safe to remove:");
+    lines.push("Flags with review signals:");
     lines.push("| Flag Key | Reason | Location |");
     lines.push("|----------|--------|----------|");
     for (const [key, data] of staleFlags) {
