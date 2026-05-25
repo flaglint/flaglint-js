@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlagLint — Find zombie flags. Escape LaunchDarkly. Ship clean code.</title>
-  <meta name="description" content="FlagLint finds zombie flags and feature flag technical debt in your codebase. AST-based scanner for LaunchDarkly SDK calls. Generates your OpenFeature migration plan. Free CLI for JavaScript and TypeScript.">
-  <meta property="og:title" content="FlagLint — Find zombie flags. Generate your OpenFeature migration plan.">
-  <meta property="og:description" content="Find stale LaunchDarkly flags, eliminate flag hell, and generate your OpenFeature migration plan. Free CLI. Like Uber's Piranha, for any JS/TS codebase.">
+  <title>FlagLint — LaunchDarkly Node.js server SDK -> OpenFeature migration</title>
+  <meta name="description" content="FlagLint inventories direct LaunchDarkly Node.js server SDK usage and helps migrate call sites to OpenFeature. LaunchDarkly remains the provider; provider bootstrap is a manual step.">
+  <meta property="og:title" content="FlagLint — LaunchDarkly Node.js server SDK -> OpenFeature migration">
+  <meta property="og:description" content="Keep LaunchDarkly as your provider. FlagLint inventories direct Node server SDK usage, generates reviewable migration diffs, and enforces migration state in CI. Free and open source.">
   <meta property="og:url" content="https://flaglint.dev">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
@@ -132,21 +132,6 @@
       line-height: 1.6;
     }
     .hero-sub strong { color: var(--text-primary); font-weight: 500; }
-
-    .piranha-tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: var(--surface-raised);
-      border: 1px solid var(--border);
-      border-radius: 100px;
-      padding: 5px 14px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      font-weight: 500;
-      margin-top: 16px;
-    }
-    .piranha-tag span { color: var(--accent); }
 
     /* Terminal */
     .terminal {
@@ -562,18 +547,15 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
-      <div class="badge">★ Open Source · MIT License</div>
+      <div class="badge">⚠ Early Preview · Node.js Server SDK · Open Source · MIT</div>
 
-      <h1>Your codebase is full<br>of zombie flags.</h1>
+      <h1>Migrate LaunchDarkly<br>to OpenFeature safely.</h1>
 
       <p class="hero-sub">
-        FlagLint scans for <strong>LaunchDarkly flag debt</strong>, identifies dead code paths,
-        and generates your <strong>OpenFeature migration plan</strong>. Free and open source.
+        Keep <strong>LaunchDarkly as your provider</strong>. FlagLint inventories direct Node.js server SDK
+        usage, generates reviewable migration diffs, applies only
+        <strong>guarded transformations</strong>, and enforces migration state in CI.
       </p>
-
-      <div class="piranha-tag">
-        ✓ Like Uber's Piranha — <span>for any JS/TS codebase</span>
-      </div>
 
       <div class="terminal" role="region" aria-label="Terminal demo">
         <div class="terminal-header">
@@ -599,7 +581,7 @@
 
       <div class="stats-row">
         <div class="stat-item">
-          <span class="stat-num">114</span>
+          <span class="stat-num">263</span>
           <span class="stat-label">tests passing</span>
         </div>
         <div class="stat-item">
@@ -618,22 +600,22 @@
   <section class="problem">
     <div class="section-inner">
       <div class="section-label">The Problem</div>
-      <h2 class="section-heading">Flag debt is invisible. Until it isn't.</h2>
+      <h2 class="section-heading">Migration is hard to do safely.</h2>
       <div class="cards-grid">
         <div class="card">
-          <span class="card-icon">💸</span>
-          <div class="card-title">You're paying for flags nobody owns</div>
-          <p class="card-body">LaunchDarkly bills by MAU. Your flag count grows, your bill grows with it. Half those flags are zombie flags — dead code paths that haven't been touched in months. You're paying for debt, not value.</p>
+          <span class="card-icon">🔍</span>
+          <div class="card-title">You don't know what you have</div>
+          <p class="card-body">Direct <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">ldClient.variation()</code> calls are scattered across your codebase. Before migrating, you need an accurate inventory — which call types, which files, which are dynamic keys, which need manual review.</p>
         </div>
         <div class="card">
-          <span class="card-icon">👻</span>
-          <div class="card-title">Flag hell is real</div>
-          <p class="card-body">Repositories littered with forgotten toggles. Engineers afraid to delete anything because "something might break." Nobody knows what's safe to remove. The debt compounds silently while your codebase gets harder to reason about.</p>
+          <span class="card-icon">⚠️</span>
+          <div class="card-title">Mechanical rewrites break things</div>
+          <p class="card-body">The LaunchDarkly and OpenFeature APIs differ in argument order, context shape, and detail result format. A careless codemod loses fallback values, drops context, or silently breaks <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">await</code>. FlagLint only rewrites what it can prove is safe.</p>
         </div>
         <div class="card">
-          <span class="card-icon">🔒</span>
-          <div class="card-title">Vendor lock-in has a hidden cost</div>
-          <p class="card-body">Every <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">ldClient.variation()</code> call is a dependency you never chose to own. Uber built Piranha to solve this — it only works for Uber's stack. FlagLint is the general-purpose version. OpenFeature-native. Vendor-neutral.</p>
+          <span class="card-icon">🚦</span>
+          <div class="card-title">Migration has no finish line</div>
+          <p class="card-body">Without enforcement, new direct LD calls creep back in after the migration. <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">flaglint validate --no-direct-launchdarkly</code> gives you a CI gate that exits 1 the moment a direct LD evaluation call appears outside your bootstrap file.</p>
         </div>
       </div>
     </div>
@@ -643,30 +625,31 @@
   <section class="how">
     <div class="section-inner">
       <div class="section-label">How It Works</div>
-      <h2 class="section-heading">From flag debt to OpenFeature in three steps</h2>
+      <h2 class="section-heading">Scan, migrate, enforce — in three steps</h2>
       <div class="steps-grid">
         <div class="step">
           <div class="step-num">01</div>
-          <div class="step-title">Scan your codebase</div>
+          <div class="step-title">Inventory your codebase</div>
           <div class="code-snippet">$ flaglint scan ./src</div>
-          <p class="step-body">Detects every LaunchDarkly SDK call using AST analysis. Finds <code style="font-family:monospace;font-size:12px">variation()</code>, <code style="font-family:monospace;font-size:12px">useFlags()</code>, <code style="font-family:monospace;font-size:12px">LDProvider</code>, <code style="font-family:monospace;font-size:12px">withLDConsumer</code>. Flags stale candidates and dynamic keys.</p>
-        </div>
-        <div class="step">
-          <div class="step-num">02</div>
-          <div class="step-title">Get your flag debt report</div>
           <div class="format-badges">
             <span class="badge-pill">JSON</span>
             <span class="badge-pill">Markdown</span>
             <span class="badge-pill">HTML</span>
             <span class="badge-pill">SARIF</span>
           </div>
-          <p class="step-body">Generates detailed reports in JSON, Markdown, HTML, or SARIF. Know exactly what flags you have, where they live, and which ones are safe to remove.</p>
+          <p class="step-body">Generates detailed reports in JSON, Markdown, HTML, or SARIF. Know exactly what LaunchDarkly Node.js SDK calls exist, where they are, and which are safely automatable.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">02</div>
+          <div class="step-title">Review and apply migration</div>
+          <div class="code-snippet">$ flaglint migrate --dry-run</div>
+          <p class="step-body">Generates reviewable before/after diffs with provider setup guidance. When ready, <code style="font-family:monospace;font-size:12px">--apply</code> rewrites only automatable call-sites — preserving flag key, fallback, context, and <code style="font-family:monospace;font-size:12px">await</code> exactly. Detail methods, dynamic keys, and bulk calls require manual review.</p>
         </div>
         <div class="step">
           <div class="step-num">03</div>
-          <div class="step-title">Generate your migration plan</div>
-          <div class="code-snippet">$ flaglint migrate ./src</div>
-          <p class="step-body">Produces exact before/after code changes for every flag usage. Correct async/await. Right OpenFeature SDK packages. Zero guesswork.</p>
+          <div class="step-title">Enforce in CI</div>
+          <div class="code-snippet">$ flaglint validate \<br>&nbsp;&nbsp;--no-direct-launchdarkly</div>
+          <p class="step-body">A CI gate that exits 1 whenever a direct LaunchDarkly evaluation call appears outside your provider bootstrap file. Migration stays complete — no new LD calls can land unreviewed.</p>
         </div>
       </div>
     </div>
@@ -676,12 +659,12 @@
   <section class="features">
     <div class="section-inner">
       <div class="section-label">Features</div>
-      <h2 class="section-heading">Everything you need to escape LaunchDarkly</h2>
+      <h2 class="section-heading">Safe, guarded migration to OpenFeature</h2>
       <div class="features-grid">
         <div class="feature-tile">
           <span class="feature-icon">🔍</span>
           <div class="feature-title">AST-based scanning</div>
-          <p class="feature-body">Finds every SDK call. Not just grep matches.</p>
+          <p class="feature-body">Detects LaunchDarkly Node.js server SDK calls by AST, not grep. Resolves import aliases, CJS require forms, and custom wrappers.</p>
         </div>
         <div class="feature-tile">
           <span class="feature-icon">📊</span>
@@ -689,24 +672,24 @@
           <p class="feature-body">JSON for pipelines. Markdown for PRs. HTML for sharing. SARIF for GitHub Code Scanning.</p>
         </div>
         <div class="feature-tile">
-          <span class="feature-icon">🎯</span>
-          <div class="feature-title">Zombie flag detection</div>
-          <p class="feature-body">Configurable thresholds. Know exactly which flags are dead code.</p>
+          <span class="feature-icon">🛡</span>
+          <div class="feature-title">Guarded apply</div>
+          <p class="feature-body">Rewrites only when an OpenFeature client binding is proven in the file. Never touches detail methods, dynamic keys, or bulk calls.</p>
         </div>
         <div class="feature-tile">
           <span class="feature-icon">⚡</span>
-          <div class="feature-title">Dynamic flag warnings</div>
-          <p class="feature-body">Runtime keys flagged for manual review automatically.</p>
+          <div class="feature-title">Manual-review flagging</div>
+          <p class="feature-body">Dynamic keys, detail methods, and unknown fallbacks are reported for manual review — never silently skipped or incorrectly rewritten.</p>
         </div>
         <div class="feature-tile">
           <span class="feature-icon">🔄</span>
-          <div class="feature-title">OpenFeature migration</div>
-          <p class="feature-body">Exact code changes. Correct async/await. Right packages.</p>
+          <div class="feature-title">Argument-preserving codemod</div>
+          <p class="feature-body">Flag key, fallback value, evaluation context, and <code style="font-family:monospace;font-size:12px">await</code> are preserved exactly. LaunchDarkly remains your provider.</p>
         </div>
         <div class="feature-tile">
           <span class="feature-icon">🚦</span>
-          <div class="feature-title">CI/CD integration</div>
-          <p class="feature-body">Exit code 1 on zombie flags. Block PRs. Enforce hygiene.</p>
+          <div class="feature-title">CI enforcement</div>
+          <p class="feature-body">Exit 1 on any direct LD evaluation call outside the bootstrap file. Enforce migration completeness on every PR.</p>
         </div>
       </div>
     </div>
@@ -716,7 +699,7 @@
   <section class="install">
     <div class="section-inner">
       <div class="section-label">Install</div>
-      <h2 class="section-heading" style="text-align:center">Works with any JavaScript or TypeScript project</h2>
+      <h2 class="section-heading" style="text-align:center">Works with any Node.js TypeScript or JavaScript project</h2>
       <div class="install-blocks">
         <div class="code-block">
           <div class="code-block-label">Install globally</div>
@@ -730,8 +713,8 @@
         </div>
       </div>
       <p class="install-note">
-        Supports Node.js 22+. Works with React, Next.js, Express, NestJS, or any
-        TypeScript/JavaScript codebase using LaunchDarkly.
+        Supports Node.js 22+. Works with Express, NestJS, Fastify, or any
+        Node.js TypeScript/JavaScript codebase using the LaunchDarkly server-side SDK.
       </p>
     </div>
   </section>
@@ -739,10 +722,10 @@
   <!-- WAITLIST -->
   <section class="waitlist-section">
     <div id="waitlist" class="waitlist-card">
-      <h2>FlagLint Cloud is coming.</h2>
+      <h2>Stay in the loop.</h2>
       <p class="waitlist-sub">
-        Hosted reports. Team dashboards. Historical flag tracking.
-        Slack alerts. Flat predictable pricing — no MAU billing, ever.
+        FlagLint is in early preview. Get notified about new call-type coverage,
+        migration guides, and early access for teams on their OpenFeature journey.
       </p>
 
       <!-- Loops waitlist form -->
@@ -779,11 +762,11 @@
       { text: '$ npx flaglint scan ./src', cls: 'c-white' },
       { text: '', cls: '' },
       { text: '✔ Scanning 142 files...', cls: 'c-green' },
-      { text: '✔ Found 31 LaunchDarkly flags', cls: 'c-green' },
-      { text: '☠ 12 zombie flags detected', cls: 'c-red' },
-      { text: '⚡ 3 dynamic flags (manual review)', cls: 'c-amber' },
+      { text: '✔ Found 18 direct LaunchDarkly Node SDK calls', cls: 'c-green' },
+      { text: '⚡ 3 dynamic flag keys (manual review required)', cls: 'c-amber' },
+      { text: '↳ 2 detail methods (manual review required)', cls: 'c-amber' },
       { text: '', cls: '' },
-      { text: '→ Run flaglint migrate . for migration plan', cls: 'c-green' },
+      { text: '→ Run flaglint migrate --dry-run for diff preview', cls: 'c-green' },
     ];
 
     (function runTypewriter() {

@@ -106,7 +106,7 @@ async function main(): Promise<void> {
     `<div class="format-badges">
             ${formatted.map((f) => `<span class="badge-pill">${f}</span>`).join("\n            ")}
           </div>
-          <p class="step-body">Generates detailed reports in ${formatList(formatted)}. Know exactly what flags you have, where they live, and which ones are safe to remove.</p>`,
+          <p class="step-body">Generates detailed reports in ${formatList(formatted)}. Know exactly what LaunchDarkly Node.js SDK calls exist, where they are, and which are safely automatable.</p>`,
     "report format step"
   );
   next = replaceRequired(
