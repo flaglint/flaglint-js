@@ -112,13 +112,11 @@ Examples:
           process.stderr.write(chalk.yellow(msg + "\n"));
         }
 
-        const { readinessScore } = analysis;
-        const scoreColor =
-          readinessScore >= 80 ? chalk.green : readinessScore >= 50 ? chalk.yellow : chalk.red;
-        process.stderr.write(scoreColor(`Migration Readiness Score: ${readinessScore}/100\n`));
+        const summaryColor = analysis.manualReviewCount > 0 ? chalk.yellow : chalk.green;
+        process.stderr.write(summaryColor(`LaunchDarkly usages found: ${analysis.totalLaunchDarklyUsages}\n`));
         process.stderr.write(
           chalk.gray(
-            `Auto-migratable: ${analysis.autoMigrateCount} · Manual review: ${analysis.manualReviewCount}\n`
+            `Safely automatable: ${analysis.safelyAutomatableCount} · Manual review: ${analysis.manualReviewCount}\n`
           )
         );
 

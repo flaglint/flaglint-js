@@ -113,6 +113,12 @@ export interface MigrationAnalysis {
   readinessScore: number;
   requiredPackages: string[];
   items: MigrationItem[];
+  inventoryItems: MigrationInventoryItem[];
+  totalLaunchDarklyUsages: number;
+  safelyAutomatableCount: number;
+  dynamicKeyCount: number;
+  bulkInventoryCallCount: number;
+  unsupportedUnknownCount: number;
   manualReviewCount: number;
   autoMigrateCount: number;
 }
