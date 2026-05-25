@@ -2,7 +2,21 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { parse } from "@typescript-eslint/typescript-estree";
 import type { TSESTree } from "@typescript-eslint/types";
+import micromatch from "micromatch";
 import type { FileSource, MigrationAnalysis, MigrationInventoryItem, MigrationValueType } from "../types.js";
+
+/**
+ * Returns true when the module specifier matches the glob pattern.
+ * Relative traversal prefixes (./ and ../) are stripped before matching so that
+ * a double-star glob like `**\/platform/feature-flags` resolves
+ * `../platform/feature-flags` and `../../shared/platform/feature-flags`
+ * equally, while NOT matching `../platform/feature-flags-legacy` or
+ * `../other/platform/feature-flags-backup`.
+ */
+function moduleSpecifierMatchesGlob(specifier: string, pattern: string): boolean {
+  const normalized = specifier.replace(/^(?:\.\.?\/)+/, "");
+  return micromatch.isMatch(normalized, pattern);
+}
 
 const execFileAsync = promisify(execFile);
 
@@ -108,17 +122,32 @@ function walkNodes(root: TSESTree.Node, visit: (node: TSESTree.Node) => void): v
  *   - import { openFeatureClient } from any arbitrary module
  *   - const openFeatureClient = OpenFeature.getClient() without the SDK import
  */
-export function hasOpenFeatureClientBinding(code: string): boolean {
+/**
+ * Returns the local identifier name of a proven OpenFeature client binding in
+ * `code`, or `null` if none is found. Recognizes two safe patterns:
+ * 1) Local initialization: `const openFeatureClient = OpenFeature.getClient()`
+ *    where `OpenFeature` is imported from "@openfeature/server-sdk".
+ * 2) Imported binding: `import { openFeatureClient } from "../platform/feature-flags"`
+ *    or `const { openFeatureClient } = require("../platform/feature-flags")`.
+ *
+ * The imported-binding form only accepts relative module sources (starting
+ * with `.`) to avoid treating arbitrary package imports as proven provider
+ * bindings.
+ */
+export function getOpenFeatureClientBindingName(
+  code: string,
+  // Allowed bindings are declared by the user via config. Each entry names an
+  // import/local identifier and a set of module path patterns that are allowed
+  // sources for that identifier. If empty, imported bindings are not accepted.
+  allowedBindings: Array<{ importName: string; modulePatterns: string[] }> = []
+): string | null {
   const ast = tryParse(code);
-  if (!ast) return false;
+  if (!ast) return null;
 
   // ── Pass 1: collect local names bound to the OpenFeature API object ──────────
-  // Only top-level statements can be import/require declarations.
   const ofApiNames = new Set<string>();
 
   for (const stmt of ast.body) {
-    // ESM: import { OpenFeature } from "@openfeature/server-sdk"
-    //      import { OpenFeature as OF } from "@openfeature/server-sdk"
     if (stmt.type === "ImportDeclaration" && stmt.source.value === OF_SERVER_SDK) {
       for (const spec of stmt.specifiers) {
         if (spec.type === "ImportSpecifier") {
@@ -134,8 +163,6 @@ export function hasOpenFeatureClientBinding(code: string): boolean {
       continue;
     }
 
-    // CJS: const { OpenFeature } = require("@openfeature/server-sdk")
-    //      const { OpenFeature: OF } = require("@openfeature/server-sdk")
     if (stmt.type === "VariableDeclaration") {
       for (const decl of stmt.declarations) {
         const init = decl.init;
@@ -163,18 +190,13 @@ export function hasOpenFeatureClientBinding(code: string): boolean {
     }
   }
 
-  if (ofApiNames.size === 0) return false;
-
-  // ── Pass 2: find openFeatureClient = <ofApiName>.getClient(…) ────────────────
-  // The declarator may appear anywhere in the file (e.g., inside an init fn).
-  let proven = false;
+  // ── Pass 2: check for local initialization from OpenFeature.getClient() ─────
+  const candidates: string[] = [];
   walkNodes(ast, (node) => {
-    if (proven) return;
     if (node.type !== "VariableDeclarator") return;
 
     const decl = node as TSESTree.VariableDeclarator;
     if (decl.id.type !== "Identifier") return;
-    if ((decl.id as TSESTree.Identifier).name !== "openFeatureClient") return;
     if (decl.init?.type !== "CallExpression") return;
 
     const call = decl.init as TSESTree.CallExpression;
@@ -187,10 +209,82 @@ export function hasOpenFeatureClientBinding(code: string): boolean {
     if (member.property.type !== "Identifier") return;
     if ((member.property as TSESTree.Identifier).name !== "getClient") return;
 
-    proven = true;
+    candidates.push(decl.id.name);
   });
 
-  return proven;
+  if (candidates.length === 1) return candidates[0];
+  if (candidates.length > 1) return null; // ambiguous — do not prove binding
+
+  // ── Pass 3: check for imported/required client binding from a relative module ─
+  for (const stmt of ast.body) {
+    if (stmt.type === "ImportDeclaration") {
+      const source = String(stmt.source.value || "");
+      // Only consider relative module imports (internal project modules)
+      if (!source.startsWith(".")) continue;
+
+      for (const spec of stmt.specifiers) {
+        if (spec.type === "ImportSpecifier") {
+          const importedName =
+            spec.imported.type === "Identifier"
+              ? (spec.imported as TSESTree.Identifier).name
+              : (spec.imported as TSESTree.StringLiteral).value;
+
+          // Must be a configured importName and the source must match at least
+          // one of its configured modulePatterns.
+          const allowed = allowedBindings.find((b) => b.importName === importedName);
+          if (!allowed) continue;
+          if (!allowed.modulePatterns.some((p) => moduleSpecifierMatchesGlob(source, p))) continue;
+          // record candidate
+          candidates.push(spec.local.name);
+        }
+        if (spec.type === "ImportDefaultSpecifier") {
+          const local = (spec.local as TSESTree.Identifier).name;
+          const allowed = allowedBindings.find((b) => b.importName === local);
+          if (!allowed) continue;
+          if (!allowed.modulePatterns.some((p) => moduleSpecifierMatchesGlob(source, p))) continue;
+          candidates.push(local);
+        }
+      }
+    }
+
+    if (stmt.type === "VariableDeclaration") {
+      for (const decl of stmt.declarations) {
+        const init = decl.init;
+        if (
+          init?.type === "CallExpression" &&
+          init.callee.type === "Identifier" &&
+          (init.callee as TSESTree.Identifier).name === "require" &&
+          init.arguments.length === 1 &&
+          init.arguments[0]?.type === "Literal"
+        ) {
+          const source = String((init.arguments[0] as TSESTree.StringLiteral).value || "");
+          if (!source.startsWith(".")) continue;
+
+          // const { X as Y } = require('../module')
+          if (decl.id.type === "ObjectPattern") {
+            for (const prop of (decl.id as TSESTree.ObjectPattern).properties) {
+              if (prop.type !== "Property" || prop.key.type !== "Identifier") continue;
+              const importedName = (prop.key as TSESTree.Identifier).name;
+              const local = prop.value.type === "Identifier" ? (prop.value as TSESTree.Identifier).name : null;
+              if (!local) continue;
+
+              const allowed = allowedBindings.find((b) => b.importName === importedName);
+              if (!allowed) continue;
+              if (!allowed.modulePatterns.some((p) => moduleSpecifierMatchesGlob(source, p))) continue;
+              candidates.push(local);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (candidates.length === 1) return candidates[0];
+  return null;
+}
+
+export function hasOpenFeatureClientBinding(code: string): boolean {
+  return getOpenFeatureClientBindingName(code) != null;
 }
 
 // ── Internal replacement types ────────────────────────────────────────────────
@@ -236,7 +330,7 @@ function methodForType(valueType: MigrationValueType): string | null {
  * @param code  The current file content — used to verify the range still
  *              points at the expected LD call (stale-analysis guard).
  */
-function buildReplacement(item: MigrationInventoryItem, code: string): Replacement | SkippedItem {
+function buildReplacement(item: MigrationInventoryItem, code: string, clientBindingName: string): Replacement | SkippedItem {
   if (DETAIL_METHODS.has(item.launchDarklyMethod)) {
     return {
       item,
@@ -285,7 +379,7 @@ function buildReplacement(item: MigrationInventoryItem, code: string): Replaceme
   // applyReplacements uses code.slice(0, rangeStart), which preserves the
   // outer `await ` verbatim.  Never inject `await` inside this replacement.
   const call =
-    `openFeatureClient.${method}(${item.flagKeyExpression}, ${item.fallbackExpression}, ${item.evaluationContextExpression})`;
+    `${clientBindingName}.${method}(${item.flagKeyExpression}, ${item.fallbackExpression}, ${item.evaluationContextExpression})`;
   return { item, replacement: call };
 }
 
@@ -340,6 +434,12 @@ export async function applyMigration(
      * Return true to simulate a dirty working tree.
      */
     isWorkingTreeDirty?: () => Promise<boolean>;
+    /**
+     * Optional list of configured OpenFeature client bindings the project
+     * declares.  When provided, imported bindings that match these entries are
+     * accepted as proven safe by getOpenFeatureClientBindingName.
+     */
+    allowedOpenFeatureClientBindings?: Array<{ importName: string; modulePatterns: string[] }>;
   } = {}
 ): Promise<ApplyResult> {
   // ── 1. Dirty-tree guard ────────────────────────────────────────────────────
@@ -370,8 +470,9 @@ export async function applyMigration(
   for (const [file, items] of [...itemsByFile.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     const code = await source.readFile(file);
 
-    // Guard: openFeatureClient binding must already be present in the file.
-    if (!hasOpenFeatureClientBinding(code)) {
+    // Determine the proven OpenFeature client binding name (if any).
+    const bindingName = getOpenFeatureClientBindingName(code, options.allowedOpenFeatureClientBindings ?? []);
+    if (!bindingName) {
       skippedFiles.push({
         file,
         reason:
@@ -385,7 +486,7 @@ export async function applyMigration(
     // Pass `code` so buildReplacement can verify the range still holds the original call.
     const replacements: Replacement[] = [];
     for (const item of items) {
-      const result = buildReplacement(item, code);
+      const result = buildReplacement(item, code, bindingName);
       if ("reason" in result) continue;
       replacements.push(result);
     }

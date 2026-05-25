@@ -147,7 +147,7 @@ Examples:
 
         // ── --dry-run ──────────────────────────────────────────────────────────
         if (options.dryRun) {
-          const report = await formatDryRunDiff(analysis, source);
+          const report = await formatDryRunDiff(analysis, source, config.openFeatureClientBindings);
           process.stdout.write(report + "\n");
           process.exit(0);
         }
@@ -156,7 +156,7 @@ Examples:
         if (options.apply) {
           let result;
           try {
-            result = await applyMigration(analysis, source, { allowDirty: options.allowDirty });
+            result = await applyMigration(analysis, source, { allowDirty: options.allowDirty, allowedOpenFeatureClientBindings: config.openFeatureClientBindings });
           } catch (err) {
             if (err instanceof ApplyError && err.kind === "dirty-tree") {
               process.stderr.write(chalk.red(`\nError: ${err.message}\n`));

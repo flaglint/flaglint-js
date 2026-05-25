@@ -3,7 +3,7 @@ import type { FileSource, MigrationAnalysis, MigrationInventoryItem, MigrationVa
 type Replacement = {
   item: MigrationInventoryItem;
   replacement: string;
-  requiresProviderSetup: true;
+  requiresProviderSetup: boolean;
 };
 
 type SkippedUsage = {
@@ -44,7 +44,7 @@ function manualReason(item: MigrationInventoryItem): string {
   return "manual review required";
 }
 
-function buildReplacement(item: MigrationInventoryItem): Replacement | SkippedUsage {
+function buildReplacement(item: MigrationInventoryItem, clientBindingName: string | null): Replacement | SkippedUsage {
   if (DETAIL_METHODS.has(item.launchDarklyMethod)) {
     return {
       item,
@@ -68,15 +68,18 @@ function buildReplacement(item: MigrationInventoryItem): Replacement | SkippedUs
   const method = methodForType(item.valueType);
   if (!method) return { item, reason: "unsupported or unknown value type" };
 
-  const call = `openFeatureClient.${method}(${item.flagKeyExpression}, ${item.fallbackExpression}, ${item.evaluationContextExpression})`;
-  // The `await` keyword (if any) sits outside the CallExpression range and is
-  // preserved verbatim by applyReplacements — never inject `await` here.
-  // Awaited LD call  → source already has `await <call>`; replacement keeps it.
-  // Non-awaited call → source has no `await`; replacement must not add one.
+  // Use the proven local binding name when available so dry-run previews the
+  // exact transformation that --apply will perform. Only fall back to the
+  // placeholder when no proven binding exists and the diff thus requires
+  // provider/client setup.
+  const placeholder = "openFeatureClient";
+  const target = clientBindingName ?? placeholder;
+  const call = `${target}.${method}(${item.flagKeyExpression}, ${item.fallbackExpression}, ${item.evaluationContextExpression})`;
+
   return {
     item,
     replacement: call,
-    requiresProviderSetup: true,
+    requiresProviderSetup: clientBindingName == null,
   };
 }
 
@@ -188,19 +191,38 @@ function formatProviderSetupSection(): string[] {
   return lines;
 }
 
-export async function formatDryRunDiff(analysis: MigrationAnalysis, source: FileSource): Promise<string> {
+export async function formatDryRunDiff(
+  analysis: MigrationAnalysis,
+  source: FileSource,
+  allowedBindings: Array<{ importName: string; modulePatterns: string[] }> = []
+): Promise<string> {
   const replacementsByFile = new Map<string, Replacement[]>();
   const skipped: SkippedUsage[] = [];
 
+  // Group inventory items by file first so we can inspect each file's bindings.
+  const itemsByFile = new Map<string, MigrationInventoryItem[]>();
   for (const item of analysis.inventoryItems) {
-    const result = buildReplacement(item);
-    if ("reason" in result) {
-      skipped.push(result);
-      continue;
-    }
+    if (!itemsByFile.has(item.file)) itemsByFile.set(item.file, []);
+    itemsByFile.get(item.file)!.push(item);
+  }
 
-    if (!replacementsByFile.has(item.file)) replacementsByFile.set(item.file, []);
-    replacementsByFile.get(item.file)!.push(result);
+  for (const [file, items] of [...itemsByFile.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    const before = await source.readFile(file);
+    // Determine if the file has a proven client binding name.
+    // Import the helper lazily to avoid circular imports at module load time.
+    const { getOpenFeatureClientBindingName } = await import("./apply.js");
+    const clientBindingName = getOpenFeatureClientBindingName(before, allowedBindings);
+
+    for (const item of items) {
+      const result = buildReplacement(item, clientBindingName);
+      if ("reason" in result) {
+        skipped.push(result);
+        continue;
+      }
+
+      if (!replacementsByFile.has(item.file)) replacementsByFile.set(item.file, []);
+      replacementsByFile.get(item.file)!.push(result);
+    }
   }
 
   const lines: string[] = [];
