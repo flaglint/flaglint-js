@@ -23,7 +23,16 @@ export type ScanWarning =
 export type CallType =
   | "variation"
   | "variationDetail"
+  | "boolVariation"
+  | "boolVariationDetail"
+  | "stringVariation"
+  | "stringVariationDetail"
+  | "numberVariation"
+  | "numberVariationDetail"
+  | "jsonVariation"
+  | "jsonVariationDetail"
   | "allFlags"
+  | "allFlagsState"
   | "isFeatureEnabled"
   | "hook-useFlags"
   | "hook-useLDClient"
@@ -43,6 +52,32 @@ export interface FlagUsage {
 
 export const isStale = (u: FlagUsage): boolean => u.stalenessSignals.length > 0;
 
+export type MigrationValueType = "boolean" | "string" | "number" | "object" | "unknown";
+
+export type MigrationManualReviewReason =
+  | "dynamic-key"
+  | "unknown-fallback"
+  | "bulk-inventory-call";
+
+export interface MigrationInventoryItem {
+  file: string;
+  line: number;
+  column: number;
+  launchDarklyMethod: CallType;
+  callExpression?: string;
+  rangeStart?: number;
+  rangeEnd?: number;
+  isAwaited?: boolean;
+  flagKeyExpression?: string;
+  staticFlagKey?: string;
+  isDynamic: boolean;
+  valueType: MigrationValueType;
+  fallbackExpression?: string;
+  evaluationContextExpression?: string;
+  safelyAutomatable: boolean;
+  manualReviewReason?: MigrationManualReviewReason;
+}
+
 export interface ScanResult {
   scannedAt: string;
   scanRoot: string;
@@ -50,6 +85,7 @@ export interface ScanResult {
   totalUsages: number;
   uniqueFlags: string[];
   usages: FlagUsage[];
+  migrationInventory?: MigrationInventoryItem[];
   scanDurationMs: number;
   warnings: readonly ScanWarning[];
 }
@@ -81,6 +117,12 @@ export interface MigrationAnalysis {
   readinessScore: number;
   requiredPackages: string[];
   items: MigrationItem[];
+  inventoryItems: MigrationInventoryItem[];
+  totalLaunchDarklyUsages: number;
+  safelyAutomatableCount: number;
+  dynamicKeyCount: number;
+  bulkInventoryCallCount: number;
+  unsupportedUnknownCount: number;
   manualReviewCount: number;
   autoMigrateCount: number;
 }

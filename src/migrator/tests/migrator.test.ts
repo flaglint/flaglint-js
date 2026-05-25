@@ -1,23 +1,66 @@
 import { describe, it, expect } from "vitest";
 import { analyze, formatMigrationReport } from "../index.js";
-import type { FlagUsage, ScanResult } from "../../types.js";
+import type { FlagUsage, MigrationInventoryItem, ScanResult } from "../../types.js";
 
-// ── helpers ───────────────────────────────────────────────────────────────────
+function makeInventory(overrides: Partial<MigrationInventoryItem>): MigrationInventoryItem {
+  return {
+    file: "src/checkout.ts",
+    line: 10,
+    column: 20,
+    launchDarklyMethod: "boolVariation",
+    flagKeyExpression: "\"checkout-enabled\"",
+    staticFlagKey: "checkout-enabled",
+    isDynamic: false,
+    valueType: "boolean",
+    fallbackExpression: "false",
+    evaluationContextExpression: "context",
+    safelyAutomatable: true,
+    ...overrides,
+  };
+}
 
 function makeUsage(overrides: Partial<FlagUsage>): FlagUsage {
   return {
-    flagKey: "my-flag",
+    flagKey: "legacy-flag",
     isDynamic: false,
-    file: "/src/index.ts",
-    line: 1,
-    column: 0,
+    file: "src/legacy.ts",
+    line: 3,
+    column: 4,
     callType: "variation",
     stalenessSignals: [],
     ...overrides,
   };
 }
 
-function makeResult(usages: FlagUsage[]): ScanResult {
+function makeResult(migrationInventory: MigrationInventoryItem[]): ScanResult {
+  return {
+    scannedAt: "2026-05-23T06:00:00.000Z",
+    scanRoot: "/repo",
+    scannedFiles: 1,
+    totalUsages: migrationInventory.length,
+    uniqueFlags: [
+      ...new Set(
+        migrationInventory
+          .filter((item) => !item.isDynamic && item.staticFlagKey)
+          .map((item) => item.staticFlagKey!)
+      ),
+    ],
+    usages: migrationInventory.map((item) => ({
+      flagKey: item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*"),
+      isDynamic: item.isDynamic,
+      file: item.file,
+      line: item.line,
+      column: item.column,
+      callType: item.launchDarklyMethod,
+      stalenessSignals: [],
+    })),
+    migrationInventory,
+    scanDurationMs: 5,
+    warnings: [],
+  };
+}
+
+function makeLegacyResult(usages: FlagUsage[]): ScanResult {
   return {
     scannedAt: "2026-05-23T06:00:00.000Z",
     scanRoot: "/repo",
@@ -25,7 +68,7 @@ function makeResult(usages: FlagUsage[]): ScanResult {
     totalUsages: usages.length,
     uniqueFlags: [
       ...new Set(
-        usages.filter((u) => !u.isDynamic && u.flagKey !== "*").map((u) => u.flagKey)
+        usages.filter((usage) => !usage.isDynamic && usage.flagKey !== "*").map((usage) => usage.flagKey)
       ),
     ],
     usages,
@@ -34,226 +77,386 @@ function makeResult(usages: FlagUsage[]): ScanResult {
   };
 }
 
-// ── readiness score ───────────────────────────────────────────────────────────
-
-describe("analyze — readinessScore", () => {
-  it("scores 100 for a single static variation usage", () => {
-    const { readinessScore } = analyze(makeResult([makeUsage({ callType: "variation" })]));
-    expect(readinessScore).toBe(100);
-  });
-
-  it("deducts 10 per dynamic and 20 for no static keys", () => {
-    // 1 dynamic: -min(10,40)=10, no static keys: -20 → 70
-    const { readinessScore } = analyze(makeResult([makeUsage({ isDynamic: true })]));
-    expect(readinessScore).toBe(70);
-  });
-
-  it("caps dynamic deduction at 40", () => {
-    // 5 dynamics: -min(50,40)=40, no static keys: -20 → 40
-    const usages = Array.from({ length: 5 }, () => makeUsage({ isDynamic: true }));
-    const { readinessScore } = analyze(makeResult(usages));
-    expect(readinessScore).toBe(40);
-  });
-
-  it("deducts 15 for allFlags usage", () => {
-    const usages = [
-      makeUsage({ callType: "variation" }),
-      makeUsage({ callType: "allFlags", flagKey: "*" }),
-    ];
-    const { readinessScore } = analyze(makeResult(usages));
-    expect(readinessScore).toBe(85);
-  });
-
-  it("deducts 5 per useFlags hook call", () => {
-    const usages = [
-      makeUsage({ callType: "variation" }),
-      makeUsage({ callType: "hook-useFlags", flagKey: "*" }),
-      makeUsage({ callType: "hook-useFlags", flagKey: "*" }),
-    ];
-    const { readinessScore } = analyze(makeResult(usages));
-    expect(readinessScore).toBe(90);
-  });
-
-  it("deducts 5 per HOC usage", () => {
-    const usages = [
-      makeUsage({ callType: "variation" }),
-      makeUsage({ callType: "hoc", flagKey: "*" }),
-      makeUsage({ callType: "hoc", flagKey: "*" }),
-    ];
-    const { readinessScore } = analyze(makeResult(usages));
-    expect(readinessScore).toBe(90);
-  });
-
-  it("clamps score to minimum of 0", () => {
-    // 5 dynamics(-40) + no-static(-20) + allFlags(-15) + 6×useFlags(-30) + 4×hoc(-20) = -125 → 0
-    const usages = [
-      ...Array.from({ length: 5 }, () => makeUsage({ isDynamic: true })),
-      makeUsage({ callType: "allFlags", flagKey: "*" }),
-      ...Array.from({ length: 6 }, () => makeUsage({ callType: "hook-useFlags", flagKey: "*" })),
-      ...Array.from({ length: 4 }, () => makeUsage({ callType: "hoc", flagKey: "*" })),
-    ];
-    const { readinessScore } = analyze(makeResult(usages));
-    expect(readinessScore).toBe(0);
-  });
-});
-
-// ── required packages ─────────────────────────────────────────────────────────
-
-describe("analyze — requiredPackages", () => {
-  it("recommends server-sdk only for server-side usage", () => {
-    const { requiredPackages } = analyze(makeResult([makeUsage({ callType: "variation" })]));
-    expect(requiredPackages).toEqual(["@openfeature/server-sdk"]);
-  });
-
-  it("recommends web-sdk and react-sdk for React-only usage", () => {
-    const { requiredPackages } = analyze(
-      makeResult([makeUsage({ callType: "hook-useFlags", flagKey: "*" })])
+describe("analyze — migration inventory evidence", () => {
+  it("counts total LaunchDarkly usages, safe usages, and manual-review categories", () => {
+    const analysis = analyze(
+      makeResult([
+        makeInventory({ staticFlagKey: "safe-bool", flagKeyExpression: "\"safe-bool\"" }),
+        makeInventory({
+          staticFlagKey: undefined,
+          flagKeyExpression: "flagKey",
+          isDynamic: true,
+          safelyAutomatable: false,
+          manualReviewReason: "dynamic-key",
+        }),
+        makeInventory({
+          launchDarklyMethod: "variation",
+          staticFlagKey: "unknown-fallback",
+          flagKeyExpression: "\"unknown-fallback\"",
+          valueType: "unknown",
+          fallbackExpression: "fallbackFromConfig",
+          safelyAutomatable: false,
+          manualReviewReason: "unknown-fallback",
+        }),
+        makeInventory({
+          launchDarklyMethod: "allFlagsState",
+          staticFlagKey: undefined,
+          flagKeyExpression: undefined,
+          valueType: "unknown",
+          fallbackExpression: undefined,
+          safelyAutomatable: false,
+          manualReviewReason: "bulk-inventory-call",
+        }),
+      ])
     );
-    expect(requiredPackages).toContain("@openfeature/react-sdk");
-    expect(requiredPackages).toContain("@openfeature/web-sdk");
-    expect(requiredPackages).not.toContain("@openfeature/server-sdk");
+
+    expect(analysis.totalLaunchDarklyUsages).toBe(4);
+    expect(analysis.safelyAutomatableCount).toBe(1);
+    expect(analysis.manualReviewCount).toBe(3);
+    expect(analysis.dynamicKeyCount).toBe(1);
+    expect(analysis.bulkInventoryCallCount).toBe(1);
+    expect(analysis.unsupportedUnknownCount).toBe(1);
   });
 
-  it("recommends all three packages for mixed server + React usage", () => {
-    const usages = [
-      makeUsage({ callType: "variation" }),
-      makeUsage({ callType: "hook-useFlags", flagKey: "*" }),
+  it("sets manualReviewCount and autoMigrateCount from inventory safety", () => {
+    const analysis = analyze(
+      makeResult([
+        makeInventory({}),
+        makeInventory({ staticFlagKey: "safe-two", flagKeyExpression: "\"safe-two\"" }),
+        makeInventory({
+          staticFlagKey: undefined,
+          flagKeyExpression: "flagKey",
+          isDynamic: true,
+          safelyAutomatable: false,
+          manualReviewReason: "dynamic-key",
+        }),
+      ])
+    );
+
+    expect(analysis.autoMigrateCount).toBe(2);
+    expect(analysis.manualReviewCount).toBe(1);
+  });
+
+  it("preserves inventory items for reporting", () => {
+    const input = [
+      makeInventory({ staticFlagKey: "first", flagKeyExpression: "\"first\"" }),
+      makeInventory({ staticFlagKey: "second", flagKeyExpression: "\"second\"" }),
     ];
-    const { requiredPackages } = analyze(makeResult(usages));
-    expect(requiredPackages).toContain("@openfeature/server-sdk");
-    expect(requiredPackages).toContain("@openfeature/web-sdk");
-    expect(requiredPackages).toContain("@openfeature/react-sdk");
+
+    expect(analyze(makeResult(input)).inventoryItems).toEqual(input);
+  });
+
+  it("recommends the OpenFeature server SDK for server-side inventory", () => {
+    expect(analyze(makeResult([makeInventory({})])).requiredPackages).toEqual(["@openfeature/server-sdk"]);
+  });
+
+  it("does not recommend packages when no LaunchDarkly inventory exists", () => {
+    expect(analyze(makeResult([])).requiredPackages).toEqual([]);
+  });
+
+  it("treats legacy static ScanResult usages without migrationInventory as manual review", () => {
+    const analysis = analyze(makeLegacyResult([makeUsage({ callType: "variation", flagKey: "legacy-static" })]));
+
+    expect(analysis.totalLaunchDarklyUsages).toBe(1);
+    expect(analysis.unsupportedUnknownCount).toBe(1);
+    expect(analysis.manualReviewCount).toBe(1);
+  });
+
+  it("treats legacy dynamic ScanResult usages as dynamic manual review", () => {
+    const analysis = analyze(makeLegacyResult([makeUsage({ isDynamic: true, flagKey: "dynamic" })]));
+
+    expect(analysis.dynamicKeyCount).toBe(1);
+    expect(analysis.items[0]?.requiresManualReview).toBe(true);
+  });
+
+  it("treats legacy allFlags ScanResult usages as bulk manual review", () => {
+    const analysis = analyze(makeLegacyResult([makeUsage({ callType: "allFlags", flagKey: "*" })]));
+
+    expect(analysis.bulkInventoryCallCount).toBe(1);
+    expect(analysis.items[0]?.reviewReason).toBe("bulk inventory call");
   });
 });
-
-// ── migration items per callType ──────────────────────────────────────────────
 
 describe("analyze — migration items", () => {
-  it("maps variation to getBooleanValue with requiresManualReview: true", () => {
-    const { items } = analyze(makeResult([makeUsage({ callType: "variation", flagKey: "my-flag" })]));
-    expect(items[0]?.openFeatureEquivalent).toBe("client.getBooleanValue()");
-    expect(items[0]?.requiresManualReview).toBe(true);
-    expect(items[0]?.codeChangeBefore).toContain("variation");
-    expect(items[0]?.codeChangeAfter).toContain("getBooleanValue");
+  it("maps boolean inventory to getBooleanValue", () => {
+    expect(analyze(makeResult([makeInventory({ valueType: "boolean" })])).items[0]).toMatchObject({
+      openFeatureEquivalent: "client.getBooleanValue()",
+      requiresManualReview: false,
+    });
   });
 
-  it("maps variationDetail to getBooleanDetails", () => {
-    const { items } = analyze(makeResult([makeUsage({ callType: "variationDetail" })]));
-    expect(items[0]?.openFeatureEquivalent).toBe("client.getBooleanDetails()");
-    expect(items[0]?.requiresManualReview).toBe(true);
+  it("maps string inventory to getStringValue", () => {
+    expect(analyze(makeResult([makeInventory({ valueType: "string" })])).items[0]).toMatchObject({
+      openFeatureEquivalent: "client.getStringValue()",
+      requiresManualReview: false,
+    });
   });
 
-  it("maps allFlags to null openFeatureEquivalent", () => {
-    const { items } = analyze(makeResult([makeUsage({ callType: "allFlags", flagKey: "*" })]));
-    expect(items[0]?.openFeatureEquivalent).toBeNull();
-    expect(items[0]?.requiresManualReview).toBe(true);
+  it("maps number inventory to getNumberValue", () => {
+    expect(analyze(makeResult([makeInventory({ valueType: "number" })])).items[0]).toMatchObject({
+      openFeatureEquivalent: "client.getNumberValue()",
+      requiresManualReview: false,
+    });
   });
 
-  it("maps hook-useLDClient to useOpenFeatureClient with requiresManualReview: false", () => {
-    const { items } = analyze(
-      makeResult([makeUsage({ callType: "hook-useLDClient", flagKey: "*" })])
+  it("maps object inventory to getObjectValue", () => {
+    expect(analyze(makeResult([makeInventory({ valueType: "object" })])).items[0]).toMatchObject({
+      openFeatureEquivalent: "client.getObjectValue()",
+      requiresManualReview: false,
+    });
+  });
+
+  it("does not emit codemod output for otherwise automatable inventory", () => {
+    expect(analyze(makeResult([makeInventory({})])).items[0]?.codeChangeAfter).toBe(
+      "// No codemod generated by this report"
     );
-    expect(items[0]?.openFeatureEquivalent).toBe("useOpenFeatureClient()");
-    expect(items[0]?.requiresManualReview).toBe(false);
   });
 
-  it("maps provider to OpenFeatureProvider with requiresManualReview: false", () => {
-    const { items } = analyze(makeResult([makeUsage({ callType: "provider", flagKey: "*" })]));
-    expect(items[0]?.openFeatureEquivalent).toBe("OpenFeatureProvider");
-    expect(items[0]?.requiresManualReview).toBe(false);
+  it("marks dynamic keys as manual review with no OpenFeature equivalent", () => {
+    expect(
+      analyze(
+        makeResult([
+          makeInventory({
+            staticFlagKey: undefined,
+            flagKeyExpression: "flagKey",
+            isDynamic: true,
+            safelyAutomatable: false,
+            manualReviewReason: "dynamic-key",
+          }),
+        ])
+      ).items[0]
+    ).toMatchObject({
+      openFeatureEquivalent: null,
+      requiresManualReview: true,
+      reviewReason: "dynamic key",
+    });
   });
 
-  it("maps hoc to null openFeatureEquivalent with requiresManualReview: true", () => {
-    const { items } = analyze(makeResult([makeUsage({ callType: "hoc", flagKey: "*" })]));
-    expect(items[0]?.openFeatureEquivalent).toBeNull();
-    expect(items[0]?.requiresManualReview).toBe(true);
+  it("marks unknown fallbacks as manual review with no OpenFeature equivalent", () => {
+    expect(
+      analyze(
+        makeResult([
+          makeInventory({
+            launchDarklyMethod: "variationDetail",
+            staticFlagKey: "unknown-detail",
+            valueType: "unknown",
+            fallbackExpression: "fallbackFromConfig",
+            safelyAutomatable: false,
+            manualReviewReason: "unknown-fallback",
+          }),
+        ])
+      ).items[0]
+    ).toMatchObject({
+      openFeatureEquivalent: null,
+      requiresManualReview: true,
+      reviewReason: "unsupported or unknown fallback",
+    });
   });
 
-  it("maps isFeatureEnabled to getBooleanValue", () => {
-    const { items } = analyze(makeResult([makeUsage({ callType: "isFeatureEnabled" })]));
-    expect(items[0]?.openFeatureEquivalent).toBe("client.getBooleanValue()");
-    expect(items[0]?.requiresManualReview).toBe(true);
+  it("marks allFlags as bulk manual review", () => {
+    expect(
+      analyze(
+        makeResult([
+          makeInventory({
+            launchDarklyMethod: "allFlags",
+            staticFlagKey: undefined,
+            flagKeyExpression: undefined,
+            safelyAutomatable: false,
+            manualReviewReason: "bulk-inventory-call",
+          }),
+        ])
+      ).items[0]
+    ).toMatchObject({
+      openFeatureEquivalent: null,
+      requiresManualReview: true,
+      reviewReason: "bulk inventory call",
+    });
   });
 
-  it("uses 'flagKey' placeholder in code snippets for dynamic usages", () => {
-    const { items } = analyze(makeResult([makeUsage({ isDynamic: true })]));
-    expect(items[0]?.codeChangeBefore).toContain("flagKey");
-    expect(items[0]?.requiresManualReview).toBe(true);
+  it("marks allFlagsState as bulk manual review", () => {
+    expect(
+      analyze(
+        makeResult([
+          makeInventory({
+            launchDarklyMethod: "allFlagsState",
+            staticFlagKey: undefined,
+            flagKeyExpression: undefined,
+            safelyAutomatable: false,
+            manualReviewReason: "bulk-inventory-call",
+          }),
+        ])
+      ).items[0]
+    ).toMatchObject({
+      openFeatureEquivalent: null,
+      requiresManualReview: true,
+      reviewReason: "bulk inventory call",
+    });
   });
 
-  it("dynamic variationDetail gets correct before/after code and openFeatureEquivalent", () => {
-    const { items } = analyze(
-      makeResult([makeUsage({ isDynamic: true, callType: "variationDetail" })])
-    );
-    expect(items[0]?.codeChangeBefore).toBe(
-      "ldClient.variationDetail(flagKey, context, false)"
-    );
-    expect(items[0]?.codeChangeAfter).toContain("getBooleanDetails");
-    expect(items[0]?.openFeatureEquivalent).toBe("client.getBooleanDetails()");
-    expect(items[0]?.requiresManualReview).toBe(true);
-  });
-
-  it("dynamic variation (non-detail) still gets variation before code", () => {
-    const { items } = analyze(
-      makeResult([makeUsage({ isDynamic: true, callType: "variation" })])
-    );
-    expect(items[0]?.codeChangeBefore).toBe(
-      "ldClient.variation(flagKey, context, false)"
-    );
-    expect(items[0]?.openFeatureEquivalent).toBe("client.getBooleanValue()");
-  });
-
-  it("sets manualReviewCount and autoMigrateCount correctly", () => {
-    const usages = [
-      makeUsage({ callType: "variation" }),
-      makeUsage({ callType: "provider", flagKey: "*" }),
-      makeUsage({ callType: "hook-useLDClient", flagKey: "*" }),
-    ];
-    const { manualReviewCount, autoMigrateCount } = analyze(makeResult(usages));
-    expect(manualReviewCount).toBe(1);
-    expect(autoMigrateCount).toBe(2);
+  it("preserves source evidence in codeChangeBefore for audit consumers", () => {
+    expect(
+      analyze(
+        makeResult([
+          makeInventory({
+            launchDarklyMethod: "stringVariation",
+            flagKeyExpression: "\"pricing-tier\"",
+            evaluationContextExpression: "orgContext",
+            fallbackExpression: "\"standard\"",
+          }),
+        ])
+      ).items[0]?.codeChangeBefore
+    ).toBe("stringVariation(\"pricing-tier\", orgContext, \"standard\")");
   });
 });
 
-// ── formatMigrationReport ─────────────────────────────────────────────────────
-
 describe("formatMigrationReport", () => {
-  it("contains the migration readiness score", () => {
-    const analysis = analyze(makeResult([makeUsage({ callType: "variation" })]));
-    const report = formatMigrationReport(analysis);
-    expect(report).toContain("100");
-    expect(report).toContain("Migration Readiness Score");
+  it("prints a truthful evidence summary", () => {
+    const report = formatMigrationReport(
+      analyze(
+        makeResult([
+          makeInventory({ staticFlagKey: "checkout-enabled", flagKeyExpression: "\"checkout-enabled\"" }),
+          makeInventory({
+            staticFlagKey: undefined,
+            flagKeyExpression: "flagKey",
+            isDynamic: true,
+            safelyAutomatable: false,
+            manualReviewReason: "dynamic-key",
+          }),
+        ])
+      )
+    );
+
+    expect(report).toContain("OpenFeature Migration Inventory");
+    expect(report).toContain("Total LaunchDarkly usages found:** 2");
+    expect(report).toContain("Safely automatable usages:** 1");
+    expect(report).toContain("Manual review required:** 1");
+    expect(report).toContain("Dynamic keys:** 1");
+  });
+
+  it("does not print readiness score or ready-to-migrate claims", () => {
+    const report = formatMigrationReport(analyze(makeResult([makeInventory({})])));
+
+    expect(report).not.toContain("Migration Readiness Score");
+    expect(report).not.toContain("ready for migration");
+    expect(report).not.toContain("safe to migrate");
+  });
+
+  it("prints a manual-review warning when manual review exists", () => {
+    const report = formatMigrationReport(
+      analyze(
+        makeResult([
+          makeInventory({
+            staticFlagKey: undefined,
+            flagKeyExpression: "flagKey",
+            isDynamic: true,
+            safelyAutomatable: false,
+            manualReviewReason: "dynamic-key",
+          }),
+        ])
+      )
+    );
+
+    expect(report).toContain("This report is an inventory, not a codemod");
+    expect(report).toContain("Manual-review items must be resolved");
+  });
+
+  it("omits the manual-review warning when all items are safely automatable", () => {
+    const report = formatMigrationReport(analyze(makeResult([makeInventory({})])));
+
+    expect(report).not.toContain("Manual-review items must be resolved");
   });
 
   it("contains the npm install command for required packages", () => {
-    const analysis = analyze(makeResult([makeUsage({ callType: "variation" })]));
-    const report = formatMigrationReport(analysis);
+    const report = formatMigrationReport(analyze(makeResult([makeInventory({})])));
+
     expect(report).toContain("npm install");
     expect(report).toContain("@openfeature/server-sdk");
   });
 
-  it("contains before/after code blocks for provider migration", () => {
-    const analysis = analyze(makeResult([makeUsage({ callType: "provider", flagKey: "*" })]));
-    const report = formatMigrationReport(analysis);
-    expect(report).toContain("LDProvider");
-    expect(report).toContain("OpenFeatureProvider");
+  it("prints safe inventory with file, line, column, method, type, context, and fallback", () => {
+    const report = formatMigrationReport(
+      analyze(
+        makeResult([
+          makeInventory({
+            file: "src/pricing.ts",
+            line: 42,
+            column: 13,
+            launchDarklyMethod: "stringVariation",
+            staticFlagKey: "pricing-tier",
+            flagKeyExpression: "\"pricing-tier\"",
+            valueType: "string",
+            fallbackExpression: "\"standard\"",
+            evaluationContextExpression: "orgContext",
+          }),
+        ])
+      )
+    );
+
+    expect(report).toContain("src/pricing.ts:42:13");
+    expect(report).toContain("`pricing-tier` via `stringVariation` (string)");
+    expect(report).toContain("context: `orgContext`; fallback: `\"standard\"`");
   });
 
-  it("includes step-by-step checklist", () => {
-    const analysis = analyze(makeResult([makeUsage({ callType: "variation" })]));
-    const report = formatMigrationReport(analysis);
-    expect(report).toContain("Step-by-Step Checklist");
-    expect(report).toContain("- [ ]");
+  it("prints manual-review reason labels for dynamic, unknown, and bulk cases", () => {
+    const report = formatMigrationReport(
+      analyze(
+        makeResult([
+          makeInventory({
+            staticFlagKey: undefined,
+            flagKeyExpression: "flagKey",
+            isDynamic: true,
+            safelyAutomatable: false,
+            manualReviewReason: "dynamic-key",
+          }),
+          makeInventory({
+            staticFlagKey: "unknown",
+            valueType: "unknown",
+            safelyAutomatable: false,
+            manualReviewReason: "unknown-fallback",
+          }),
+          makeInventory({
+            launchDarklyMethod: "allFlagsState",
+            staticFlagKey: undefined,
+            flagKeyExpression: undefined,
+            safelyAutomatable: false,
+            manualReviewReason: "bulk-inventory-call",
+          }),
+        ])
+      )
+    );
+
+    expect(report).toContain("dynamic key");
+    expect(report).toContain("unsupported or unknown fallback");
+    expect(report).toContain("bulk inventory call");
   });
 
-  it("separates manual review items from auto-migratable items", () => {
-    const usages = [
-      makeUsage({ callType: "variation" }),
-      makeUsage({ callType: "provider", flagKey: "*" }),
-    ];
-    const analysis = analyze(makeResult(usages));
-    const report = formatMigrationReport(analysis);
-    expect(report).toContain("Manual Review Required");
-    expect(report).toContain("Code Changes Required");
+  it("does not print before/after codemod sections", () => {
+    const report = formatMigrationReport(analyze(makeResult([makeInventory({})])));
+
+    expect(report).not.toContain("**Before:**");
+    expect(report).not.toContain("**After:**");
+    expect(report).not.toContain("Code Changes Required");
+  });
+
+  it("manual-review cases prevent full-automation language", () => {
+    const report = formatMigrationReport(
+      analyze(
+        makeResult([
+          makeInventory({}),
+          makeInventory({
+            staticFlagKey: undefined,
+            flagKeyExpression: "flagKey",
+            isDynamic: true,
+            safelyAutomatable: false,
+            manualReviewReason: "dynamic-key",
+          }),
+        ])
+      )
+    );
+
+    expect(report).toContain("Manual review required:** 1");
+    expect(report).not.toContain("fully automatable");
+    expect(report).not.toContain("100% ready");
+    expect(report).not.toContain("safe to migrate");
   });
 });
