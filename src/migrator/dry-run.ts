@@ -37,6 +37,9 @@ function methodForType(valueType: MigrationValueType): string | null {
 function manualReason(item: MigrationInventoryItem): string {
   if (item.manualReviewReason === "dynamic-key") return "dynamic key requires manual review";
   if (item.manualReviewReason === "unknown-fallback") return "unknown fallback type requires manual review";
+  if (item.manualReviewReason === "detail-method") {
+    return "detail methods skipped: OpenFeature detail APIs exist, but LaunchDarkly/OpenFeature detail result parity requires manual review";
+  }
   if (item.manualReviewReason === "bulk-inventory-call") return "bulk inventory call has no single-flag codemod";
   return "manual review required";
 }
@@ -160,7 +163,7 @@ function formatProviderSetupSection(): string[] {
   lines.push('import { OpenFeature } from "@openfeature/server-sdk";');
   lines.push('import { LaunchDarklyProvider } from "@launchdarkly/openfeature-node-server";');
   lines.push("");
-  lines.push('const ldProvider = new LaunchDarklyProvider("<your-sdk-key>");');
+  lines.push("const ldProvider = new LaunchDarklyProvider(process.env.LD_SDK_KEY!);");
   lines.push("await OpenFeature.setProviderAndWait(ldProvider);");
   lines.push("");
   lines.push("// Share this client across your application.");
@@ -171,11 +174,14 @@ function formatProviderSetupSection(): string[] {
 
   lines.push("### 3. Evaluation context — targeting key");
   lines.push("");
-  lines.push("LaunchDarkly requires a `targetingKey` field in every evaluation context.");
-  lines.push("Replace the context arguments shown in the diffs with an object that includes it:");
+  lines.push("LaunchDarkly requires a targeting key in every evaluation context. The");
+  lines.push("provider accepts either OpenFeature `targetingKey` or an existing");
+  lines.push("LaunchDarkly `key`.");
+  lines.push("Keep your existing LaunchDarkly `key` contexts, or use `targetingKey`");
+  lines.push("for new OpenFeature-native contexts:");
   lines.push("");
   lines.push("```typescript");
-  lines.push("{ targetingKey: user.key, ...otherAttributes }");
+  lines.push("{ targetingKey: user.id } // or { key: user.id }");
   lines.push("```");
   lines.push("");
 

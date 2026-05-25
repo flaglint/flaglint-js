@@ -51,7 +51,7 @@ describe("migrate --dry-run diffs", () => {
       import { OpenFeature } from "@openfeature/server-sdk";
       import { LaunchDarklyProvider } from "@launchdarkly/openfeature-node-server";
 
-      const ldProvider = new LaunchDarklyProvider("<your-sdk-key>");
+      const ldProvider = new LaunchDarklyProvider(process.env.LD_SDK_KEY!);
       await OpenFeature.setProviderAndWait(ldProvider);
 
       // Share this client across your application.
@@ -61,11 +61,14 @@ describe("migrate --dry-run diffs", () => {
 
       ### 3. Evaluation context — targeting key
 
-      LaunchDarkly requires a \`targetingKey\` field in every evaluation context.
-      Replace the context arguments shown in the diffs with an object that includes it:
+      LaunchDarkly requires a targeting key in every evaluation context. The
+      provider accepts either OpenFeature \`targetingKey\` or an existing
+      LaunchDarkly \`key\`.
+      Keep your existing LaunchDarkly \`key\` contexts, or use \`targetingKey\`
+      for new OpenFeature-native contexts:
 
       \`\`\`typescript
-      { targetingKey: user.key, ...otherAttributes }
+      { targetingKey: user.id } // or { key: user.id }
       \`\`\`
 
       ## Diffs
@@ -242,6 +245,8 @@ describe("migrate --dry-run provider setup guidance", () => {
 
     expect(output).toContain("targetingKey");
     expect(output).toContain("targeting key");
+    expect(output).toContain("LaunchDarkly `key`");
+    expect(output).toContain("or { key: user.id }");
   });
 
   it("marks initialization as manual (not auto-applied)", async () => {

@@ -59,7 +59,8 @@ describe("scanner migration inventory", () => {
     expect(byStaticKey(items, "typed-string")).toMatchObject({
       launchDarklyMethod: "stringVariationDetail",
       valueType: "string",
-      safelyAutomatable: true,
+      safelyAutomatable: false,
+      manualReviewReason: "detail-method",
     });
     expect(byStaticKey(items, "typed-number")).toMatchObject({
       launchDarklyMethod: "numberVariation",
@@ -69,7 +70,8 @@ describe("scanner migration inventory", () => {
     expect(byStaticKey(items, "typed-object")).toMatchObject({
       launchDarklyMethod: "jsonVariationDetail",
       valueType: "object",
-      safelyAutomatable: true,
+      safelyAutomatable: false,
+      manualReviewReason: "detail-method",
     });
   });
 
@@ -133,7 +135,7 @@ describe("scanner migration inventory", () => {
       valueType: "unknown",
       fallbackExpression: "fallbackFromConfig",
       safelyAutomatable: false,
-      manualReviewReason: "unknown-fallback",
+      manualReviewReason: "detail-method",
     });
   });
 

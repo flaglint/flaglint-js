@@ -253,6 +253,34 @@ describe("analyze — migration items", () => {
     });
   });
 
+  it("marks detail methods as manual review even when fallback type is known", () => {
+    const analysis = analyze(
+      makeResult([
+        makeInventory({
+          launchDarklyMethod: "boolVariationDetail",
+          staticFlagKey: "detail-known",
+          valueType: "boolean",
+          safelyAutomatable: false,
+          manualReviewReason: "detail-method",
+        }),
+        makeInventory({
+          launchDarklyMethod: "boolVariation",
+          staticFlagKey: "safe-known",
+          valueType: "boolean",
+          safelyAutomatable: true,
+        }),
+      ])
+    );
+
+    expect(analysis.safelyAutomatableCount).toBe(1);
+    expect(analysis.manualReviewCount).toBe(1);
+    expect(analysis.items[0]).toMatchObject({
+      openFeatureEquivalent: null,
+      requiresManualReview: true,
+      reviewReason: "detail method",
+    });
+  });
+
   it("marks allFlags as bulk manual review", () => {
     expect(
       analyze(

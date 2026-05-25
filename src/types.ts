@@ -57,6 +57,7 @@ export type MigrationValueType = "boolean" | "string" | "number" | "object" | "u
 export type MigrationManualReviewReason =
   | "dynamic-key"
   | "unknown-fallback"
+  | "detail-method"
   | "bulk-inventory-call";
 
 export interface MigrationInventoryItem {
