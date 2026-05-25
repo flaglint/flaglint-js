@@ -17,5 +17,5 @@
     "types": ["node"]
   },
   "include": ["src/**/*", "bin/**/*"],
-  "exclude": ["node_modules", "dist", "src/**/tests/fixtures/**"]
+  "exclude": ["node_modules", "dist", "src/**/tests/fixtures/**", "src/**/tests/benchmark-fixtures/**"]
 }
