@@ -41,6 +41,13 @@ const LD_FLAG_KEY_METHODS = new Set([
 // TODO: bulk inventory calls must not be auto-migrated as normal single-flag
 // evaluations; they need a separate manual-review migration path.
 const LD_ALL_FLAGS_METHODS = new Set(["allFlags", "allFlagsState"]);
+const LD_DETAIL_METHODS = new Set([
+  "variationDetail",
+  "boolVariationDetail",
+  "stringVariationDetail",
+  "numberVariationDetail",
+  "jsonVariationDetail",
+]);
 
 const LD_HOOKS = new Set(["useFlags", "useLDClient"]);
 export const DEFAULT_EXCLUDE = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.next/**"];
@@ -136,7 +143,13 @@ function buildMigrationInventoryItem(
   const fallback = args[2];
   const valueType = inferValueType(methodName, fallback);
   const manualReviewReason: MigrationManualReviewReason | undefined =
-    isDynamic ? "dynamic-key" : valueType === "unknown" ? "unknown-fallback" : undefined;
+    isDynamic
+      ? "dynamic-key"
+      : LD_DETAIL_METHODS.has(methodName)
+        ? "detail-method"
+        : valueType === "unknown"
+          ? "unknown-fallback"
+          : undefined;
 
   return {
     file: filePath,

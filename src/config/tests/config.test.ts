@@ -28,7 +28,7 @@ describe("loadConfig — defaults", () => {
   it("returns defaults when config path does not exist", async () => {
     const config = await loadConfig("/nonexistent/flaglint-config-xyz.json");
     expect(config.provider).toBe("launchdarkly");
-    expect(config.minFileCount).toBe(1);
+    expect(config.minFileCount).toBe(0);
     expect(config.outputDir).toBe(".");
     expect(Array.isArray(config.include)).toBe(true);
     expect(Array.isArray(config.exclude)).toBe(true);
@@ -56,7 +56,7 @@ describe("loadConfig — partial config merges with defaults", () => {
     const config = await loadConfig(path);
     expect(config.reportTitle).toBe("My Project");
     expect(config.provider).toBe("launchdarkly");
-    expect(config.minFileCount).toBe(1);
+    expect(config.minFileCount).toBe(0);
   });
 
   it("overrides provider while keeping other defaults", async () => {
