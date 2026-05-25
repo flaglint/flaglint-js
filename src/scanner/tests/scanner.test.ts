@@ -223,7 +223,7 @@ describe("scanner — isFeatureEnabled", () => {
   });
 });
 
-describe("scanner — LD_CLIENT_PATTERN false positive guard", () => {
+describe("scanner — LaunchDarkly client provenance false positive guard", () => {
   it("does NOT detect build.variation() — 'ld' substring in 'build'", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-build.ts"));
     expect(result.usages).toHaveLength(0);
@@ -240,19 +240,19 @@ describe("scanner — LD_CLIENT_PATTERN false positive guard", () => {
     expect(result.uniqueFlags).not.toContain("fields-flag");
   });
 
-  it("detects ldClient.variation() — starts with 'ld' (true positive)", async () => {
+  it("detects ldClient.variation() when ldClient is initialized from LaunchDarkly", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-basic.ts"));
     expect(result.usages.length).toBeGreaterThan(0);
     expect(result.usages.every((u) => u.file.includes("ld-basic.ts"))).toBe(true);
   });
 
-  it("detects LDClient-named objects — case-insensitive '^ld' anchor (true positive)", async () => {
+  it("detects LaunchDarkly-initialized clients regardless of naming style", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-basic.ts"));
     const variation = result.usages.find((u) => u.callType === "variation");
     expect(variation).toBeDefined();
   });
 
-  it("detects myClient/featureClient .variation() — 'client' substring (true positives)", async () => {
+  it("detects myClient/featureClient .variation() from SDK initialization provenance", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-client-variants.ts"));
     expect(result.uniqueFlags).toContain("my-client-flag");
     expect(result.uniqueFlags).toContain("feature-client-flag");
@@ -322,7 +322,9 @@ describe("scanner — wrapper functions", () => {
 
 describe("scanner — unreadable file warning (P1)", () => {
   it("emits a read-failure warning and continues scanning readable files", async () => {
-    const readable = "ldClient.variation('show-banner', ctx, false);";
+    const readable = `import LaunchDarkly from 'launchdarkly-node-server-sdk';
+const ldClient = LaunchDarkly.init('sdk-key');
+ldClient.variation('show-banner', ctx, false);`;
     const source: import("../../types.js").FileSource = {
       listFiles: async () => ["readable.ts", "unreadable.ts"],
       readFile: async (file) => {

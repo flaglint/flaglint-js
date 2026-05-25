@@ -4,8 +4,33 @@ import type { TSESTree } from "@typescript-eslint/types";
 import type { CallType, FileSource, FlagUsage, ScanResult, ScanConfig, StalenessEvaluator, ScanWarning } from "../types.js";
 import { checkStale } from "../stale.js";
 
-const LD_MEMBER_METHODS = new Set(["variation", "variationDetail", "allFlags"]);
-const LD_CLIENT_PATTERN = /^ld|client/i;
+// Known LaunchDarkly Node.js server-side SDK package specifiers.
+// MVP scope: inventory Node server-side LaunchDarkly SDK usage for future
+// OpenFeature migration while keeping LaunchDarkly as the provider.
+const LD_NODE_SERVER_PACKAGES = new Set([
+  "launchdarkly-node-server-sdk",
+  "@launchdarkly/node-server-sdk",
+]);
+
+// Client methods where the first argument is the flag key.
+const LD_FLAG_KEY_METHODS = new Set([
+  "variation",
+  "variationDetail",
+  "boolVariation",
+  "boolVariationDetail",
+  "stringVariation",
+  "stringVariationDetail",
+  "numberVariation",
+  "numberVariationDetail",
+  "jsonVariation",
+  "jsonVariationDetail",
+]);
+
+// Client methods that enumerate all flags — no flag key, use '*'.
+// TODO: bulk inventory calls must not be auto-migrated as normal single-flag
+// evaluations; they need a separate manual-review migration path.
+const LD_ALL_FLAGS_METHODS = new Set(["allFlags", "allFlagsState"]);
+
 const LD_HOOKS = new Set(["useFlags", "useLDClient"]);
 export const DEFAULT_EXCLUDE = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.next/**"];
 
@@ -54,8 +79,99 @@ function walk(root: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) 
   }
 }
 
+/**
+ * Collect the set of local variable names that are proven LaunchDarkly clients.
+ *
+ * A variable is a proven LD client if and only if it is directly initialized
+ * from `<LDNamespace>.init(...)` where <LDNamespace> was imported or required
+ * from a known LaunchDarkly SDK package.
+ *
+ * No name-based heuristics are used: only import/require bindings establish
+ * the namespace, and only `.init()` calls on those namespaces establish clients.
+ */
+function collectLDClients(ast: TSESTree.Program): Set<string> {
+  // ── Step 1: collect namespace names from top-level LD imports / require() ──
+  const ldNamespaces = new Set<string>();
+
+  for (const stmt of ast.body) {
+    // ESM: import * as X from 'launchdarkly-...'
+    //      import X from 'launchdarkly-...'
+    if (stmt.type === "ImportDeclaration") {
+      const importDecl = stmt as TSESTree.ImportDeclaration;
+      if (LD_NODE_SERVER_PACKAGES.has(importDecl.source.value)) {
+        for (const spec of importDecl.specifiers) {
+          if (
+            spec.type === "ImportNamespaceSpecifier" ||
+            spec.type === "ImportDefaultSpecifier"
+          ) {
+            ldNamespaces.add(spec.local.name);
+          }
+        }
+      }
+      continue;
+    }
+
+    // CJS: const X = require('launchdarkly-...')
+    //      const X: any = require('launchdarkly-...')
+    if (stmt.type === "VariableDeclaration") {
+      const varDecl = stmt as TSESTree.VariableDeclaration;
+      for (const decl of varDecl.declarations) {
+        if (decl.id.type !== "Identifier" || !decl.init) continue;
+        const init = decl.init;
+        if (
+          init.type === "CallExpression" &&
+          (init as TSESTree.CallExpression).callee.type === "Identifier" &&
+          ((init as TSESTree.CallExpression).callee as TSESTree.Identifier).name === "require" &&
+          (init as TSESTree.CallExpression).arguments.length >= 1 &&
+          (init as TSESTree.CallExpression).arguments[0]!.type === "Literal" &&
+          LD_NODE_SERVER_PACKAGES.has(
+            ((init as TSESTree.CallExpression).arguments[0] as TSESTree.StringLiteral).value as string
+          )
+        ) {
+          ldNamespaces.add((decl.id as TSESTree.Identifier).name);
+        }
+      }
+    }
+  }
+
+  if (ldNamespaces.size === 0) return new Set();
+
+  // ── Step 2: collect variable names assigned from LDNamespace.init(...) ──
+  const ldClients = new Set<string>();
+  walk(ast, (node) => {
+    if (node.type !== "VariableDeclaration") return;
+    const varDecl = node as TSESTree.VariableDeclaration;
+    for (const decl of varDecl.declarations) {
+      if (
+        decl.id.type !== "Identifier" ||
+        !decl.init ||
+        decl.init.type !== "CallExpression"
+      ) continue;
+      const initCall = decl.init as TSESTree.CallExpression;
+      if (
+        initCall.callee.type !== "MemberExpression" ||
+        (initCall.callee as TSESTree.MemberExpression).computed
+      ) continue;
+      const initCallee = initCall.callee as TSESTree.MemberExpression;
+      if (
+        initCallee.object.type === "Identifier" &&
+        initCallee.property.type === "Identifier" &&
+        ldNamespaces.has((initCallee.object as TSESTree.Identifier).name) &&
+        (initCallee.property as TSESTree.Identifier).name === "init"
+      ) {
+        ldClients.add((decl.id as TSESTree.Identifier).name);
+      }
+    }
+  });
+
+  return ldClients;
+}
+
 function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[]): FlagUsage[] {
   const usages: FlagUsage[] = [];
+
+  // Establish the set of proven LD client variables for this file.
+  const ldClients = collectLDClients(ast);
 
   walk(ast, (node) => {
     if (node.type === "CallExpression") {
@@ -63,17 +179,21 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
       const { callee } = call;
       const loc = call.loc?.start ?? { line: 0, column: 0 };
 
-      // ldClient.variation / ldClient.variationDetail / ldClient.allFlags
+      // ── Proven LD client method calls ─────────────────────────────────────
+      // Matches: ldClient.variation(...), ldClient.boolVariation(...),
+      //          ldClient.allFlags(...), ldClient.allFlagsState(...), etc.
+      // Identity is established through import/require + init() binding only;
+      // variable naming plays no role.
       if (
         callee.type === "MemberExpression" &&
         !callee.computed &&
         callee.object.type === "Identifier" &&
         callee.property.type === "Identifier" &&
-        LD_CLIENT_PATTERN.test((callee.object as TSESTree.Identifier).name) &&
-        LD_MEMBER_METHODS.has((callee.property as TSESTree.Identifier).name)
+        ldClients.has((callee.object as TSESTree.Identifier).name)
       ) {
-        const method = (callee.property as TSESTree.Identifier).name as CallType;
-        if (method === "allFlags") {
+        const methodName = (callee.property as TSESTree.Identifier).name;
+
+        if (LD_ALL_FLAGS_METHODS.has(methodName)) {
           const sig = checkStale("*", filePath);
           usages.push({
             flagKey: "*",
@@ -81,10 +201,13 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
             file: filePath,
             line: loc.line,
             column: loc.column,
-            callType: "allFlags",
+            callType: methodName as unknown as CallType,
             stalenessSignals: sig ? [sig] : [],
           });
-        } else {
+          return;
+        }
+
+        if (LD_FLAG_KEY_METHODS.has(methodName)) {
           const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
           const sig = checkStale(flagKey, filePath);
           usages.push({
@@ -93,10 +216,13 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
             file: filePath,
             line: loc.line,
             column: loc.column,
-            callType: method,
+            callType: methodName as unknown as CallType,
             stalenessSignals: sig ? [sig] : [],
           });
+          return;
         }
+
+        // Method not in recognized set (e.g. .track(), .flush()) — skip.
         return;
       }
 
