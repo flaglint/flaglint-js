@@ -64,6 +64,10 @@ export interface MigrationInventoryItem {
   line: number;
   column: number;
   launchDarklyMethod: CallType;
+  callExpression?: string;
+  rangeStart?: number;
+  rangeEnd?: number;
+  isAwaited?: boolean;
   flagKeyExpression?: string;
   staticFlagKey?: string;
   isDynamic: boolean;

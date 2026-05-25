@@ -69,6 +69,21 @@ function expressionText(code: string, node: TSESTree.Node | undefined): string |
   return code.slice(range[0], range[1]);
 }
 
+function expressionRange(node: TSESTree.Node | undefined): [number, number] | undefined {
+  return (node as (TSESTree.Node & { range?: [number, number] }) | undefined)?.range;
+}
+
+function isAwaitedCall(code: string, call: TSESTree.CallExpression): boolean {
+  const range = expressionRange(call);
+  if (!range) return false;
+
+  let i = range[0] - 1;
+  while (i >= 0 && /\s/.test(code[i]!)) i--;
+  const end = i + 1;
+  while (i >= 0 && /[A-Za-z_$]/.test(code[i]!)) i--;
+  return code.slice(i + 1, end) === "await";
+}
+
 function inferValueType(methodName: string, fallback: TSESTree.Node | undefined): MigrationValueType {
   if (methodName === "boolVariation" || methodName === "boolVariationDetail") return "boolean";
   if (methodName === "stringVariation" || methodName === "stringVariationDetail") return "string";
@@ -92,17 +107,24 @@ function buildMigrationInventoryItem(
   code: string,
   filePath: string,
   loc: { line: number; column: number },
+  call: TSESTree.CallExpression,
   methodName: string,
   args: readonly TSESTree.CallExpressionArgument[],
   flagKey: string,
   isDynamic: boolean
 ): MigrationInventoryItem {
+  const callRange = expressionRange(call);
+
   if (LD_ALL_FLAGS_METHODS.has(methodName)) {
     return {
       file: filePath,
       line: loc.line,
       column: loc.column,
       launchDarklyMethod: methodName as CallType,
+      callExpression: expressionText(code, call),
+      rangeStart: callRange?.[0],
+      rangeEnd: callRange?.[1],
+      isAwaited: isAwaitedCall(code, call),
       isDynamic: false,
       valueType: "unknown",
       evaluationContextExpression: expressionText(code, args[0]),
@@ -121,6 +143,10 @@ function buildMigrationInventoryItem(
     line: loc.line,
     column: loc.column,
     launchDarklyMethod: methodName as CallType,
+    callExpression: expressionText(code, call),
+    rangeStart: callRange?.[0],
+    rangeEnd: callRange?.[1],
+    isAwaited: isAwaitedCall(code, call),
     flagKeyExpression: expressionText(code, args[0]),
     staticFlagKey: isDynamic ? undefined : flagKey,
     isDynamic,
@@ -291,7 +317,7 @@ function detectUsages(
             stalenessSignals: sig ? [sig] : [],
           });
           migrationInventory.push(
-            buildMigrationInventoryItem(code, filePath, loc, methodName, call.arguments, "*", false)
+            buildMigrationInventoryItem(code, filePath, loc, call, methodName, call.arguments, "*", false)
           );
           return;
         }
@@ -309,7 +335,7 @@ function detectUsages(
             stalenessSignals: sig ? [sig] : [],
           });
           migrationInventory.push(
-            buildMigrationInventoryItem(code, filePath, loc, methodName, call.arguments, flagKey, isDynamic)
+            buildMigrationInventoryItem(code, filePath, loc, call, methodName, call.arguments, flagKey, isDynamic)
           );
           return;
         }
