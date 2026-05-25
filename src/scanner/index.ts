@@ -1,11 +1,47 @@
 import pLimit from "p-limit";
 import { parse } from "@typescript-eslint/typescript-estree";
 import type { TSESTree } from "@typescript-eslint/types";
-import type { CallType, FileSource, FlagUsage, ScanResult, ScanConfig, StalenessEvaluator, ScanWarning } from "../types.js";
+import type {
+  CallType,
+  FileSource,
+  FlagUsage,
+  MigrationInventoryItem,
+  MigrationManualReviewReason,
+  MigrationValueType,
+  ScanResult,
+  ScanConfig,
+  StalenessEvaluator,
+  ScanWarning,
+} from "../types.js";
 import { checkStale } from "../stale.js";
 
-const LD_MEMBER_METHODS = new Set(["variation", "variationDetail", "allFlags"]);
-const LD_CLIENT_PATTERN = /^ld|client/i;
+// Known LaunchDarkly Node.js server-side SDK package specifiers.
+// MVP scope: inventory Node server-side LaunchDarkly SDK usage for future
+// OpenFeature migration while keeping LaunchDarkly as the provider.
+const LD_NODE_SERVER_PACKAGES = new Set([
+  "launchdarkly-node-server-sdk",
+  "@launchdarkly/node-server-sdk",
+]);
+
+// Client methods where the first argument is the flag key.
+const LD_FLAG_KEY_METHODS = new Set([
+  "variation",
+  "variationDetail",
+  "boolVariation",
+  "boolVariationDetail",
+  "stringVariation",
+  "stringVariationDetail",
+  "numberVariation",
+  "numberVariationDetail",
+  "jsonVariation",
+  "jsonVariationDetail",
+]);
+
+// Client methods that enumerate all flags — no flag key, use '*'.
+// TODO: bulk inventory calls must not be auto-migrated as normal single-flag
+// evaluations; they need a separate manual-review migration path.
+const LD_ALL_FLAGS_METHODS = new Set(["allFlags", "allFlagsState"]);
+
 const LD_HOOKS = new Set(["useFlags", "useLDClient"]);
 export const DEFAULT_EXCLUDE = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.next/**"];
 
@@ -25,6 +61,101 @@ function extractFlagKey(arg: TSESTree.Node | undefined): { flagKey: string; isDy
   }
 
   return { flagKey: "dynamic", isDynamic: true };
+}
+
+function expressionText(code: string, node: TSESTree.Node | undefined): string | undefined {
+  const range = (node as (TSESTree.Node & { range?: [number, number] }) | undefined)?.range;
+  if (!range) return undefined;
+  return code.slice(range[0], range[1]);
+}
+
+function expressionRange(node: TSESTree.Node | undefined): [number, number] | undefined {
+  return (node as (TSESTree.Node & { range?: [number, number] }) | undefined)?.range;
+}
+
+function isAwaitedCall(code: string, call: TSESTree.CallExpression): boolean {
+  const range = expressionRange(call);
+  if (!range) return false;
+
+  let i = range[0] - 1;
+  while (i >= 0 && /\s/.test(code[i]!)) i--;
+  const end = i + 1;
+  while (i >= 0 && /[A-Za-z_$]/.test(code[i]!)) i--;
+  return code.slice(i + 1, end) === "await";
+}
+
+function inferValueType(methodName: string, fallback: TSESTree.Node | undefined): MigrationValueType {
+  if (methodName === "boolVariation" || methodName === "boolVariationDetail") return "boolean";
+  if (methodName === "stringVariation" || methodName === "stringVariationDetail") return "string";
+  if (methodName === "numberVariation" || methodName === "numberVariationDetail") return "number";
+  if (methodName === "jsonVariation" || methodName === "jsonVariationDetail") return "object";
+
+  if (!fallback) return "unknown";
+  if (fallback.type === "Literal") {
+    const value = (fallback as TSESTree.Literal).value;
+    if (typeof value === "boolean") return "boolean";
+    if (typeof value === "string") return "string";
+    if (typeof value === "number") return "number";
+    return "unknown";
+  }
+  if (fallback.type === "ObjectExpression" || fallback.type === "ArrayExpression") return "object";
+
+  return "unknown";
+}
+
+function buildMigrationInventoryItem(
+  code: string,
+  filePath: string,
+  loc: { line: number; column: number },
+  call: TSESTree.CallExpression,
+  methodName: string,
+  args: readonly TSESTree.CallExpressionArgument[],
+  flagKey: string,
+  isDynamic: boolean
+): MigrationInventoryItem {
+  const callRange = expressionRange(call);
+
+  if (LD_ALL_FLAGS_METHODS.has(methodName)) {
+    return {
+      file: filePath,
+      line: loc.line,
+      column: loc.column,
+      launchDarklyMethod: methodName as CallType,
+      callExpression: expressionText(code, call),
+      rangeStart: callRange?.[0],
+      rangeEnd: callRange?.[1],
+      isAwaited: isAwaitedCall(code, call),
+      isDynamic: false,
+      valueType: "unknown",
+      evaluationContextExpression: expressionText(code, args[0]),
+      safelyAutomatable: false,
+      manualReviewReason: "bulk-inventory-call",
+    };
+  }
+
+  const fallback = args[2];
+  const valueType = inferValueType(methodName, fallback);
+  const manualReviewReason: MigrationManualReviewReason | undefined =
+    isDynamic ? "dynamic-key" : valueType === "unknown" ? "unknown-fallback" : undefined;
+
+  return {
+    file: filePath,
+    line: loc.line,
+    column: loc.column,
+    launchDarklyMethod: methodName as CallType,
+    callExpression: expressionText(code, call),
+    rangeStart: callRange?.[0],
+    rangeEnd: callRange?.[1],
+    isAwaited: isAwaitedCall(code, call),
+    flagKeyExpression: expressionText(code, args[0]),
+    staticFlagKey: isDynamic ? undefined : flagKey,
+    isDynamic,
+    valueType,
+    fallbackExpression: expressionText(code, fallback),
+    evaluationContextExpression: expressionText(code, args[1]),
+    safelyAutomatable: manualReviewReason == null,
+    manualReviewReason,
+  };
 }
 
 function walk(root: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) => void): void {
@@ -54,8 +185,105 @@ function walk(root: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) 
   }
 }
 
-function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[]): FlagUsage[] {
+/**
+ * Collect the set of local variable names that are proven LaunchDarkly clients.
+ *
+ * A variable is a proven LD client if and only if it is directly initialized
+ * from `<LDNamespace>.init(...)` where <LDNamespace> was imported or required
+ * from a known LaunchDarkly SDK package.
+ *
+ * No name-based heuristics are used: only import/require bindings establish
+ * the namespace, and only `.init()` calls on those namespaces establish clients.
+ */
+function collectLDClients(ast: TSESTree.Program): Set<string> {
+  // ── Step 1: collect namespace names from top-level LD imports / require() ──
+  const ldNamespaces = new Set<string>();
+
+  for (const stmt of ast.body) {
+    // ESM: import * as X from 'launchdarkly-...'
+    //      import X from 'launchdarkly-...'
+    if (stmt.type === "ImportDeclaration") {
+      const importDecl = stmt as TSESTree.ImportDeclaration;
+      if (LD_NODE_SERVER_PACKAGES.has(importDecl.source.value)) {
+        for (const spec of importDecl.specifiers) {
+          if (
+            spec.type === "ImportNamespaceSpecifier" ||
+            spec.type === "ImportDefaultSpecifier"
+          ) {
+            ldNamespaces.add(spec.local.name);
+          }
+        }
+      }
+      continue;
+    }
+
+    // CJS: const X = require('launchdarkly-...')
+    //      const X: any = require('launchdarkly-...')
+    if (stmt.type === "VariableDeclaration") {
+      const varDecl = stmt as TSESTree.VariableDeclaration;
+      for (const decl of varDecl.declarations) {
+        if (decl.id.type !== "Identifier" || !decl.init) continue;
+        const init = decl.init;
+        if (
+          init.type === "CallExpression" &&
+          (init as TSESTree.CallExpression).callee.type === "Identifier" &&
+          ((init as TSESTree.CallExpression).callee as TSESTree.Identifier).name === "require" &&
+          (init as TSESTree.CallExpression).arguments.length >= 1 &&
+          (init as TSESTree.CallExpression).arguments[0]!.type === "Literal" &&
+          LD_NODE_SERVER_PACKAGES.has(
+            ((init as TSESTree.CallExpression).arguments[0] as TSESTree.StringLiteral).value as string
+          )
+        ) {
+          ldNamespaces.add((decl.id as TSESTree.Identifier).name);
+        }
+      }
+    }
+  }
+
+  if (ldNamespaces.size === 0) return new Set();
+
+  // ── Step 2: collect variable names assigned from LDNamespace.init(...) ──
+  const ldClients = new Set<string>();
+  walk(ast, (node) => {
+    if (node.type !== "VariableDeclaration") return;
+    const varDecl = node as TSESTree.VariableDeclaration;
+    for (const decl of varDecl.declarations) {
+      if (
+        decl.id.type !== "Identifier" ||
+        !decl.init ||
+        decl.init.type !== "CallExpression"
+      ) continue;
+      const initCall = decl.init as TSESTree.CallExpression;
+      if (
+        initCall.callee.type !== "MemberExpression" ||
+        (initCall.callee as TSESTree.MemberExpression).computed
+      ) continue;
+      const initCallee = initCall.callee as TSESTree.MemberExpression;
+      if (
+        initCallee.object.type === "Identifier" &&
+        initCallee.property.type === "Identifier" &&
+        ldNamespaces.has((initCallee.object as TSESTree.Identifier).name) &&
+        (initCallee.property as TSESTree.Identifier).name === "init"
+      ) {
+        ldClients.add((decl.id as TSESTree.Identifier).name);
+      }
+    }
+  });
+
+  return ldClients;
+}
+
+function detectUsages(
+  ast: TSESTree.Program,
+  code: string,
+  filePath: string,
+  wrappers: string[]
+): { usages: FlagUsage[]; migrationInventory: MigrationInventoryItem[] } {
   const usages: FlagUsage[] = [];
+  const migrationInventory: MigrationInventoryItem[] = [];
+
+  // Establish the set of proven LD client variables for this file.
+  const ldClients = collectLDClients(ast);
 
   walk(ast, (node) => {
     if (node.type === "CallExpression") {
@@ -63,17 +291,21 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
       const { callee } = call;
       const loc = call.loc?.start ?? { line: 0, column: 0 };
 
-      // ldClient.variation / ldClient.variationDetail / ldClient.allFlags
+      // ── Proven LD client method calls ─────────────────────────────────────
+      // Matches: ldClient.variation(...), ldClient.boolVariation(...),
+      //          ldClient.allFlags(...), ldClient.allFlagsState(...), etc.
+      // Identity is established through import/require + init() binding only;
+      // variable naming plays no role.
       if (
         callee.type === "MemberExpression" &&
         !callee.computed &&
         callee.object.type === "Identifier" &&
         callee.property.type === "Identifier" &&
-        LD_CLIENT_PATTERN.test((callee.object as TSESTree.Identifier).name) &&
-        LD_MEMBER_METHODS.has((callee.property as TSESTree.Identifier).name)
+        ldClients.has((callee.object as TSESTree.Identifier).name)
       ) {
-        const method = (callee.property as TSESTree.Identifier).name as CallType;
-        if (method === "allFlags") {
+        const methodName = (callee.property as TSESTree.Identifier).name;
+
+        if (LD_ALL_FLAGS_METHODS.has(methodName)) {
           const sig = checkStale("*", filePath);
           usages.push({
             flagKey: "*",
@@ -81,10 +313,16 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
             file: filePath,
             line: loc.line,
             column: loc.column,
-            callType: "allFlags",
+            callType: methodName as unknown as CallType,
             stalenessSignals: sig ? [sig] : [],
           });
-        } else {
+          migrationInventory.push(
+            buildMigrationInventoryItem(code, filePath, loc, call, methodName, call.arguments, "*", false)
+          );
+          return;
+        }
+
+        if (LD_FLAG_KEY_METHODS.has(methodName)) {
           const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
           const sig = checkStale(flagKey, filePath);
           usages.push({
@@ -93,10 +331,16 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
             file: filePath,
             line: loc.line,
             column: loc.column,
-            callType: method,
+            callType: methodName as unknown as CallType,
             stalenessSignals: sig ? [sig] : [],
           });
+          migrationInventory.push(
+            buildMigrationInventoryItem(code, filePath, loc, call, methodName, call.arguments, flagKey, isDynamic)
+          );
+          return;
         }
+
+        // Method not in recognized set (e.g. .track(), .flush()) — skip.
         return;
       }
 
@@ -195,7 +439,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
     }
   });
 
-  return usages;
+  return { usages, migrationInventory };
 }
 
 export async function scan(
@@ -218,16 +462,19 @@ export async function scan(
   const files = await source.listFiles(config.include, config.exclude);
 
   const allUsages: FlagUsage[] = [];
+  const migrationInventory: MigrationInventoryItem[] = [];
   const warnings: ScanWarning[] = [];
   let scannedFiles = 0;
 
-  async function processFile(file: string): Promise<{ usages: FlagUsage[]; warning: ScanWarning | null }> {
+  async function processFile(
+    file: string
+  ): Promise<{ usages: FlagUsage[]; migrationInventory: MigrationInventoryItem[]; warning: ScanWarning | null }> {
     let code: string;
     try {
       code = await source.readFile(file);
     } catch (err) {
       const fsCode = (err as NodeJS.ErrnoException).code ?? "UNKNOWN";
-      return { usages: [], warning: { kind: "read-failure", file, fsCode } };
+      return { usages: [], migrationInventory: [], warning: { kind: "read-failure", file, fsCode } };
     }
 
     let ast: TSESTree.Program;
@@ -235,16 +482,16 @@ export async function scan(
       ast = parse(code, {
         jsx: true,
         loc: true,
-        range: false,
+        range: true,
         comment: false,
         tokens: false,
         filePath: file,
       });
     } catch {
-      return { usages: [], warning: { kind: "parse-failure", file } };
+      return { usages: [], migrationInventory: [], warning: { kind: "parse-failure", file } };
     }
 
-    return { usages: detectUsages(ast, file, config.wrappers), warning: null };
+    return { ...detectUsages(ast, code, file, config.wrappers), warning: null };
   }
 
   const limit = pLimit(50);
@@ -261,6 +508,7 @@ export async function scan(
 
   for (const r of results) {
     allUsages.push(...r.usages);
+    migrationInventory.push(...r.migrationInventory);
     if (r.warning) warnings.push(r.warning);
   }
 
@@ -307,6 +555,7 @@ export async function scan(
     totalUsages: allUsages.length,
     uniqueFlags,
     usages: allUsages,
+    migrationInventory,
     scanDurationMs: Date.now() - start,
     warnings,
   };

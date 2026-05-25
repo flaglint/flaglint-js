@@ -5,6 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **`flaglint migrate --dry-run`**: Generates reviewable before/after diffs for every automatable
+  call-site, including inline provider setup guidance (packages, bootstrap file, `targetingKey`
+  context requirement). Does not write any files; output is to stdout.
+
+- **Docs**: Repositioned public copy and website messaging to explicitly state scope (LaunchDarkly Node.js server SDK only), clarify that `--apply` is guarded, confirm provider/bootstrap setup is manual, and limit precision/recall claims to the 120 deterministic benchmark cases within that supported scope.
+
+- **`flaglint migrate --apply`**: Applies only guarded, provably automatable transformations
+  in-place. Safety contracts: refuses on a dirty git working tree (override with `--allow-dirty`);
+  skips any file without a proven `openFeatureClient = OpenFeature.getClient()` binding from
+  `@openfeature/server-sdk` (AST-grounded, not regex); never rewrites detail methods, dynamic
+  keys, unknown fallbacks, or bulk calls; preserves `await` and all call arguments exactly;
+  idempotent (re-running a stale analysis is a no-op via range-content guard).
+
+- **`flaglint validate [dir]`**: New command for CI enforcement.
+  - Without `--no-direct-launchdarkly`: reports usages, always exits 0.
+  - `--no-direct-launchdarkly`: exits 1 if any direct LaunchDarkly Node server evaluation call
+    is found (static, dynamic, detail, or bulk — all count as violations).
+  - `--bootstrap-exclude <glob>` (repeatable): exclude provider bootstrap files from violations.
+    Supports exact paths, `*` (within one directory), `**` (across directories), and `?` wildcards.
+  - Never claims flags are stale or safe to delete.
+
+### Scope clarification
+
+Current scope: **LaunchDarkly Node.js server-side SDK** (`launchdarkly-node-server-sdk`).
+React hooks, HOC, and client-side SDK patterns are detected by `scan` but are not automatically
+migrated by `--apply`.
+
 ## [0.3.0] - 2026-05-23
 
 ### Added

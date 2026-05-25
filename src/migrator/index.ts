@@ -1,255 +1,238 @@
-import type { FlagUsage, MigrationAnalysis, MigrationItem, ScanResult } from "../types.js";
+import type {
+  FlagUsage,
+  MigrationAnalysis,
+  MigrationInventoryItem,
+  MigrationItem,
+  MigrationManualReviewReason,
+  MigrationValueType,
+  ScanResult,
+} from "../types.js";
 
 declare const __PKG_VERSION__: string;
 
-// ── mapping helpers ───────────────────────────────────────────────────────────
+// ── evidence helpers ─────────────────────────────────────────────────────────
 
-function keyLiteral(usage: FlagUsage): string {
-  return usage.isDynamic ? "flagKey" : `'${usage.flagKey}'`;
+function legacyInventoryFromUsage(usage: FlagUsage): MigrationInventoryItem {
+  const isBulk = usage.flagKey === "*" || usage.callType === "allFlags" || usage.callType === "allFlagsState";
+  const manualReviewReason: MigrationManualReviewReason | undefined = isBulk
+    ? "bulk-inventory-call"
+    : usage.isDynamic
+      ? "dynamic-key"
+      : "unknown-fallback";
+
+  return {
+    file: usage.file,
+    line: usage.line,
+    column: usage.column,
+    launchDarklyMethod: usage.callType,
+    flagKeyExpression: isBulk ? undefined : usage.isDynamic ? "flagKey" : `'${usage.flagKey}'`,
+    staticFlagKey: usage.isDynamic || isBulk ? undefined : usage.flagKey,
+    isDynamic: usage.isDynamic,
+    valueType: "unknown",
+    safelyAutomatable: false,
+    manualReviewReason,
+  };
 }
 
-function buildItem(usage: FlagUsage): MigrationItem {
-  const k = keyLiteral(usage);
+function inventoryFrom(result: ScanResult): MigrationInventoryItem[] {
+  if (result.migrationInventory) return result.migrationInventory;
+  return result.usages.map(legacyInventoryFromUsage);
+}
 
-  if (usage.isDynamic) {
-    const isDetail = usage.callType === "variationDetail";
-    const methodName = isDetail ? "variationDetail" : "variation";
-    return {
-      usage,
-      openFeatureEquivalent: isDetail
-        ? "client.getBooleanDetails()"
-        : "client.getBooleanValue()",
-      codeChangeBefore: `ldClient.${methodName}(flagKey, context, false)`,
-      codeChangeAfter: isDetail
-        ? `await client.getBooleanDetails(flagKey, false) // server SDK is async`
-        : `await client.getBooleanValue(flagKey, false) // server SDK is async`,
-      requiresManualReview: true,
-      reviewReason:
-        "Flag key determined at runtime; OpenFeature server SDK methods " +
-        "are async — add await and make the enclosing function async",
-    };
+function isServerInventoryItem(item: MigrationInventoryItem): boolean {
+  return (
+    item.launchDarklyMethod === "variation" ||
+    item.launchDarklyMethod === "variationDetail" ||
+    item.launchDarklyMethod === "boolVariation" ||
+    item.launchDarklyMethod === "boolVariationDetail" ||
+    item.launchDarklyMethod === "stringVariation" ||
+    item.launchDarklyMethod === "stringVariationDetail" ||
+    item.launchDarklyMethod === "numberVariation" ||
+    item.launchDarklyMethod === "numberVariationDetail" ||
+    item.launchDarklyMethod === "jsonVariation" ||
+    item.launchDarklyMethod === "jsonVariationDetail" ||
+    item.launchDarklyMethod === "allFlags" ||
+    item.launchDarklyMethod === "allFlagsState"
+  );
+}
+
+function openFeatureMethod(valueType: MigrationValueType): string | null {
+  switch (valueType) {
+    case "boolean":
+      return "client.getBooleanValue()";
+    case "string":
+      return "client.getStringValue()";
+    case "number":
+      return "client.getNumberValue()";
+    case "object":
+      return "client.getObjectValue()";
+    case "unknown":
+      return null;
   }
+}
 
-  switch (usage.callType) {
-    case "variation":
-      return {
-        usage,
-        openFeatureEquivalent: "client.getBooleanValue()",
-        codeChangeBefore: `ldClient.variation(${k}, context, false)`,
-        codeChangeAfter: `await client.getBooleanValue(${k}, false) // server SDK is async`,
-        requiresManualReview: true,
-        reviewReason: "OpenFeature server SDK methods are async — add await and make the enclosing function async",
-      };
-
-    case "variationDetail":
-      return {
-        usage,
-        openFeatureEquivalent: "client.getBooleanDetails()",
-        codeChangeBefore: `ldClient.variationDetail(${k}, context, false)`,
-        codeChangeAfter: `await client.getBooleanDetails(${k}, false) // server SDK is async`,
-        requiresManualReview: true,
-        reviewReason: "OpenFeature server SDK methods are async — add await and make the enclosing function async",
-      };
-
-    case "allFlags":
-      return {
-        usage,
-        openFeatureEquivalent: null,
-        codeChangeBefore: `ldClient.allFlags(context)`,
-        codeChangeAfter: `// No direct OpenFeature equivalent — requires manual implementation`,
-        requiresManualReview: true,
-        reviewReason: "allFlags() has no direct OpenFeature equivalent",
-      };
-
-    case "isFeatureEnabled":
-      return {
-        usage,
-        openFeatureEquivalent: "client.getBooleanValue()",
-        codeChangeBefore: `isFeatureEnabled(${k}, context)`,
-        codeChangeAfter: `await client.getBooleanValue(${k}, false) // server SDK is async`,
-        requiresManualReview: true,
-        reviewReason: "OpenFeature server SDK methods are async — add await and make the enclosing function async",
-      };
-
-    case "hook-useFlags":
-      return {
-        usage,
-        openFeatureEquivalent: "useBooleanFlagValue()",
-        codeChangeBefore: `const flags = useFlags()`,
-        codeChangeAfter: `const flagValue = useBooleanFlagValue('your-flag-key', false) // TODO: one hook call per flag`,
-        requiresManualReview: true,
-        reviewReason: "useFlags() returns all flags; OpenFeature requires one useBooleanFlagValue() call per flag",
-      };
-
-    case "hook-useLDClient":
-      return {
-        usage,
-        openFeatureEquivalent: "useOpenFeatureClient()",
-        codeChangeBefore: `const client = useLDClient()`,
-        codeChangeAfter: `const client = useOpenFeatureClient()`,
-        requiresManualReview: false,
-      };
-
-    case "hoc":
-      return {
-        usage,
-        openFeatureEquivalent: null,
-        codeChangeBefore: `withLDConsumer()(Component)`,
-        codeChangeAfter: `// withOpenFeature() does not exist in OpenFeature SDK 0.4+\n// Convert to a functional component and use useBooleanFlagValue() instead`,
-        requiresManualReview: true,
-        reviewReason: "withOpenFeature() HOC does not exist in OpenFeature SDK 0.4+; convert to a functional component with hooks",
-      };
-
-    case "provider":
-      return {
-        usage,
-        openFeatureEquivalent: "OpenFeatureProvider",
-        codeChangeBefore: `<LDProvider clientSideID="...">`,
-        codeChangeAfter: `<OpenFeatureProvider provider={...}>`,
-        requiresManualReview: false,
-      };
-
+function reasonLabel(reason: MigrationManualReviewReason | undefined): string {
+  switch (reason) {
+    case "dynamic-key":
+      return "dynamic key";
+    case "unknown-fallback":
+      return "unsupported or unknown fallback";
+    case "bulk-inventory-call":
+      return "bulk inventory call";
     default:
-      throw new Error(`Unhandled callType: ${usage.callType satisfies never}`);
+      return "manual review required";
   }
 }
 
-function calcReadinessScore(usages: FlagUsage[]): number {
-  let score = 100;
+function buildEvidenceItem(item: MigrationInventoryItem): MigrationItem {
+  const flagLabel = item.staticFlagKey ?? item.flagKeyExpression ?? "*";
+  const beforeArgs = [
+    item.flagKeyExpression,
+    item.evaluationContextExpression,
+    item.fallbackExpression,
+  ].filter((value): value is string => Boolean(value));
+  const before = `${item.launchDarklyMethod}(${beforeArgs.join(", ")})`;
+  const equivalent = item.safelyAutomatable ? openFeatureMethod(item.valueType) : null;
 
-  const dynamicCount = usages.filter((u) => u.isDynamic).length;
-  score -= Math.min(dynamicCount * 10, 40);
-
-  const useFlagsCount = usages.filter((u) => u.callType === "hook-useFlags").length;
-  score -= useFlagsCount * 5;
-
-  const hasAllFlags = usages.some((u) => u.callType === "allFlags");
-  if (hasAllFlags) score -= 15;
-
-  const hocCount = usages.filter((u) => u.callType === "hoc").length;
-  score -= hocCount * 5;
-
-  const hasStaticKeys = usages.some((u) => !u.isDynamic && u.flagKey !== "*");
-  if (!hasStaticKeys) score -= 20;
-
-  return Math.max(0, score);
+  return {
+    usage: {
+      flagKey: item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*"),
+      isDynamic: item.isDynamic,
+      file: item.file,
+      line: item.line,
+      column: item.column,
+      callType: item.launchDarklyMethod,
+      stalenessSignals: [],
+    },
+    openFeatureEquivalent: equivalent,
+    codeChangeBefore: before,
+    codeChangeAfter: "// No codemod generated by this report",
+    requiresManualReview: !item.safelyAutomatable,
+    reviewReason: item.safelyAutomatable ? undefined : reasonLabel(item.manualReviewReason),
+  };
 }
 
-function calcRequiredPackages(usages: FlagUsage[]): string[] {
-  const REACT_CALL_TYPES = ["hook-useFlags", "hook-useLDClient", "hoc", "provider"];
-  const SERVER_CALL_TYPES = ["variation", "variationDetail", "allFlags", "isFeatureEnabled"];
+function calcReadinessScore(items: MigrationInventoryItem[]): number {
+  if (items.length === 0) return 0;
+  const safeCount = items.filter((item) => item.safelyAutomatable).length;
+  const score = Math.round((safeCount / items.length) * 100);
+  return safeCount === items.length ? 100 : Math.min(score, 99);
+}
 
-  const hasReactUsage = usages.some((u) => REACT_CALL_TYPES.includes(u.callType));
-  const hasServerUsage = usages.some((u) => SERVER_CALL_TYPES.includes(u.callType));
-
-  const pkgs = new Set<string>();
-
-  if (hasReactUsage && !hasServerUsage) {
-    pkgs.add("@openfeature/web-sdk");
-    pkgs.add("@openfeature/react-sdk");
-  } else if (hasReactUsage && hasServerUsage) {
-    pkgs.add("@openfeature/server-sdk");
-    pkgs.add("@openfeature/web-sdk");
-    pkgs.add("@openfeature/react-sdk");
-  } else {
-    pkgs.add("@openfeature/server-sdk");
-  }
-
-  return [...pkgs].sort();
+function calcRequiredPackages(items: MigrationInventoryItem[]): string[] {
+  return items.some(isServerInventoryItem) ? ["@openfeature/server-sdk"] : [];
 }
 
 // ── public exports ────────────────────────────────────────────────────────────
 
 export function analyze(result: ScanResult): MigrationAnalysis {
-  const items = result.usages.map(buildItem);
-  const readinessScore = calcReadinessScore(result.usages);
-  const requiredPackages = calcRequiredPackages(result.usages);
-  const manualReviewCount = items.filter((i) => i.requiresManualReview).length;
-  const autoMigrateCount = items.filter((i) => !i.requiresManualReview).length;
+  const inventoryItems = inventoryFrom(result);
+  const items = inventoryItems.map(buildEvidenceItem);
+  const totalLaunchDarklyUsages = inventoryItems.length;
+  const safelyAutomatableCount = inventoryItems.filter((item) => item.safelyAutomatable).length;
+  const dynamicKeyCount = inventoryItems.filter((item) => item.manualReviewReason === "dynamic-key").length;
+  const bulkInventoryCallCount = inventoryItems.filter(
+    (item) => item.manualReviewReason === "bulk-inventory-call"
+  ).length;
+  const unsupportedUnknownCount = inventoryItems.filter(
+    (item) => item.manualReviewReason === "unknown-fallback"
+  ).length;
+  const manualReviewCount = totalLaunchDarklyUsages - safelyAutomatableCount;
+  const autoMigrateCount = safelyAutomatableCount;
+  const readinessScore = calcReadinessScore(inventoryItems);
+  const requiredPackages = calcRequiredPackages(inventoryItems);
 
-  return { readinessScore, requiredPackages, items, manualReviewCount, autoMigrateCount };
+  return {
+    readinessScore,
+    requiredPackages,
+    items,
+    inventoryItems,
+    totalLaunchDarklyUsages,
+    safelyAutomatableCount,
+    dynamicKeyCount,
+    bulkInventoryCallCount,
+    unsupportedUnknownCount,
+    manualReviewCount,
+    autoMigrateCount,
+  };
 }
 
 export function formatMigrationReport(analysis: MigrationAnalysis): string {
-  const { readinessScore, requiredPackages, items, manualReviewCount, autoMigrateCount } = analysis;
+  const {
+    requiredPackages,
+    inventoryItems,
+    totalLaunchDarklyUsages,
+    safelyAutomatableCount,
+    manualReviewCount,
+    dynamicKeyCount,
+    bulkInventoryCallCount,
+    unsupportedUnknownCount,
+  } = analysis;
   const date = new Date().toLocaleDateString();
   const version = typeof __PKG_VERSION__ !== "undefined" ? __PKG_VERSION__ : "0.1.0";
 
-  let scoreLabel: string;
-  if (readinessScore >= 80) scoreLabel = "✓ Your codebase is ready for migration";
-  else if (readinessScore >= 50) scoreLabel = "⚠ Some manual work required before migration";
-  else scoreLabel = "✗ Significant refactoring needed";
-
   const lines: string[] = [];
 
-  lines.push(`# OpenFeature Migration Plan`);
+  lines.push("# OpenFeature Migration Inventory");
   lines.push(`Generated by FlagLint v${version} on ${date}`);
   lines.push("");
-  lines.push(`## Migration Readiness Score: ${readinessScore}/100`);
-  lines.push(scoreLabel);
-  lines.push("");
-  lines.push(`**Auto-migratable:** ${autoMigrateCount} usages  `);
-  lines.push(`**Requires manual review:** ${manualReviewCount} usages`);
-  lines.push("");
-
-  lines.push("## Required Packages");
-  lines.push("```");
-  lines.push(`npm install ${requiredPackages.join(" ")}`);
-  lines.push("```");
+  lines.push("## Evidence Summary");
+  lines.push(`**Total LaunchDarkly usages found:** ${totalLaunchDarklyUsages}  `);
+  lines.push(`**Safely automatable usages:** ${safelyAutomatableCount}  `);
+  lines.push(`**Manual review required:** ${manualReviewCount}  `);
+  lines.push(`**Dynamic keys:** ${dynamicKeyCount}  `);
+  lines.push(`**Bulk inventory calls:** ${bulkInventoryCallCount}  `);
+  lines.push(`**Unsupported/unknown cases:** ${unsupportedUnknownCount}`);
   lines.push("");
 
-  lines.push("## Step-by-Step Checklist");
-  lines.push("- [ ] Install OpenFeature packages");
-  lines.push("- [ ] Configure your OpenFeature provider (LaunchDarkly, Unleash, etc.)");
-  lines.push("- [ ] Replace LDProvider with OpenFeatureProvider");
-  lines.push("- [ ] Update each flag evaluation call (see below)");
-  lines.push("- [ ] Remove LaunchDarkly SDK dependency");
-  lines.push("- [ ] Test all flagged features");
-  lines.push("");
+  if (manualReviewCount > 0) {
+    lines.push(
+      "> This report is an inventory, not a codemod. Manual-review items must be resolved before treating the migration as safe."
+    );
+    lines.push("");
+  }
 
-  const autoItems = items.filter((i) => !i.requiresManualReview);
-  const manualItems = items.filter((i) => i.requiresManualReview);
+  if (requiredPackages.length > 0) {
+    lines.push("## OpenFeature Packages To Evaluate");
+    lines.push("```");
+    lines.push(`npm install ${requiredPackages.join(" ")}`);
+    lines.push("```");
+    lines.push("");
+  }
 
-  if (autoItems.length > 0) {
-    lines.push("## Code Changes Required");
-    for (const item of autoItems) {
-      const { usage } = item;
-      lines.push(`### ${usage.file}:${usage.line} — \`${usage.flagKey}\``);
-      lines.push("**Before:**");
-      lines.push("```typescript");
-      lines.push(item.codeChangeBefore);
-      lines.push("```");
-      lines.push("**After:**");
-      lines.push("```typescript");
-      lines.push(item.codeChangeAfter);
-      lines.push("```");
-      lines.push("");
+  const safeItems = inventoryItems.filter((item) => item.safelyAutomatable);
+  const manualItems = inventoryItems.filter((item) => !item.safelyAutomatable);
+
+  if (safeItems.length > 0) {
+    lines.push("## Safely Automatable Inventory");
+    for (const item of safeItems) {
+      const flag = item.staticFlagKey ?? item.flagKeyExpression ?? "unknown";
+      lines.push(
+        `- ${item.file}:${item.line}:${item.column} — \`${flag}\` via \`${item.launchDarklyMethod}\` (${item.valueType})`
+      );
+      lines.push(
+        `  context: \`${item.evaluationContextExpression ?? "unknown"}\`; fallback: \`${item.fallbackExpression ?? "unknown"}\``
+      );
     }
+    lines.push("");
   }
 
   if (manualItems.length > 0) {
     lines.push("## Manual Review Required");
     for (const item of manualItems) {
-      const { usage } = item;
-      lines.push(`### ${usage.file}:${usage.line} — \`${usage.flagKey}\``);
-      if (item.reviewReason) lines.push(`> ${item.reviewReason}`);
-      lines.push("**Before:**");
-      lines.push("```typescript");
-      lines.push(item.codeChangeBefore);
-      lines.push("```");
-      lines.push("**After:**");
-      lines.push("```typescript");
-      lines.push(item.codeChangeAfter);
-      lines.push("```");
-      lines.push("");
+      const flag = item.staticFlagKey ?? item.flagKeyExpression ?? "*";
+      lines.push(
+        `- ${item.file}:${item.line}:${item.column} — \`${flag}\` via \`${item.launchDarklyMethod}\`: ${reasonLabel(item.manualReviewReason)}`
+      );
+      if (item.evaluationContextExpression) lines.push(`  context: \`${item.evaluationContextExpression}\``);
+      if (item.fallbackExpression) lines.push(`  fallback: \`${item.fallbackExpression}\``);
     }
+    lines.push("");
   }
 
   lines.push("## Resources");
   lines.push("- OpenFeature docs: https://openfeature.dev/docs");
-  lines.push(
-    "- OpenFeature React SDK: https://openfeature.dev/docs/reference/technologies/client/web/react"
-  );
+  lines.push("- OpenFeature server SDK: https://openfeature.dev/docs/reference/technologies/server/javascript");
   lines.push("");
 
   return lines.join("\n");

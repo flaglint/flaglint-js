@@ -1,5 +1,5 @@
 import fg from "fast-glob";
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import { join, relative, resolve } from "path";
 import type { FileSource } from "../types.js";
 import { DEFAULT_EXCLUDE } from "./index.js";
@@ -23,5 +23,9 @@ export class LocalFileSource implements FileSource {
 
   async readFile(path: string): Promise<string> {
     return readFile(join(this.dir, path), "utf8");
+  }
+
+  async writeFile(path: string, content: string): Promise<void> {
+    await writeFile(join(this.dir, path), content, "utf8");
   }
 }
