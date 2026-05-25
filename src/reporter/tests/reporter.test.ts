@@ -67,7 +67,21 @@ describe("reporter — markdown format", () => {
   it("contains the stale section when stale flags exist", () => {
     const output = formatReport(resultWithStale, { format: "markdown" });
     expect(output).toContain("Stale Flag Candidates");
+    expect(output).toContain("Flags with review signals:");
     expect(output).toContain("old-flag");
+  });
+
+  it("does not claim review candidates are safe to remove or delete", () => {
+    const output = formatReport(resultWithStale, { format: "markdown" });
+    expect(output).not.toMatch(/safe to remove/i);
+    expect(output).not.toMatch(/safe to delete/i);
+    expect(output).not.toMatch(/safe.*remov/i);
+    expect(output).not.toMatch(/safe.*delet/i);
+  });
+
+  it("keeps the actual review signal reason", () => {
+    const output = formatReport(resultWithStale, { format: "markdown" });
+    expect(output).toContain('Contains "old" in key');
   });
 
   it("omits the stale section when no stale flags", () => {
