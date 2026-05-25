@@ -7,6 +7,7 @@ import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { analyze, formatMigrationReport } from "../migrator/index.js";
+import { formatDryRunDiff } from "../migrator/dry-run.js";
 import { loadConfig } from "../config.js";
 
 export function registerMigrateCommand(program: Command): void {
@@ -75,7 +76,7 @@ Examples:
           scanResult = await scan(new LocalFileSource(dir), scanConfig, (filesScanned) => {
             spinner.text = `Scanning files... ${filesScanned}`;
           });
-          spinner.text = "Analyzing migration readiness...";
+          spinner.text = "Analyzing migration inventory...";
         } catch (err) {
           spinner.fail("Scan failed");
           process.stderr.write(chalk.red(String(err)) + "\n");
@@ -120,7 +121,9 @@ Examples:
           )
         );
 
-        const report = formatMigrationReport(analysis);
+        const report = options.dryRun
+          ? await formatDryRunDiff(analysis, new LocalFileSource(dir))
+          : formatMigrationReport(analysis);
 
         if (options.dryRun) {
           process.stdout.write(report + "\n");
