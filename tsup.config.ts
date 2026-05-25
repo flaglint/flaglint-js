@@ -10,7 +10,7 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: false,
-  target: "node22",
+  target: "node20",
   banner: {
     js: "#!/usr/bin/env node",
   },

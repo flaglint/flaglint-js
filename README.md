@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>LaunchDarkly Node.js server SDK -> OpenFeature migration</strong>
+  <strong>Standardize LaunchDarkly usage on OpenFeature.</strong>
 </p>
 
 <p align="center">
@@ -21,18 +21,12 @@
   </a>
 </p>
 
-> [!WARNING]
-> FlagLint is currently an early preview.
->
-> Automatic migration currently supports LaunchDarkly Node.js server-side SDK evaluation calls only. Generated changes must be reviewed and tested before merging.
->
-> React hooks, higher-order components, browser/client-side SDK usage, bulk flag-state calls, detail evaluations, dynamic keys, and custom wrappers are not automatically migrated in this release.
-
 # FlagLint
 
-FlagLint inventories direct LaunchDarkly Node.js server SDK calls in your TypeScript/JavaScript
-codebase, generates reviewable OpenFeature migration diffs, applies only guarded transformations,
-and enforces migration state in CI.
+Standardize LaunchDarkly usage on OpenFeature.
+
+FlagLint inventories direct LaunchDarkly Node.js SDK calls, generates reviewable migration
+plans, and prevents new vendor-coupled flag access from entering your codebase.
 
 **LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your application code calls.**
 
@@ -97,6 +91,8 @@ npm install -g flaglint
 # or use without installing
 npx flaglint
 ```
+
+Requires Node.js 20 or newer. CI validates FlagLint on Node.js 20 and 22.
 
 ---
 
@@ -197,6 +193,17 @@ Run `flaglint migrate --dry-run` to review the migration plan.
 ```
 
 ---
+
+## Focused scope for safe automation
+
+Automatic migration currently supports LaunchDarkly Node.js server-side evaluation calls in
+TypeScript and JavaScript. That narrow scope is intentional: FlagLint only rewrites call sites
+where the value type, static flag key, fallback, evaluation context, and OpenFeature client
+binding are explicit enough to preserve.
+
+Dynamic keys, detail evaluations, bulk flag-state calls, browser SDKs, React usage, and ambiguous
+patterns are reported for manual review. They are inventoried so teams can plan the migration,
+but they are not automatically transformed.
 
 ## Supported API matrix
 
@@ -351,8 +358,8 @@ Code Scanning alerts show the exact file and line of each direct LD call — rev
 
 Validated against 120 deterministic benchmark cases within the supported LaunchDarkly Node.js server-side SDK scope. 100% precision and recall are limited to those 120 tested cases and to the Node.js server-side SDK call patterns explicitly listed in the Supported API matrix above.
 
-Detection is AST-based, not regex: client binding patterns, import aliases, CJS require forms,
-and custom wrappers are all resolved before matching.
+Detection is AST-based, not regex: client binding patterns, import aliases, and CJS require
+forms are resolved before matching.
 
 ---
 

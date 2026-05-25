@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlagLint — LaunchDarkly Node.js server SDK -> OpenFeature migration</title>
-  <meta name="description" content="FlagLint inventories direct LaunchDarkly Node.js server SDK usage and helps migrate call sites to OpenFeature. LaunchDarkly remains the provider; provider bootstrap is a manual step.">
-  <meta property="og:title" content="FlagLint — LaunchDarkly Node.js server SDK -> OpenFeature migration">
-  <meta property="og:description" content="Keep LaunchDarkly as your provider. FlagLint inventories direct Node server SDK usage, generates reviewable migration diffs, and enforces migration state in CI. Free and open source.">
+  <title>FlagLint — Standardize LaunchDarkly usage on OpenFeature</title>
+  <meta name="description" content="FlagLint inventories direct LaunchDarkly Node.js SDK calls, generates reviewable OpenFeature migration plans, and prevents new vendor-coupled flag access from entering your codebase.">
+  <meta property="og:title" content="FlagLint — Standardize LaunchDarkly usage on OpenFeature">
+  <meta property="og:description" content="Keep LaunchDarkly as your provider. Use OpenFeature as the application-facing evaluation API.">
   <meta property="og:url" content="https://flaglint.dev">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
@@ -127,11 +127,18 @@
     .hero-sub {
       font-size: clamp(16px, 2vw, 20px);
       color: var(--text-secondary);
-      max-width: 600px;
+      max-width: 680px;
       margin: 0 auto;
       line-height: 1.6;
     }
     .hero-sub strong { color: var(--text-primary); font-weight: 500; }
+    .hero-note {
+      color: var(--text-primary);
+      font-size: 16px;
+      margin: 16px auto 0;
+      max-width: 640px;
+      line-height: 1.6;
+    }
 
     /* Terminal */
     .terminal {
@@ -322,6 +329,9 @@
       color: var(--text-secondary);
       font-weight: 500;
     }
+
+    /* ── SCOPE ───────────────────────────────────────────────────── */
+    .scope { background: var(--surface); }
 
     /* ── FEATURES ────────────────────────────────────────────────── */
     .features { background: var(--surface); }
@@ -547,17 +557,15 @@
   <!-- HERO -->
   <section class="hero">
     <div class="hero-inner">
-      <div class="badge">⚠️ Early preview. Current migration scope: LaunchDarkly Node.js server-side SDK only. Generated changes require review and tests before merging.</div>
-
-      <h1>Migrate LaunchDarkly<br>to OpenFeature safely.</h1>
+      <h1>Standardize LaunchDarkly usage on OpenFeature.</h1>
 
       <p class="hero-sub">
-        Keep <strong>LaunchDarkly as your provider</strong>. FlagLint inventories direct Node.js server SDK
-        usage, generates reviewable migration diffs, applies only
-        <strong>guarded transformations</strong>, and enforces migration state in CI.
+        Inventory direct LaunchDarkly Node.js SDK calls, generate reviewable migration plans,
+        and prevent new vendor-coupled flag access from entering your codebase.
       </p>
+      <p class="hero-note">Keep LaunchDarkly as your provider. Use OpenFeature as the application-facing evaluation API.</p>
 
-      <div class="terminal" role="region" aria-label="Terminal demo">
+      <div id="demo" class="terminal" role="region" aria-label="Terminal demo">
         <div class="terminal-header">
           <div class="term-dots">
             <div class="dot dot-r"></div>
@@ -571,11 +579,10 @@
       </div>
 
       <div class="cta-row">
-        <button class="btn-primary" onclick="document.getElementById('waitlist').scrollIntoView({behavior:'smooth'})">
-          Join the waitlist →
-        </button>
+        <a href="#install" class="btn-primary">Try with npx</a>
+        <a href="#demo" class="btn-secondary">View demo</a>
         <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer" class="btn-secondary">
-          View on GitHub →
+          GitHub
         </a>
       </div>
 
@@ -610,7 +617,7 @@
         <div class="card">
           <span class="card-icon">⚠️</span>
           <div class="card-title">Mechanical rewrites break things</div>
-          <p class="card-body">The LaunchDarkly and OpenFeature APIs differ in argument order, context shape, and detail result format. A careless codemod loses fallback values, drops context, or silently breaks <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">await</code>. FlagLint only rewrites what it can prove is safe.</p>
+          <p class="card-body">The LaunchDarkly and OpenFeature APIs differ in argument order, context shape, and detail result format. A careless codemod loses fallback values, drops context, or silently breaks <code style="font-family:monospace;font-size:13px;background:#0d1117;padding:1px 5px;border-radius:3px">await</code>. FlagLint only rewrites scoped, explicit call sites.</p>
         </div>
         <div class="card">
           <span class="card-icon">🚦</span>
@@ -655,16 +662,41 @@
     </div>
   </section>
 
+  <!-- SCOPE -->
+  <section class="scope">
+    <div class="section-inner">
+      <div class="section-label">Supported Scope</div>
+      <h2 class="section-heading">Focused scope for safe automation</h2>
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-icon">✅</span>
+          <div class="card-title">Automatically migrated</div>
+          <p class="card-body">LaunchDarkly Node.js server-side evaluation calls in TypeScript and JavaScript where the flag key, value type, fallback, context, and OpenFeature client binding are explicit.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🔎</span>
+          <div class="card-title">Reported for manual review</div>
+          <p class="card-body">Dynamic keys, detail evaluations, bulk flag-state calls, browser SDKs, React usage, and ambiguous patterns are surfaced in reports instead of being rewritten automatically.</p>
+        </div>
+        <div class="card">
+          <span class="card-icon">🔁</span>
+          <div class="card-title">Provider stays the same</div>
+          <p class="card-body">LaunchDarkly continues to serve flags. OpenFeature becomes the application-facing evaluation API used by your services and enforced in CI.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- FEATURES -->
   <section class="features">
     <div class="section-inner">
       <div class="section-label">Features</div>
-      <h2 class="section-heading">Safe, guarded migration to OpenFeature</h2>
+      <h2 class="section-heading">Guarded migration to OpenFeature</h2>
       <div class="features-grid">
         <div class="feature-tile">
           <span class="feature-icon">🔍</span>
           <div class="feature-title">AST-based scanning</div>
-          <p class="feature-body">Detects LaunchDarkly Node.js server SDK calls by AST, not grep. Resolves import aliases, CJS require forms, and custom wrappers.</p>
+          <p class="feature-body">Detects LaunchDarkly Node.js server SDK calls by AST, not grep. Resolves import aliases and CJS require forms.</p>
         </div>
         <div class="feature-tile">
           <span class="feature-icon">📊</span>
@@ -696,7 +728,7 @@
   </section>
 
   <!-- INSTALL -->
-  <section class="install">
+  <section id="install" class="install">
     <div class="section-inner">
       <div class="section-label">Install</div>
       <h2 class="section-heading" style="text-align:center">Works with any Node.js TypeScript or JavaScript project</h2>
@@ -713,7 +745,7 @@
         </div>
       </div>
       <p class="install-note">
-        Supports Node.js 22+. Works with Express, NestJS, Fastify, or any
+        Supports Node.js 20+. Works with Express, NestJS, Fastify, or any
         Node.js TypeScript/JavaScript codebase using the LaunchDarkly server-side SDK.
       </p>
     </div>

@@ -11,7 +11,12 @@ const ENTRY = join(ROOT, "dist/bin/flaglint.js");
 const FIXTURES = join(ROOT, "src/scanner/tests/fixtures");
 
 function cli(...args: string[]) {
-  return spawnSync(process.execPath, [ENTRY, ...args], { cwd: ROOT, encoding: "utf8", timeout: 30000 });
+  return spawnSync(process.execPath, [ENTRY, ...args], {
+    cwd: ROOT,
+    encoding: "utf8",
+    timeout: 30000,
+    maxBuffer: 1024 * 1024,
+  });
 }
 
 const tmpDirs: string[] = [];

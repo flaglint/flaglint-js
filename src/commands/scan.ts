@@ -169,7 +169,7 @@ Examples:
           process.stdout.write(report + "\n");
         }
 
-        process.exit(staleCount > 0 ? 1 : 0);
+        process.exitCode = staleCount > 0 ? 1 : 0;
       }
     );
 }
