@@ -1,7 +1,18 @@
 import pLimit from "p-limit";
 import { parse } from "@typescript-eslint/typescript-estree";
 import type { TSESTree } from "@typescript-eslint/types";
-import type { CallType, FileSource, FlagUsage, ScanResult, ScanConfig, StalenessEvaluator, ScanWarning } from "../types.js";
+import type {
+  CallType,
+  FileSource,
+  FlagUsage,
+  MigrationInventoryItem,
+  MigrationManualReviewReason,
+  MigrationValueType,
+  ScanResult,
+  ScanConfig,
+  StalenessEvaluator,
+  ScanWarning,
+} from "../types.js";
 import { checkStale } from "../stale.js";
 
 // Known LaunchDarkly Node.js server-side SDK package specifiers.
@@ -50,6 +61,75 @@ function extractFlagKey(arg: TSESTree.Node | undefined): { flagKey: string; isDy
   }
 
   return { flagKey: "dynamic", isDynamic: true };
+}
+
+function expressionText(code: string, node: TSESTree.Node | undefined): string | undefined {
+  const range = (node as (TSESTree.Node & { range?: [number, number] }) | undefined)?.range;
+  if (!range) return undefined;
+  return code.slice(range[0], range[1]);
+}
+
+function inferValueType(methodName: string, fallback: TSESTree.Node | undefined): MigrationValueType {
+  if (methodName === "boolVariation" || methodName === "boolVariationDetail") return "boolean";
+  if (methodName === "stringVariation" || methodName === "stringVariationDetail") return "string";
+  if (methodName === "numberVariation" || methodName === "numberVariationDetail") return "number";
+  if (methodName === "jsonVariation" || methodName === "jsonVariationDetail") return "object";
+
+  if (!fallback) return "unknown";
+  if (fallback.type === "Literal") {
+    const value = (fallback as TSESTree.Literal).value;
+    if (typeof value === "boolean") return "boolean";
+    if (typeof value === "string") return "string";
+    if (typeof value === "number") return "number";
+    return "unknown";
+  }
+  if (fallback.type === "ObjectExpression" || fallback.type === "ArrayExpression") return "object";
+
+  return "unknown";
+}
+
+function buildMigrationInventoryItem(
+  code: string,
+  filePath: string,
+  loc: { line: number; column: number },
+  methodName: string,
+  args: readonly TSESTree.CallExpressionArgument[],
+  flagKey: string,
+  isDynamic: boolean
+): MigrationInventoryItem {
+  if (LD_ALL_FLAGS_METHODS.has(methodName)) {
+    return {
+      file: filePath,
+      line: loc.line,
+      column: loc.column,
+      launchDarklyMethod: methodName as CallType,
+      isDynamic: false,
+      valueType: "unknown",
+      evaluationContextExpression: expressionText(code, args[0]),
+      safelyAutomatable: false,
+      manualReviewReason: "bulk-inventory-call",
+    };
+  }
+
+  const fallback = args[2];
+  const valueType = inferValueType(methodName, fallback);
+  const manualReviewReason: MigrationManualReviewReason | undefined =
+    isDynamic ? "dynamic-key" : valueType === "unknown" ? "unknown-fallback" : undefined;
+
+  return {
+    file: filePath,
+    line: loc.line,
+    column: loc.column,
+    launchDarklyMethod: methodName as CallType,
+    flagKeyExpression: expressionText(code, args[0]),
+    staticFlagKey: isDynamic ? undefined : flagKey,
+    isDynamic,
+    valueType,
+    fallbackExpression: expressionText(code, fallback),
+    evaluationContextExpression: expressionText(code, args[1]),
+    safelyAutomatable: manualReviewReason == null,
+    manualReviewReason,
+  };
 }
 
 function walk(root: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) => void): void {
@@ -167,8 +247,14 @@ function collectLDClients(ast: TSESTree.Program): Set<string> {
   return ldClients;
 }
 
-function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[]): FlagUsage[] {
+function detectUsages(
+  ast: TSESTree.Program,
+  code: string,
+  filePath: string,
+  wrappers: string[]
+): { usages: FlagUsage[]; migrationInventory: MigrationInventoryItem[] } {
   const usages: FlagUsage[] = [];
+  const migrationInventory: MigrationInventoryItem[] = [];
 
   // Establish the set of proven LD client variables for this file.
   const ldClients = collectLDClients(ast);
@@ -204,6 +290,9 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
             callType: methodName as unknown as CallType,
             stalenessSignals: sig ? [sig] : [],
           });
+          migrationInventory.push(
+            buildMigrationInventoryItem(code, filePath, loc, methodName, call.arguments, "*", false)
+          );
           return;
         }
 
@@ -219,6 +308,9 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
             callType: methodName as unknown as CallType,
             stalenessSignals: sig ? [sig] : [],
           });
+          migrationInventory.push(
+            buildMigrationInventoryItem(code, filePath, loc, methodName, call.arguments, flagKey, isDynamic)
+          );
           return;
         }
 
@@ -321,7 +413,7 @@ function detectUsages(ast: TSESTree.Program, filePath: string, wrappers: string[
     }
   });
 
-  return usages;
+  return { usages, migrationInventory };
 }
 
 export async function scan(
@@ -344,16 +436,19 @@ export async function scan(
   const files = await source.listFiles(config.include, config.exclude);
 
   const allUsages: FlagUsage[] = [];
+  const migrationInventory: MigrationInventoryItem[] = [];
   const warnings: ScanWarning[] = [];
   let scannedFiles = 0;
 
-  async function processFile(file: string): Promise<{ usages: FlagUsage[]; warning: ScanWarning | null }> {
+  async function processFile(
+    file: string
+  ): Promise<{ usages: FlagUsage[]; migrationInventory: MigrationInventoryItem[]; warning: ScanWarning | null }> {
     let code: string;
     try {
       code = await source.readFile(file);
     } catch (err) {
       const fsCode = (err as NodeJS.ErrnoException).code ?? "UNKNOWN";
-      return { usages: [], warning: { kind: "read-failure", file, fsCode } };
+      return { usages: [], migrationInventory: [], warning: { kind: "read-failure", file, fsCode } };
     }
 
     let ast: TSESTree.Program;
@@ -361,16 +456,16 @@ export async function scan(
       ast = parse(code, {
         jsx: true,
         loc: true,
-        range: false,
+        range: true,
         comment: false,
         tokens: false,
         filePath: file,
       });
     } catch {
-      return { usages: [], warning: { kind: "parse-failure", file } };
+      return { usages: [], migrationInventory: [], warning: { kind: "parse-failure", file } };
     }
 
-    return { usages: detectUsages(ast, file, config.wrappers), warning: null };
+    return { ...detectUsages(ast, code, file, config.wrappers), warning: null };
   }
 
   const limit = pLimit(50);
@@ -387,6 +482,7 @@ export async function scan(
 
   for (const r of results) {
     allUsages.push(...r.usages);
+    migrationInventory.push(...r.migrationInventory);
     if (r.warning) warnings.push(r.warning);
   }
 
@@ -433,6 +529,7 @@ export async function scan(
     totalUsages: allUsages.length,
     uniqueFlags,
     usages: allUsages,
+    migrationInventory,
     scanDurationMs: Date.now() - start,
     warnings,
   };
