@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-05-25
+
+### Fixed
+
+- Detail evaluation methods are classified as manual review and excluded from safe auto-transform counts.
+- Generated LaunchDarkly OpenFeature provider setup now uses the SDK key constructor correctly.
+- Evaluation-context guidance now states that either OpenFeature `targetingKey` or existing LaunchDarkly `key` is accepted.
+- Default one-file flags no longer trigger staleness solely because they occur in one file; explicit `minFileCount: 1` remains available.
+- Reporter output now says `Flags with review signals` instead of implying flags are safe to remove.
+- Public early-preview messaging now states the Node.js server-side migration scope and review/testing requirement.
+
 ## [0.4.0] - 2026-05-24
 
 ### Added
