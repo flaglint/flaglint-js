@@ -5,7 +5,6 @@
     "**/dist/**",
     "**/before/**",
     "**/after/**",
-    "**/after-complete/**",
     "**/generated-reports/**"
   ],
   "provider": "launchdarkly",

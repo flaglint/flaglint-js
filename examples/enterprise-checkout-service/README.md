@@ -266,6 +266,8 @@ imported from `platform/feature-flags` as a proven binding for `--apply` eligibi
 This means `--apply` will rewrite any file that imports `openFeatureClient` from
 `platform/feature-flags` (or any path matching the glob), without requiring a local
 `OpenFeature.getClient()` call in every service file.
+TypeScript ESM `.js` import specifiers are recognized by the core module-pattern
+matcher, so `../platform/feature-flags.js` matches this extensionless pattern.
 
 ---
 

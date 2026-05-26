@@ -4,7 +4,7 @@ These diffs use the placeholder `openFeatureClient` and require OpenFeature prov
 No files are modified by dry-run output.
 
 Reviewable diffs: 10
-Diffs requiring provider setup: 10
+Diffs requiring provider setup: 0
 Skipped usages: 9
 
 ## Provider Setup (Required Before Applying Diffs)
