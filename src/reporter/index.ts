@@ -250,6 +250,18 @@ function formatSARIF(result: ScanResult): string {
 
 // ── html ─────────────────────────────────────────────────────────────────────
 
+/** Group usages by the first two path segments (service/directory). */
+function usagesByDirectory(usages: FlagUsage[]): Map<string, FlagUsage[]> {
+  const map = new Map<string, FlagUsage[]>();
+  for (const u of usages) {
+    const parts = u.file.replace(/\\/g, "/").split("/");
+    const dir = parts.length > 1 ? parts.slice(0, Math.min(2, parts.length - 1)).join("/") : ".";
+    if (!map.has(dir)) map.set(dir, []);
+    map.get(dir)!.push(u);
+  }
+  return new Map([...map.entries()].sort(([a], [b]) => a.localeCompare(b)));
+}
+
 function formatHTML(result: ScanResult, options: ReporterOptions): string {
   const { scannedFiles, totalUsages, uniqueFlags, usages, scanDurationMs } = result;
   const staleCount = new Set(
@@ -257,6 +269,40 @@ function formatHTML(result: ScanResult, options: ReporterOptions): string {
   ).size;
   const dynamicCount = usages.filter((u) => u.isDynamic).length;
   const date = new Date(result.scannedAt).toLocaleString();
+
+  // ── Audit metrics (derived from migrationInventory when available) ──────────
+  const inv = result.migrationInventory ?? [];
+  const automatableCount = inv.filter((i) => i.safelyAutomatable).length;
+  const manualCount = inv.filter((i) => !i.safelyAutomatable).length;
+  const detailBulkCount = inv.filter(
+    (i) => i.manualReviewReason === "detail-method" || i.manualReviewReason === "bulk-inventory-call"
+  ).length;
+  const affectedFiles = new Set(usages.map((u) => u.file)).size;
+  const automatablePct = inv.length > 0 ? Math.round((automatableCount / inv.length) * 100) : 0;
+  const manualPct = inv.length > 0 ? Math.round((manualCount / inv.length) * 100) : 0;
+
+  // ── Markdown summary for clipboard export ───────────────────────────────────
+  const markdownSummary = [
+    "## FlagLint Audit Summary",
+    "",
+    `- **Total call-sites:** ${totalUsages}`,
+    `- **Unique flags:** ${uniqueFlags.length}`,
+    `- **Files affected:** ${affectedFiles}`,
+    ...(inv.length > 0
+      ? [
+          `- **Safely automatable:** ${automatableCount} (${automatablePct}%)`,
+          `- **Manual review required:** ${manualCount} (${manualPct}%)`,
+          `- **Dynamic keys:** ${dynamicCount}`,
+          `- **Detail/bulk calls:** ${detailBulkCount}`,
+        ]
+      : [`- **Dynamic keys:** ${dynamicCount}`, `- **Stale candidates:** ${staleCount}`]),
+    "",
+    "### Recommended next steps",
+    "1. Configure OpenFeature provider (one-time manual step)",
+    "2. Review migration plan: `flaglint migrate --dry-run`",
+    "3. Apply automatable transformations: `flaglint migrate --apply`",
+    "4. Add CI enforcement: `flaglint validate --no-direct-launchdarkly`",
+  ].join("\\n");
 
   const flagMap = buildFlagMap(usages);
   const sorted = sortedFlagEntries(flagMap);
@@ -269,6 +315,24 @@ function formatHTML(result: ScanResult, options: ReporterOptions): string {
       return `<tr class="${cls}"><td><code>${esc(key)}</code></td><td>${data.usages.length}</td><td>${fileList}</td><td>${[...data.callTypes].map(esc).join(", ")}</td><td>${status}</td></tr>`;
     })
     .join("\n      ");
+
+  // ── Findings by directory ──────────────────────────────────────────────────
+  const byDir = usagesByDirectory(usages);
+  const dirRows = [...byDir.entries()]
+    .map(([dir, dirUsages]) => {
+      const flagKeys = new Set(dirUsages.map((u) => u.flagKey)).size;
+      const callTypes = new Set(dirUsages.map((u) => u.callType));
+      return `<tr><td><code>${esc(dir)}</code></td><td>${dirUsages.length}</td><td>${flagKeys}</td><td>${[...callTypes].map(esc).join(", ")}</td></tr>`;
+    })
+    .join("\n      ");
+
+  // ── Audit summary cards (only when migrationInventory is populated) ─────────
+  const auditCards = inv.length > 0
+    ? `
+    <div class="card"><div class="card-num green">${automatableCount}</div><div class="card-label">Auto-Migratable (${automatablePct}%)</div></div>
+    <div class="card"><div class="card-num orange">${manualCount}</div><div class="card-label">Manual Review (${manualPct}%)</div></div>
+    <div class="card"><div class="card-num blue">${detailBulkCount}</div><div class="card-label">Detail/Bulk Calls</div></div>`
+    : "";
 
   const title = options.title ? esc(options.title) : "FlagLint Scan Report";
   const version = typeof __PKG_VERSION__ !== "undefined" ? __PKG_VERSION__ : "0.1.0";
@@ -286,12 +350,15 @@ function formatHTML(result: ScanResult, options: ReporterOptions): string {
     body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;padding:2rem;max-width:1200px;margin:0 auto;line-height:1.5}
     h1{font-size:1.75rem;margin-bottom:.25rem}
     h2{font-size:1.125rem;margin:2rem 0 .75rem;padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+    h3{font-size:.9375rem;margin:1.5rem 0 .5rem;color:var(--muted)}
     .subtitle{color:var(--muted);margin-bottom:1.5rem;font-size:.875rem}
     .cards{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
     .card{flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1rem;box-shadow:var(--card-shadow)}
     .card-num{font-size:1.875rem;font-weight:700;line-height:1}
     .card-num.yellow{color:#d97706}
     .card-num.blue{color:#3b82f6}
+    .card-num.green{color:#16a34a}
+    .card-num.orange{color:#ea580c}
     .card-label{color:var(--muted);font-size:.75rem;margin-top:.375rem;text-transform:uppercase;letter-spacing:.05em}
     .filter-wrap{margin-bottom:.75rem}
     #filter{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:.875rem;outline:none}
@@ -302,19 +369,25 @@ function formatHTML(result: ScanResult, options: ReporterOptions): string {
     tr.stale td{background:var(--stale-bg)}
     tr.dynamic td{background:var(--dyn-bg)}
     code{font-family:ui-monospace,monospace;font-size:.8em;background:var(--surface);padding:.1em .3em;border-radius:3px}
+    .steps{margin:.75rem 0 1rem 1.25rem;line-height:2}
+    .steps li{margin-bottom:.25rem}
+    .btn{display:inline-flex;align-items:center;gap:.4rem;background:#6366f1;color:#fff;border:none;border-radius:6px;padding:.5rem 1rem;font-size:.8125rem;cursor:pointer;margin-top:.75rem}
+    .btn:hover{background:#4f46e5}
+    .btn.copied{background:#16a34a}
     footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);color:var(--muted);font-size:.75rem;text-align:center}
   </style>
 </head>
 <body>
   <h1>${title}</h1>
-  <p class="subtitle">Scanned ${scannedFiles} files in ${scanDurationMs}ms</p>
+  <p class="subtitle">Scanned ${scannedFiles} files in ${scanDurationMs}ms · ${esc(date)}</p>
 
+  <h2>Executive Summary</h2>
   <div class="cards">
-    <div class="card"><div class="card-num">${scannedFiles}</div><div class="card-label">Files Scanned</div></div>
+    <div class="card"><div class="card-num">${totalUsages}</div><div class="card-label">Total Call-Sites</div></div>
     <div class="card"><div class="card-num">${uniqueFlags.length}</div><div class="card-label">Unique Flags</div></div>
-    <div class="card"><div class="card-num">${totalUsages}</div><div class="card-label">Total Usages</div></div>
+    <div class="card"><div class="card-num">${affectedFiles}</div><div class="card-label">Files Affected</div></div>
     <div class="card"><div class="card-num yellow">${staleCount}</div><div class="card-label">Stale Candidates</div></div>
-    <div class="card"><div class="card-num blue">${dynamicCount}</div><div class="card-label">Dynamic Keys</div></div>
+    <div class="card"><div class="card-num blue">${dynamicCount}</div><div class="card-label">Dynamic Keys</div></div>${auditCards}
   </div>
 
   <h2>Flag Inventory</h2>
@@ -328,15 +401,41 @@ function formatHTML(result: ScanResult, options: ReporterOptions): string {
     </tbody>
   </table>
 
-  <footer>Generated by FlagLint ${esc(version)} on ${esc(date)}</footer>
+  <h2>Findings by Directory</h2>
+  <table id="dir-table">
+    <thead><tr><th>Directory</th><th>Call-Sites</th><th>Unique Flags</th><th>Call Types</th></tr></thead>
+    <tbody>
+      ${dirRows}
+    </tbody>
+  </table>
+
+  <h2>Recommended Next Steps</h2>
+  <ol class="steps">
+    <li>Configure the OpenFeature provider once at application startup (manual — see <code>flaglint migrate --dry-run</code> for guidance)</li>
+    <li>Review the migration plan: <code>flaglint migrate --dry-run</code></li>
+    <li>Apply automatable transformations: <code>flaglint migrate --apply</code></li>
+    <li>Add CI policy enforcement: <code>flaglint validate --no-direct-launchdarkly</code></li>
+  </ol>
+  <button class="btn" id="copy-btn" onclick="copyMarkdown()">📋 Copy Markdown Summary</button>
+
+  <footer>Generated by FlagLint ${esc(version)}</footer>
 
   <script>
     const input = document.getElementById('filter');
-    const rows = document.querySelectorAll('#flags-table tbody tr');
+    const tableRows = document.querySelectorAll('#flags-table tbody tr');
     input.addEventListener('input', () => {
       const q = input.value.toLowerCase();
-      rows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
+      tableRows.forEach(r => { r.style.display = r.textContent.toLowerCase().includes(q) ? '' : 'none'; });
     });
+    function copyMarkdown() {
+      const md = ${JSON.stringify(markdownSummary)}.replace(/\\\\n/g, '\\n');
+      navigator.clipboard.writeText(md).then(() => {
+        const btn = document.getElementById('copy-btn');
+        btn.textContent = '✓ Copied!';
+        btn.className = 'btn copied';
+        setTimeout(() => { btn.textContent = '📋 Copy Markdown Summary'; btn.className = 'btn'; }, 2000);
+      });
+    }
   </script>
 </body>
 </html>`;

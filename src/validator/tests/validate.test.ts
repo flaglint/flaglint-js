@@ -3,6 +3,7 @@ import type { ScanResult, FlagUsage } from "../../types.js";
 import {
   validateScanResult,
   formatValidationReport,
+  formatValidationSarif,
   matchesBootstrapPattern,
   type ValidationResult,
   type ValidateOptions,
@@ -456,5 +457,243 @@ describe("formatValidationReport", () => {
     const report = formatValidationReport(result, { noDirectLaunchDarkly: true });
     expect(report).not.toMatch(/stale/i);
     expect(report).not.toMatch(/safe.to.delete/i);
+  });
+});
+
+// ── formatValidationSarif ─────────────────────────────────────────────────────
+
+describe("formatValidationSarif — structure", () => {
+  const SCAN_ROOT = "/project";
+  const SCANNED_AT = "2026-05-25T10:00:00.000Z";
+
+  it("produces valid parseable JSON", () => {
+    const result = validateScanResult(makeScanResult([]), { noDirectLaunchDarkly: true });
+    const output = formatValidationSarif(result, SCAN_ROOT, SCANNED_AT);
+    expect(() => JSON.parse(output)).not.toThrow();
+  });
+
+  it("emits SARIF version 2.1.0", () => {
+    const result = validateScanResult(makeScanResult([]), { noDirectLaunchDarkly: true });
+    const parsed = JSON.parse(formatValidationSarif(result, SCAN_ROOT, SCANNED_AT)) as {
+      version: string;
+    };
+    expect(parsed.version).toBe("2.1.0");
+  });
+
+  it("names the tool FlagLint", () => {
+    const result = validateScanResult(makeScanResult([]), { noDirectLaunchDarkly: true });
+    const parsed = JSON.parse(formatValidationSarif(result, SCAN_ROOT, SCANNED_AT)) as {
+      runs: Array<{ tool: { driver: { name: string } } }>;
+    };
+    expect(parsed.runs[0]?.tool.driver.name).toBe("FlagLint");
+  });
+
+  it("declares the flaglint.direct-launchdarkly rule", () => {
+    const result = validateScanResult(makeScanResult([]), { noDirectLaunchDarkly: true });
+    const parsed = JSON.parse(formatValidationSarif(result, SCAN_ROOT, SCANNED_AT)) as {
+      runs: Array<{ tool: { driver: { rules: Array<{ id: string }> } } }>;
+    };
+    const ruleIds = parsed.runs[0]!.tool.driver.rules.map((r) => r.id);
+    expect(ruleIds).toContain("flaglint.direct-launchdarkly");
+  });
+
+  it("emits zero results when there are no violations (passed)", () => {
+    const result = validateScanResult(makeScanResult([]), { noDirectLaunchDarkly: true });
+    const parsed = JSON.parse(formatValidationSarif(result, SCAN_ROOT, SCANNED_AT)) as {
+      runs: Array<{ results: unknown[] }>;
+    };
+    expect(parsed.runs[0]?.results).toHaveLength(0);
+  });
+
+  it("includes invocation metadata with scanned file count and violation count", () => {
+    const result = validateScanResult(makeScanResult([{ callType: "boolVariation" }]), {
+      noDirectLaunchDarkly: true,
+    });
+    const parsed = JSON.parse(formatValidationSarif(result, SCAN_ROOT, SCANNED_AT)) as {
+      runs: Array<{
+        invocations: Array<{
+          executionSuccessful: boolean;
+          startTimeUtc: string;
+          properties: { scannedFiles: number; violations: number };
+        }>;
+      }>;
+    };
+    const invocation = parsed.runs[0]!.invocations[0]!;
+    expect(invocation.executionSuccessful).toBe(true);
+    expect(invocation.startTimeUtc).toBe(SCANNED_AT);
+    expect(invocation.properties.scannedFiles).toBe(3);
+    expect(invocation.properties.violations).toBe(1);
+  });
+});
+
+describe("formatValidationSarif — violation results", () => {
+  const SCAN_ROOT = "/project";
+  const SCANNED_AT = "2026-05-25T10:00:00.000Z";
+
+  type SarifResult = {
+    ruleId: string;
+    level: string;
+    message: { text: string };
+    locations: Array<{
+      physicalLocation: {
+        artifactLocation: { uri: string; uriBaseId: string };
+        region: { startLine: number; startColumn: number };
+      };
+    }>;
+    partialFingerprints: { "flagKey/v1": string };
+    properties: { flagKey: string; callType: string; isDynamic: boolean };
+  };
+
+  function parseSarif(result: ValidationResult) {
+    return JSON.parse(formatValidationSarif(result, SCAN_ROOT, SCANNED_AT)) as {
+      runs: Array<{ results: SarifResult[] }>;
+    };
+  }
+
+  it("emits one SARIF result per violation", () => {
+    const result = validateScanResult(
+      makeScanResult([
+        { file: "src/a.ts", callType: "boolVariation", flagKey: "flag-a" },
+        { file: "src/b.ts", callType: "stringVariation", flagKey: "flag-b" },
+      ]),
+      { noDirectLaunchDarkly: true }
+    );
+    const parsed = parseSarif(result);
+    expect(parsed.runs[0]!.results).toHaveLength(2);
+  });
+
+  it("each result has ruleId flaglint.direct-launchdarkly", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.ruleId).toBe("flaglint.direct-launchdarkly");
+  });
+
+  it("each result has level error (not warning) for policy enforcement", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.level).toBe("error");
+  });
+
+  it("result message contains file path", () => {
+    const result = validateScanResult(
+      makeScanResult([{ file: "src/services/checkout.ts", callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.message.text).toContain("src/services/checkout.ts");
+  });
+
+  it("result message contains flag key", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.message.text).toContain("checkout-v2");
+  });
+
+  it("result message is actionable — directs user to flaglint migrate --dry-run", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.message.text).toContain("flaglint migrate --dry-run");
+  });
+
+  it("physicalLocation uri contains the file path", () => {
+    const result = validateScanResult(
+      makeScanResult([{ file: "src/services/checkout.ts", callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.locations[0]!.physicalLocation.artifactLocation.uri).toContain("src/services/checkout.ts");
+  });
+
+  it("physicalLocation uriBaseId is %SRCROOT%", () => {
+    const result = validateScanResult(
+      makeScanResult([{ file: "src/services/checkout.ts", callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.locations[0]!.physicalLocation.artifactLocation.uriBaseId).toBe("%SRCROOT%");
+  });
+
+  it("region contains correct line number", () => {
+    const result = validateScanResult(
+      makeScanResult([{ file: "src/checkout.ts", line: 42, column: 8, callType: "boolVariation", flagKey: "f" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.locations[0]!.physicalLocation.region.startLine).toBe(42);
+  });
+
+  it("region startColumn is 1-based (column + 1)", () => {
+    const result = validateScanResult(
+      makeScanResult([{ file: "src/checkout.ts", line: 42, column: 8, callType: "boolVariation", flagKey: "f" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.locations[0]!.physicalLocation.region.startColumn).toBe(9);
+  });
+
+  it("partialFingerprints contain the flagKey", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "boolVariation", flagKey: "checkout-v2" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.partialFingerprints["flagKey/v1"]).toBe("checkout-v2");
+  });
+
+  it("properties include flagKey and callType", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "stringVariation", flagKey: "color-theme" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.properties.flagKey).toBe("color-theme");
+    expect(finding.properties.callType).toBe("stringVariation");
+  });
+
+  it("dynamic key violation message mentions dynamic key", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "boolVariation", flagKey: "dynamic-key", isDynamic: true }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.message.text).toContain("dynamic");
+    expect(finding.properties.isDynamic).toBe(true);
+  });
+
+  it("bulk call (flagKey=*) violation message mentions bulk inventory", () => {
+    const result = validateScanResult(
+      makeScanResult([{ callType: "allFlags", flagKey: "*" }]),
+      { noDirectLaunchDarkly: true }
+    );
+    const finding = parseSarif(result).runs[0]!.results[0]!;
+    expect(finding.message.text).toContain("bulk inventory");
+  });
+
+  it("violations excluded by bootstrapExclude do not appear in SARIF", () => {
+    const result = validateScanResult(
+      makeScanResult([
+        { file: "src/platform/feature-flags.ts", callType: "boolVariation", flagKey: "provider-init" },
+        { file: "src/services/checkout.ts", callType: "boolVariation", flagKey: "checkout-v2" },
+      ]),
+      {
+        noDirectLaunchDarkly: true,
+        bootstrapExclude: ["src/platform/feature-flags.ts"],
+      }
+    );
+    const parsed = parseSarif(result);
+    expect(parsed.runs[0]!.results).toHaveLength(1);
+    expect(parsed.runs[0]!.results[0]!.properties.flagKey).toBe("checkout-v2");
   });
 });

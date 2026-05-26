@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "FlagLint",
+          "informationUri": "https://github.com/flaglint/flaglint",
+          "rules": [
+            {
+              "id": "flaglint.keyword",
+              "name": "Stale flag keyword",
+              "shortDescription": {
+                "text": "Flag key contains a stale keyword"
+              },
+              "helpUri": "https://github.com/flaglint/flaglint#what-flaglint-detects"
+            },
+            {
+              "id": "flaglint.path",
+              "name": "Stale flag path",
+              "shortDescription": {
+                "text": "Flag usage appears in a stale path"
+              },
+              "helpUri": "https://github.com/flaglint/flaglint#what-flaglint-detects"
+            },
+            {
+              "id": "flaglint.minFileCount",
+              "name": "Low file count",
+              "shortDescription": {
+                "text": "Flag appears in too few files"
+              },
+              "helpUri": "https://github.com/flaglint/flaglint#configuration"
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "startTimeUtc": "2026-05-25T10:00:00.000Z",
+          "properties": {
+            "scannedFiles": 24,
+            "totalUsages": 8,
+            "uniqueFlags": 4,
+            "scanDurationMs": 48
+          }
+        }
+      ],
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "file:///home/runner/work/my-app/my-app/"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "flaglint.keyword",
+          "level": "warning",
+          "message": {
+            "text": "Potentially stale feature flag \"old-checkout-flow\" detected: keyword \"old\"."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/services/checkout.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 14,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "old-checkout-flow"
+          },
+          "properties": {
+            "flagKey": "old-checkout-flow",
+            "callType": "boolVariation",
+            "stalenessSignals": [{ "source": "keyword", "keyword": "old" }]
+          }
+        }
+      ]
+    }
+  ]
+}

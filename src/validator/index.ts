@@ -1,3 +1,5 @@
+import { resolve } from "path";
+import { pathToFileURL } from "url";
 import type { ScanResult, FlagUsage, CallType } from "../types.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -178,4 +180,130 @@ export function formatValidationReport(
   lines.push("Run `flaglint migrate --dry-run` to review the migration plan.");
 
   return lines.join("\n") + "\n";
+}
+
+// ── SARIF output for policy enforcement ──────────────────────────────────────
+
+/**
+ * Canonical rule definition for the no-direct-launchdarkly policy rule.
+ * Rule ID matches the documented SARIF schema so platform teams can suppress
+ * specific ruleIds in GitHub Code Scanning.
+ */
+const SARIF_RULE_NO_DIRECT_LD = {
+  id: "flaglint.direct-launchdarkly",
+  name: "DirectLaunchDarklySDKUsage",
+  shortDescription: {
+    text: "Direct LaunchDarkly SDK evaluation call detected",
+  },
+  fullDescription: {
+    text: "A direct LaunchDarkly Node.js server SDK evaluation call was found. Migrate this call to OpenFeature so the codebase is provider-independent.",
+  },
+  helpUri: "https://github.com/flaglint/flaglint#flaglint-validate-dir",
+  properties: {
+    tags: ["openfeature", "migration", "launchdarkly"],
+  },
+};
+
+function sarifViolationUri(file: string): string {
+  return file.split(/[\\/]/).join("/");
+}
+
+function sarifScanRootUri(scanRoot: string): string {
+  const uri = pathToFileURL(resolve(scanRoot)).href;
+  return uri.endsWith("/") ? uri : `${uri}/`;
+}
+
+function violationSarifMessage(v: ValidationViolation): string {
+  if (v.isDynamic) {
+    return `Direct LaunchDarkly SDK call ${v.callType}() with a dynamic flag key at ${v.file}:${v.line}. Migrate to OpenFeature using flaglint migrate --dry-run.`;
+  }
+  if (v.flagKey === "*") {
+    return `Direct LaunchDarkly bulk inventory call ${v.callType}() at ${v.file}:${v.line}. Migrate to OpenFeature using flaglint migrate --dry-run.`;
+  }
+  return `Direct LaunchDarkly SDK call ${v.callType}("${v.flagKey}") at ${v.file}:${v.line}. Migrate to OpenFeature using flaglint migrate --dry-run.`;
+}
+
+/**
+ * Format a ValidationResult as a SARIF 2.1.0 document for GitHub Code Scanning.
+ *
+ * Each violation emits a SARIF result with:
+ *   - ruleId: "flaglint.direct-launchdarkly"
+ *   - level: "error" (policy enforcement — not a warning; blocks PRs when uploaded)
+ *   - file path (relative, uriBaseId = "%SRCROOT%")
+ *   - line and column
+ *   - actionable message directing the user to flaglint migrate --dry-run
+ *
+ * An empty violations array produces a valid SARIF document with zero results,
+ * which GitHub Code Scanning interprets as "all clear".
+ */
+export function formatValidationSarif(
+  result: ValidationResult,
+  scanRoot: string,
+  scannedAt: string
+): string {
+  return JSON.stringify(
+    {
+      $schema: "https://json.schemastore.org/sarif-2.1.0.json",
+      version: "2.1.0",
+      runs: [
+        {
+          tool: {
+            driver: {
+              name: "FlagLint",
+              informationUri: "https://github.com/flaglint/flaglint",
+              rules: [SARIF_RULE_NO_DIRECT_LD],
+            },
+          },
+          invocations: [
+            {
+              executionSuccessful: true,
+              startTimeUtc: scannedAt,
+              properties: {
+                scannedFiles: result.scannedFiles,
+                totalUsages: result.totalUsages,
+                violations: result.violations.length,
+                passed: result.passed,
+              },
+            },
+          ],
+          originalUriBaseIds: {
+            "%SRCROOT%": {
+              uri: sarifScanRootUri(scanRoot),
+            },
+          },
+          results: result.violations.map((v) => ({
+            ruleId: SARIF_RULE_NO_DIRECT_LD.id,
+            level: "error",
+            message: {
+              text: violationSarifMessage(v),
+            },
+            locations: [
+              {
+                physicalLocation: {
+                  artifactLocation: {
+                    uri: sarifViolationUri(v.file),
+                    uriBaseId: "%SRCROOT%",
+                  },
+                  region: {
+                    startLine: Math.max(v.line, 1),
+                    startColumn: Math.max(v.column + 1, 1),
+                  },
+                },
+              },
+            ],
+            partialFingerprints: {
+              "flagKey/v1": v.flagKey,
+            },
+            properties: {
+              flagKey: v.flagKey,
+              callType: v.callType,
+              isDynamic: v.isDynamic,
+            },
+          })),
+        },
+      ],
+    },
+    null,
+    2
+  );
 }
