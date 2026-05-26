@@ -97,8 +97,9 @@ maintainer has ever published locally.
 
 The release pipeline (`.github/workflows/release.yml`) enforces these steps in order:
 
-1. **Verify** — runs `npm run build`, `npm run typecheck`, and `npm run test:run`
-   on Node 20 AND Node 22 before publishing.
+1. **Verify** — runs `npm run typecheck` and `npm run test:run` on Node 20 AND
+   Node 22 before publishing. `npm run test:run` builds the compiled CLI entry
+   before executing tests.
 2. **Tag check** — confirms the git release tag matches the `version` field in
    `package.json`; mismatches fail the job before any publish step.
 3. **Publish** — uses `npm publish --access public` through npm

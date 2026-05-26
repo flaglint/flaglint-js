@@ -1,5 +1,4 @@
 import { readFile, writeFile } from "fs/promises";
-import fg from "fast-glob";
 
 type PackageJson = {
   version: string;
@@ -17,18 +16,6 @@ function replaceRequired(input: string, pattern: RegExp, replacement: string, la
     throw new Error(`sync-www failed: could not update ${label}`);
   }
   return input.replace(pattern, replacement);
-}
-
-async function countTests(): Promise<number> {
-  const files = await fg("src/**/*.test.ts", { onlyFiles: true });
-  let count = 0;
-
-  for (const file of files) {
-    const content = await readFile(file, "utf8");
-    count += content.match(/\bit\s*\(/g)?.length ?? 0;
-  }
-
-  return count;
 }
 
 async function reportFormats(): Promise<string[]> {
@@ -77,10 +64,9 @@ function formatCountWord(count: number): string {
 }
 
 async function main(): Promise<void> {
-  const [www, packageRaw, testCount, formats] = await Promise.all([
+  const [www, packageRaw, formats] = await Promise.all([
     readFile(WWW_PATH, "utf8"),
     readFile(PACKAGE_PATH, "utf8"),
-    countTests(),
     reportFormats(),
   ]);
 
@@ -96,9 +82,9 @@ async function main(): Promise<void> {
   );
   next = replaceRequired(
     next,
-    /<span class="stat-num">\d+<\/span>\s*\n\s*<span class="stat-label">tests passing<\/span>/,
-    `<span class="stat-num">${testCount}</span>\n          <span class="stat-label">tests passing</span>`,
-    "test count"
+    /<span class="stat-num">(?:\d+|CI)<\/span>\s*\n\s*<span class="stat-label">(?:tests passing|verified)<\/span>/,
+    `<span class="stat-num">CI</span>\n          <span class="stat-label">verified</span>`,
+    "trust stat"
   );
   next = replaceRequired(
     next,
