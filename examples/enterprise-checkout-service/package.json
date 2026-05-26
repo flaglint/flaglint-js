@@ -1,0 +1,8 @@
+{
+  "name": "enterprise-checkout-service-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "flaglint": "flaglint"
+  }
+}

@@ -30,6 +30,8 @@ plans, and prevents new vendor-coupled flag access from entering your codebase.
 
 **LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your application code calls.**
 
+[View enterprise demo ->](./examples/enterprise-checkout-service)
+
 ---
 
 ## Workflow

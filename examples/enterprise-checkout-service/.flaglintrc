@@ -1,0 +1,20 @@
+{
+  "include": ["**/*.{ts,js}"],
+  "exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/before/**",
+    "**/after/**",
+    "**/generated-reports/**"
+  ],
+  "provider": "launchdarkly",
+  "minFileCount": 0,
+  "reportTitle": "Enterprise Checkout Service — Flag Inventory",
+  "wrappers": ["evaluateFlag", "evaluateFlagWithFallback"],
+  "openFeatureClientBindings": [
+    {
+      "importName": "openFeatureClient",
+      "modulePatterns": ["**/platform/feature-flags"]
+    }
+  ]
+}
