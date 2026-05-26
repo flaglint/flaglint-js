@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -87,5 +87,40 @@ describe("enterprise checkout service demo", () => {
     ]);
     expect(validate.status).toBe(1);
     expect(validate.stdout).toContain("direct LaunchDarkly evaluation call");
+
+    const validateComplete = run(demo, process.execPath, [
+      ENTRY,
+      "validate",
+      "./after-complete",
+      "--no-direct-launchdarkly",
+    ]);
+    expect(validateComplete.status).toBe(0);
+    expect(validateComplete.stdout).toContain("no direct LaunchDarkly evaluation calls found");
+    expect(validateComplete.stdout).toContain("Scanned 5 file(s)");
+
+    const completedCheckout = join(demo, "after-complete/checkout.ts");
+    writeFileSync(
+      completedCheckout,
+      `${readFileSync(completedCheckout, "utf8")}
+
+const regressionLaunchDarkly = require("launchdarkly-node-server-sdk");
+const regressionLdClient = regressionLaunchDarkly.init("sdk-key");
+export const regressionLeak = regressionLdClient.boolVariation(
+  "regression-direct-ld",
+  { key: "user-1" },
+  false
+);
+`,
+      "utf8"
+    );
+
+    const validateBrokenComplete = run(demo, process.execPath, [
+      ENTRY,
+      "validate",
+      "./after-complete",
+      "--no-direct-launchdarkly",
+    ]);
+    expect(validateBrokenComplete.status).toBe(1);
+    expect(validateBrokenComplete.stdout).toContain("direct LaunchDarkly evaluation call");
   }, 30_000);
 });
