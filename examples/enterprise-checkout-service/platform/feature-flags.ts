@@ -1,16 +1,20 @@
 /**
  * platform/feature-flags.ts
  *
- * One-time bootstrap file — LaunchDarkly remains the provider.
+ * This bootstrap module centralizes the LaunchDarkly OpenFeature provider
+ * integration. Application service code evaluates flags through OpenFeature
+ * rather than direct LaunchDarkly Node.js server SDK evaluation calls.
+ *
+ * LaunchDarkly remains the feature flag provider throughout migration.
+ * Only the application-facing API changes — all service files import
+ * `openFeatureClient` from this module and call `get*Value()` instead
+ * of `ldClient.*Variation()`.
+ *
  * This file is excluded from `flaglint validate --no-direct-launchdarkly`
- * via the --bootstrap-exclude flag and the .flaglintrc config below.
- *
- * Direct LaunchDarkly SDK usage here is intentional:
- * it wires the LaunchDarkly provider into OpenFeature so that
- * every other service can use OpenFeature without being
- * coupled to the LaunchDarkly SDK directly.
- *
- * Do NOT call ldClient.variation() outside this file.
+ * via `--bootstrap-exclude "platform/feature-flags.ts"`. Direct
+ * LaunchDarkly SDK usage here is intentional: it registers the
+ * LaunchDarkly provider so every other service can evaluate flags
+ * through OpenFeature without importing the LaunchDarkly SDK directly.
  */
 
 import { LaunchDarklyProvider } from "@launchdarkly/openfeature-node-server";

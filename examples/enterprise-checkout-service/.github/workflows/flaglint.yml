@@ -1,4 +1,18 @@
-name: FlagLint
+# Sample GitHub Actions workflow for a repository adopting FlagLint.
+#
+# Copy this file to .github/workflows/flaglint.yml in your own repository.
+# Replace `npx flaglint` with `npx flaglint@<version>` once the version that
+# includes the features you need has been published to npm.
+#
+# What this workflow does:
+#   1. Scans for direct LaunchDarkly SDK call-sites and uploads SARIF to
+#      GitHub Code Scanning (shows annotations on PRs).
+#   2. Generates a migration plan and uploads it as a downloadable artifact.
+#   3. Advisory enforcement: flags violations in src/ (expected during migration).
+#   4. Hard enforcement gate: validates after-complete/ to confirm the fully
+#      migrated snapshot contains zero direct LaunchDarkly calls.
+
+name: FlagLint — LaunchDarkly OpenFeature Migration
 
 on:
   push:
@@ -31,32 +45,46 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # Step 1: Scan for LaunchDarkly SDK usage
-      # Produces an HTML report and a SARIF file for GitHub Code Scanning.
-      - name: Scan for LaunchDarkly SDK usage (HTML)
+      # ── Step 1: Inventory ────────────────────────────────────────────────────
+      # Scan for all direct LaunchDarkly SDK call-sites in src/.
+      # Produces an HTML inventory report and a SARIF file.
+
+      - name: Scan — generate HTML inventory report
         run: |
           npx flaglint scan ./src \
             --format html \
             --output generated-reports/inventory-report.html
         continue-on-error: true
 
-      - name: Scan for LaunchDarkly SDK usage (SARIF)
+      - name: Validate — generate SARIF for GitHub Code Scanning
         run: |
-          npx flaglint scan ./src \
+          npx flaglint validate ./src \
+            --no-direct-launchdarkly \
+            --bootstrap-exclude "platform/feature-flags.ts" \
             --format sarif \
-            --output flaglint.sarif
+            --output flaglint-validate.sarif
         continue-on-error: true
 
-      # Upload SARIF to GitHub Code Scanning — shows annotations in PRs
-      - name: Upload to GitHub Code Scanning
+      # Upload SARIF to GitHub Code Scanning — shows PR annotations for each violation.
+      - name: Upload SARIF to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
-          sarif_file: flaglint.sarif
+          sarif_file: flaglint-validate.sarif
         continue-on-error: true
 
-      # Step 2: Generate and upload migration plan
-      - name: Generate OpenFeature migration plan
+      - name: Upload HTML inventory report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inventory-report-node${{ matrix.node-version }}
+          path: generated-reports/inventory-report.html
+          retention-days: 30
+
+      # ── Step 2: Migration plan ───────────────────────────────────────────────
+      # Produce a reviewable before/after diff for every automatable call-site.
+
+      - name: Migrate — generate migration plan (dry-run)
         run: |
           npx flaglint migrate ./src --dry-run > generated-reports/migration-plan.md
         continue-on-error: true
@@ -69,19 +97,25 @@ jobs:
           path: generated-reports/migration-plan.md
           retention-days: 30
 
-      - name: Upload HTML report
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: inventory-report-node${{ matrix.node-version }}
-          path: generated-reports/inventory-report.html
-          retention-days: 30
+      # ── Step 3: Advisory enforcement on src/ ─────────────────────────────────
+      # Fails while direct LaunchDarkly call-sites remain in src/.
+      # Set continue-on-error: false once all manual-review items are resolved.
+      # In this demo, analytics.ts, product.ts, and flags-wrapper.ts intentionally
+      # retain direct LD calls to demonstrate the manual-review cases.
 
-      # Step 3: Demonstrate no-direct-LaunchDarkly enforcement.
-      # This demo intentionally contains manual-review examples, so this remains
-      # advisory until those files are migrated by hand.
-      - name: Check OpenFeature migration enforcement
+      - name: Validate — advisory enforcement on src/
         run: |
-          npx flaglint validate --no-direct-launchdarkly \
+          npx flaglint validate ./src \
+            --no-direct-launchdarkly \
             --bootstrap-exclude "platform/feature-flags.ts"
         continue-on-error: true
+
+      # ── Step 4: Hard enforcement gate on after-complete/ ────────────────────
+      # The after-complete/ directory is a committed snapshot of the fully migrated
+      # state. This gate enforces that the snapshot contains zero direct LD calls.
+      # Fails hard (no continue-on-error) — this is the green-line check.
+
+      - name: Validate — hard gate on after-complete/ (must pass)
+        run: |
+          npx flaglint validate ./after-complete \
+            --no-direct-launchdarkly

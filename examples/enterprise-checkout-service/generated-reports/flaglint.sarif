@@ -9,28 +9,22 @@
           "informationUri": "https://github.com/flaglint/flaglint",
           "rules": [
             {
-              "id": "flaglint.keyword",
-              "name": "Stale flag keyword",
+              "id": "flaglint.direct-launchdarkly",
+              "name": "DirectLaunchDarklySDKUsage",
               "shortDescription": {
-                "text": "Flag key contains a stale keyword"
+                "text": "Direct LaunchDarkly SDK evaluation call detected"
               },
-              "helpUri": "https://github.com/flaglint/flaglint#what-flaglint-detects"
-            },
-            {
-              "id": "flaglint.path",
-              "name": "Stale flag path",
-              "shortDescription": {
-                "text": "Flag usage appears in a stale path"
+              "fullDescription": {
+                "text": "A direct LaunchDarkly Node.js server SDK evaluation call was found. Migrate this call to OpenFeature so the codebase is provider-independent."
               },
-              "helpUri": "https://github.com/flaglint/flaglint#what-flaglint-detects"
-            },
-            {
-              "id": "flaglint.minFileCount",
-              "name": "Low file count",
-              "shortDescription": {
-                "text": "Flag appears in too few files"
-              },
-              "helpUri": "https://github.com/flaglint/flaglint#configuration"
+              "helpUri": "https://github.com/flaglint/flaglint#flaglint-validate-dir",
+              "properties": {
+                "tags": [
+                  "openfeature",
+                  "migration",
+                  "launchdarkly"
+                ]
+              }
             }
           ]
         }
@@ -38,12 +32,12 @@
       "invocations": [
         {
           "executionSuccessful": true,
-          "startTimeUtc": "2026-05-26T00:56:59.001Z",
+          "startTimeUtc": "2026-05-26T02:37:50.745Z",
           "properties": {
             "scannedFiles": 5,
             "totalUsages": 20,
-            "uniqueFlags": 11,
-            "scanDurationMs": 82
+            "violations": 20,
+            "passed": false
           }
         }
       ],
@@ -52,7 +46,588 @@
           "uri": "file:///Users/krishankantsharma/Development/workspace/flaglint/examples/enterprise-checkout-service/src/"
         }
       },
-      "results": []
+      "results": [
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call variationDetail() with a dynamic flag key at analytics.ts:51. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "analytics.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 51,
+                  "startColumn": 44
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "variationDetail",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariationDetail(\"checkout-experiment\") at analytics.ts:76. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "analytics.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 76,
+                  "startColumn": 24
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "checkout-experiment"
+          },
+          "properties": {
+            "flagKey": "checkout-experiment",
+            "callType": "boolVariationDetail",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly bulk inventory call allFlagsState() at analytics.ts:104. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "analytics.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 104,
+                  "startColumn": 23
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "*"
+          },
+          "properties": {
+            "flagKey": "*",
+            "callType": "allFlagsState",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariation(\"checkout-v2\") at checkout.ts:40. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "checkout.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 40,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "checkout-v2"
+          },
+          "properties": {
+            "flagKey": "checkout-v2",
+            "callType": "boolVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call stringVariation(\"payment-provider\") at checkout.ts:49. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "checkout.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 49,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "payment-provider"
+          },
+          "properties": {
+            "flagKey": "payment-provider",
+            "callType": "stringVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariation(\"one-click-checkout\") at checkout.ts:58. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "checkout.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 58,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "one-click-checkout"
+          },
+          "properties": {
+            "flagKey": "one-click-checkout",
+            "callType": "boolVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call stringVariation(\"checkout-currency\") at checkout.ts:67. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "checkout.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 67,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "checkout-currency"
+          },
+          "properties": {
+            "flagKey": "checkout-currency",
+            "callType": "stringVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariation() with a dynamic flag key at flags-wrapper.ts:48. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "flags-wrapper.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 48,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "boolVariation",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariation() with a dynamic flag key at flags-wrapper.ts:67. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "flags-wrapper.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 67,
+                  "startColumn": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "boolVariation",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call stringVariation() with a dynamic flag key at flags-wrapper.ts:70. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "flags-wrapper.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 70,
+                  "startColumn": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "stringVariation",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call numberVariation() with a dynamic flag key at flags-wrapper.ts:73. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "flags-wrapper.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 73,
+                  "startColumn": 12
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "numberVariation",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call jsonVariation() with a dynamic flag key at flags-wrapper.ts:75. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "flags-wrapper.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 75,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "jsonVariation",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call variation() with a dynamic flag key at flags-wrapper.ts:86. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "flags-wrapper.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 86,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "variation",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call numberVariation(\"discount-percentage\") at pricing.ts:46. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "pricing.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 46,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "discount-percentage"
+          },
+          "properties": {
+            "flagKey": "discount-percentage",
+            "callType": "numberVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call numberVariation(\"max-discount-amount\") at pricing.ts:55. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "pricing.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 55,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "max-discount-amount"
+          },
+          "properties": {
+            "flagKey": "max-discount-amount",
+            "callType": "numberVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call jsonVariation(\"discount-config\") at pricing.ts:69. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "pricing.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 69,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "discount-config"
+          },
+          "properties": {
+            "flagKey": "discount-config",
+            "callType": "jsonVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call jsonVariation(\"pricing-tier-config\") at pricing.ts:83. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "pricing.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 83,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "pricing-tier-config"
+          },
+          "properties": {
+            "flagKey": "pricing-tier-config",
+            "callType": "jsonVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariation() with a dynamic flag key at product.ts:52. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "product.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 52,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "dynamic"
+          },
+          "properties": {
+            "flagKey": "dynamic",
+            "callType": "boolVariation",
+            "isDynamic": true
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call stringVariation(\"recommendations-variant\") at product.ts:61. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "product.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 61,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "recommendations-variant"
+          },
+          "properties": {
+            "flagKey": "recommendations-variant",
+            "callType": "stringVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariation(\"bulk-discount-enabled\") at product.ts:70. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "product.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 70,
+                  "startColumn": 10
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "bulk-discount-enabled"
+          },
+          "properties": {
+            "flagKey": "bulk-discount-enabled",
+            "callType": "boolVariation",
+            "isDynamic": false
+          }
+        }
+      ]
     }
   ]
 }

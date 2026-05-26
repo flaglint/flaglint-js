@@ -37,14 +37,15 @@ enterprise-checkout-service/
     flags-wrapper.ts      # shared internal LD wrapper — manual review
     product.ts            # dynamic key + 2 static keys (partial auto-migration)
   before/                 # snapshot of src/ before migration
-  after/                  # snapshot of src/ after flaglint migrate --apply
+  after/                  # snapshot of src/ after flaglint migrate --apply (auto-migrated)
+  after-complete/         # snapshot of src/ after full migration including manual review
   generated-reports/
     inventory-report.md   # sample output of flaglint scan --format markdown
     migration-plan.md     # sample output of flaglint migrate --dry-run
-    flaglint.sarif        # representative SARIF for GitHub Code Scanning
+    flaglint.sarif        # SARIF for GitHub Code Scanning (validate --format sarif)
   .github/
     workflows/
-      flaglint.yml        # CI workflow on Node.js 20 and 22
+      flaglint.yml        # sample CI workflow for an adopting repository
   .flaglintrc             # config with openFeatureClientBindings
 ```
 
@@ -66,21 +67,52 @@ enterprise-checkout-service/
 
 ## Walkthrough
 
-### Step 1: Install
+### Two ways to run this demo
+
+**A. Repository contributor mode** — runs FlagLint from the local build.
+Verified against the current source in this repository.
 
 ```bash
+# From the repository root
+npm ci
+npm run build
+
+# Then use node ./dist/bin/flaglint.js instead of npx flaglint
+# Example: node ./dist/bin/flaglint.js scan ./examples/enterprise-checkout-service/src ...
+```
+
+All commands in the steps below are shown in contributor mode.
+
+**B. Published-package evaluator mode** — uses the npm-published package.
+
+```bash
+# From within this directory
 cd examples/enterprise-checkout-service
 npm install
+# Then use: npx flaglint scan ./src ...
 ```
 
-### Step 2: Scan — inventory all LaunchDarkly SDK calls
+> Published-package commands become available once this capability ships in the
+> next release. Check [flaglint on npm](https://www.npmjs.com/package/flaglint) for the current version.
+
+---
+
+### Step 1: Scan — inventory all LaunchDarkly SDK calls
 
 ```bash
-npx flaglint scan ./src --format html --output generated-reports/inventory-report.html
+# Contributor mode (from repo root)
+node ./dist/bin/flaglint.js scan ./examples/enterprise-checkout-service/src \
+  --format markdown \
+  --config ./examples/enterprise-checkout-service/.flaglintrc
 ```
 
-This produces an HTML report showing every direct LaunchDarkly call across all service files.
-A Markdown version is already committed at `generated-reports/inventory-report.md`.
+```bash
+# Published-package mode (from examples/enterprise-checkout-service)
+npx flaglint scan ./src --format markdown
+```
+
+This outputs a Markdown report showing every direct LaunchDarkly call across all service files.
+A committed snapshot is at `generated-reports/inventory-report.md`.
 
 Expected output:
 ```
@@ -88,14 +120,30 @@ Expected output:
 ℹ  1 dynamic flag key(s) require manual review
 ```
 
-You can also output SARIF for GitHub Code Scanning:
+You can also produce a SARIF file for GitHub Code Scanning:
 ```bash
-npx flaglint scan ./src --format sarif --output generated-reports/flaglint.sarif
+# Contributor mode
+node ./dist/bin/flaglint.js validate ./examples/enterprise-checkout-service/src \
+  --no-direct-launchdarkly \
+  --bootstrap-exclude "platform/feature-flags.ts" \
+  --format sarif \
+  --output ./examples/enterprise-checkout-service/generated-reports/flaglint.sarif \
+  --config ./examples/enterprise-checkout-service/.flaglintrc
 ```
 
-### Step 3: Review — generate the migration plan
+A committed snapshot is at `generated-reports/flaglint.sarif` (20 findings from `src/`).
+
+### Step 2: Review — generate the migration plan
 
 ```bash
+# Contributor mode (from repo root)
+node ./dist/bin/flaglint.js migrate ./examples/enterprise-checkout-service/src \
+  --dry-run \
+  --config ./examples/enterprise-checkout-service/.flaglintrc
+```
+
+```bash
+# Published-package mode (from examples/enterprise-checkout-service)
 npx flaglint migrate ./src --dry-run
 ```
 
@@ -103,11 +151,19 @@ This prints reviewable before/after diffs to stdout and identifies:
 - 10 transformations with proven OpenFeature client bindings
 - 9 call sites requiring manual review, with specific guidance for each
 
-A sample output is committed at `generated-reports/migration-plan.md`.
+A committed snapshot is at `generated-reports/migration-plan.md`.
 
-### Step 4: Apply — automatically migrate the safe call sites
+### Step 3: Apply — automatically migrate the safe call sites
 
 ```bash
+# Contributor mode (from repo root)
+node ./dist/bin/flaglint.js migrate ./examples/enterprise-checkout-service/src \
+  --apply \
+  --config ./examples/enterprise-checkout-service/.flaglintrc
+```
+
+```bash
+# Published-package mode (from examples/enterprise-checkout-service)
 npx flaglint migrate ./src --apply
 ```
 
@@ -146,12 +202,19 @@ transformation so you can compare without running `--apply`.
 - Preserves flag key, fallback value, evaluation context, and `await` exactly
 - Never touches detail methods, dynamic keys, bulk calls, or wrapper functions
 
-### Step 5: Enforce in CI
+The `after-complete/` directory shows the fully migrated state — including the manual-review
+items hand-migrated to OpenFeature. It has zero direct LaunchDarkly calls.
+
+### Step 4: Enforce in CI
+
+**Advisory gate on `src/` (during migration):**
 
 ```bash
-npx flaglint validate ./src \
+# Contributor mode (from repo root)
+node ./dist/bin/flaglint.js validate ./examples/enterprise-checkout-service/src \
   --no-direct-launchdarkly \
-  --bootstrap-exclude "platform/feature-flags.ts"
+  --bootstrap-exclude "platform/feature-flags.ts" \
+  --config ./examples/enterprise-checkout-service/.flaglintrc
 ```
 
 This exits 1 while the manual-review examples still contain direct LaunchDarkly
@@ -159,22 +222,28 @@ evaluations. That is expected for this demo: `analytics.ts`, `product.ts`, and
 `flags-wrapper.ts` intentionally show detail methods, dynamic keys, bulk calls,
 and wrapper abstractions that require human migration.
 
-After those manual-review items are resolved, this same command becomes the CI
-gate that keeps migration complete.
-
-The `platform/feature-flags.ts` file contains intentional direct LaunchDarkly
-SDK usage to wire the provider — this is excluded from enforcement.
-
 **Expected output before manual review is complete:**
 ```
-✗ validate --no-direct-launchdarkly: direct LaunchDarkly evaluation call(s) found.
+✗ validate --no-direct-launchdarkly: 20 direct LaunchDarkly evaluation call(s) found.
 ```
 
-**Expected output after manual review is complete:**
+**Hard gate on `after-complete/` (green-line check):**
+
+```bash
+# Contributor mode (from repo root)
+node ./dist/bin/flaglint.js validate ./examples/enterprise-checkout-service/after-complete \
+  --no-direct-launchdarkly \
+  --config ./examples/enterprise-checkout-service/.flaglintrc
+```
+
+**Expected output:**
 ```
 ✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
-  Scanned 5 file(s). platform/feature-flags.ts excluded (bootstrap).
+  Scanned 5 file(s).
 ```
+
+After the manual-review items in `src/` are resolved, the advisory gate on `src/` also
+becomes a hard gate that keeps migration complete.
 
 ---
 
@@ -212,20 +281,26 @@ await OpenFeature.setProviderAndWait(ldProvider);
 export const openFeatureClient = OpenFeature.getClient("checkout-platform");
 ```
 
-This is the only file that touches the LaunchDarkly SDK directly after migration.
-LaunchDarkly continues to serve the feature flags. All services now call OpenFeature.
+This bootstrap module centralizes the LaunchDarkly OpenFeature provider integration.
+Application service code evaluates flags through OpenFeature rather than direct
+LaunchDarkly Node.js server SDK evaluation calls.
+
+LaunchDarkly continues to serve the feature flags throughout. All services call
+OpenFeature, and LaunchDarkly is wired in as the provider by this single file.
 
 ---
 
 ## CI Workflow
 
-The `.github/workflows/flaglint.yml` in this demo runs the full pipeline on
-Node.js 20 and 22:
+The `.github/workflows/flaglint.yml` in this demo is a **sample workflow for an adopting repository**.
+Copy it to your repository and adapt `./src` to your actual source path.
 
-1. Scan and upload SARIF to GitHub Code Scanning (PR annotations)
+It runs the full pipeline on Node.js 20 and 22:
+
+1. Scan and upload SARIF to GitHub Code Scanning (PR annotations via `validate --format sarif`)
 2. Generate migration plan as a downloadable artifact
-3. Demonstrate the `--no-direct-launchdarkly` enforcement gate. In this demo
-   it remains advisory until the manual-review examples are resolved.
+3. Advisory enforcement on `src/` — flags violations, `continue-on-error: true`
+4. Hard enforcement gate on `after-complete/` — must pass (no `continue-on-error`)
 
 See `generated-reports/` for committed sample outputs from this pipeline.
 

@@ -2,7 +2,7 @@
 
 Enterprise Checkout Service — Flag Inventory
 
-**Scanned:** 5 files in 79ms
+**Scanned:** 5 files
 **Flag usages:** 20 across 11 unique flags
 **Stale candidates:** 0 flags flagged for review
 
