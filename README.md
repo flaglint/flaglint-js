@@ -280,6 +280,8 @@ Declare the allowed import in `.flaglintrc`:
 `"**/platform/feature-flags"` matches `"../platform/feature-flags"` and
 `"../../shared/platform/feature-flags"`, but **not** `"../platform/feature-flags-legacy"` or
 `"../other/platform/feature-flags-backup"`.
+For TypeScript ESM projects, configured module patterns without `.js` also recognize
+the corresponding `.js` runtime import specifier.
 
 **Before:**
 ```typescript

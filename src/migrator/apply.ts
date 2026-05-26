@@ -12,10 +12,22 @@ import type { FileSource, MigrationAnalysis, MigrationInventoryItem, MigrationVa
  * `../platform/feature-flags` and `../../shared/platform/feature-flags`
  * equally, while NOT matching `../platform/feature-flags-legacy` or
  * `../other/platform/feature-flags-backup`.
+ *
+ * TypeScript ESM projects commonly write runtime import specifiers with `.js`
+ * even when the source file is `.ts`.  For this launch, only the `.js`
+ * extension is normalized, so `../platform/feature-flags.js` matches a
+ * configured pattern such as `**\/platform/feature-flags` without broadening
+ * matching to unrelated extensions.
  */
 function moduleSpecifierMatchesGlob(specifier: string, pattern: string): boolean {
-  const normalized = specifier.replace(/^(?:\.\.?\/)+/, "");
-  return micromatch.isMatch(normalized, pattern);
+  const normalizeRelative = (value: string): string => value.replace(/^(?:\.\.?\/)+/, "");
+  const normalizedSpecifier = normalizeRelative(specifier);
+  const normalizedPattern = normalizeRelative(pattern);
+
+  if (micromatch.isMatch(normalizedSpecifier, normalizedPattern)) return true;
+  if (!normalizedSpecifier.endsWith(".js")) return false;
+
+  return micromatch.isMatch(normalizedSpecifier.slice(0, -3), normalizedPattern);
 }
 
 const execFileAsync = promisify(execFile);
