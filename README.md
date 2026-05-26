@@ -30,7 +30,9 @@ plans, and prevents new vendor-coupled flag access from entering your codebase.
 
 **LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your application code calls.**
 
-[View enterprise demo ->](./examples/enterprise-checkout-service)
+Docs: [Getting Started](https://flaglint.dev/docs/getting-started) · [Commands](https://flaglint.dev/docs/commands/scan) · [Supported Scope](https://flaglint.dev/docs/supported-scope) · [CI Integration](https://flaglint.dev/docs/ci-github-actions) · [Enterprise Demo](https://flaglint.dev/docs/demo)
+
+[View enterprise demo source ->](./examples/enterprise-checkout-service)
 
 ---
 

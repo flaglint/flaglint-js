@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenFeature Provider Setup — FlagLint Docs</title>
+  <meta name="description" content="One-time manual bootstrap for wiring the LaunchDarkly OpenFeature provider. Required before running flaglint migrate --apply.">
+  <link rel="canonical" href="https://flaglint.dev/docs/openfeature-provider-setup">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">★ GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Getting Started</div>
+      <ul class="sidebar-nav">
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="demo.html">Demo</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Commands</div>
+      <ul class="sidebar-nav">
+        <li><a href="commands/scan.html">scan</a></li>
+        <li><a href="commands/migrate.html">migrate</a></li>
+        <li><a href="commands/validate.html">validate</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <ul class="sidebar-nav">
+        <li><a href="supported-scope.html">Supported Scope</a></li>
+        <li><a href="openfeature-provider-setup.html">OpenFeature Provider Setup</a></li>
+        <li><a href="safety-model.html">Safety Model</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Integrations</div>
+      <ul class="sidebar-nav">
+        <li><a href="ci-github-actions.html">GitHub Actions CI</a></li>
+        <li><a href="opentelemetry.html">OpenTelemetry</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="docs-main">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="getting-started.html">Docs</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="current">OpenFeature Provider Setup</span>
+    </div>
+
+    <h1>OpenFeature Provider Setup</h1>
+    <p class="page-subtitle">
+      A one-time manual bootstrap that wires the LaunchDarkly OpenFeature provider into your
+      application. This must be complete before <code>flaglint migrate --apply</code> can
+      rewrite any call sites.
+    </p>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div class="callout-body">
+        <p>
+          FlagLint intentionally does not automate the provider bootstrap. It is application
+          startup code that is specific to your deployment, initialization order, and context
+          shape. <code>flaglint migrate --dry-run</code> includes this guidance inline as a
+          reminder.
+        </p>
+      </div>
+    </div>
+
+    <h2>Step 1 — Install packages</h2>
+    <p>
+      Install the OpenFeature server SDK and the LaunchDarkly OpenFeature provider. Keep
+      <code>launchdarkly-node-server-sdk</code> — it is still required by the provider.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>npm install @openfeature/server-sdk \
+            @launchdarkly/node-server-sdk \
+            @launchdarkly/openfeature-node-server</pre>
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <p><strong>Do not remove <code>launchdarkly-node-server-sdk</code>.</strong> LaunchDarkly remains your feature flag provider. The OpenFeature provider package depends on the LaunchDarkly SDK internally.</p>
+      </div>
+    </div>
+
+    <h2>Step 2 — Create a bootstrap file</h2>
+    <p>
+      Create a dedicated file (e.g. <code>src/provider/setup.ts</code>) that initializes the
+      OpenFeature provider and exports the client. Keep all LaunchDarkly initialization in
+      this one file — it will be the file you exclude from <code>flaglint validate</code>.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">typescript</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-purple">import</span> { LaunchDarklyProvider } <span class="c-purple">from</span> <span class="c-str">"@launchdarkly/openfeature-node-server"</span>;
+<span class="c-purple">import</span> { OpenFeature } <span class="c-purple">from</span> <span class="c-str">"@openfeature/server-sdk"</span>;
+
+<span class="c-purple">const</span> ldProvider = <span class="c-purple">new</span> LaunchDarklyProvider(process.env.<span class="c-blue">LD_SDK_KEY</span>!);
+<span class="c-purple">await</span> OpenFeature.<span class="c-green">setProviderAndWait</span>(ldProvider);
+
+<span class="c-muted">// Evaluation context needs a targeting key.</span>
+<span class="c-muted">// Use OpenFeature `targetingKey` or keep an existing LaunchDarkly `key`:</span>
+<span class="c-muted">// { targetingKey: user.id }  or  { key: user.id }</span>
+
+<span class="c-purple">export const</span> openFeatureClient = OpenFeature.<span class="c-green">getClient</span>();</pre>
+    </div>
+
+    <h2>Step 3 — Import the client in service files</h2>
+    <p>
+      In each service file that will be migrated, import <code>openFeatureClient</code> from
+      your bootstrap file. This is what <code>flaglint migrate --apply</code> checks for
+      before rewriting any call in a file.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">typescript</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-purple">import</span> { openFeatureClient } <span class="c-purple">from</span> <span class="c-str">"../provider/setup"</span>;
+
+<span class="c-muted">// Now flaglint migrate --apply can rewrite ldClient calls in this file</span>
+<span class="c-purple">const</span> enabled = <span class="c-purple">await</span> openFeatureClient.<span class="c-green">getBooleanValue</span>(<span class="c-str">"checkout-v2"</span>, <span class="c-amber">false</span>, {
+  targetingKey: user.id,
+});</pre>
+    </div>
+
+    <h2>Evaluation context</h2>
+    <p>
+      OpenFeature uses <code>targetingKey</code> where LaunchDarkly uses <code>key</code> in
+      context objects. The LaunchDarkly OpenFeature provider maps both, so existing
+      <code>{ key: user.id }</code> contexts will continue to work. For new code, prefer
+      <code>{ targetingKey: user.id }</code>.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>LaunchDarkly context</th>
+            <th>OpenFeature context</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>{ key: user.id }</code></td>
+            <td><code>{ targetingKey: user.id }</code> (preferred) or <code>{ key: user.id }</code></td>
+          </tr>
+          <tr>
+            <td><code>{ kind: "user", key: user.id, name: user.name }</code></td>
+            <td><code>{ targetingKey: user.id, name: user.name }</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Excluding the bootstrap file from validate</h2>
+    <p>
+      Because the bootstrap file itself contains provider initialization code, exclude it
+      from the <code>--no-direct-launchdarkly</code> rule:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint validate --no-direct-launchdarkly \
+  --bootstrap-exclude src/provider/setup.ts</pre>
+    </div>
+
+    <h2>External references</h2>
+    <ul>
+      <li>
+        <a href="https://openfeature.dev/docs/reference/technologies/server/javascript/" target="_blank" rel="noopener noreferrer">
+          OpenFeature JavaScript/Node.js SDK documentation
+        </a>
+      </li>
+      <li>
+        <a href="https://github.com/launchdarkly/openfeature-node-server" target="_blank" rel="noopener noreferrer">
+          LaunchDarkly OpenFeature provider for Node.js server SDK (GitHub)
+        </a>
+      </li>
+      <li>
+        <a href="https://docs.launchdarkly.com/sdk/features/openfeature" target="_blank" rel="noopener noreferrer">
+          LaunchDarkly OpenFeature provider documentation
+        </a>
+      </li>
+    </ul>
+
+    <div class="page-nav">
+      <div class="page-nav-item">
+        <span class="page-nav-label">← Previous</span>
+        <a href="supported-scope.html" class="page-nav-title">Supported Scope</a>
+      </div>
+      <div class="page-nav-item next">
+        <span class="page-nav-label">Next →</span>
+        <a href="safety-model.html" class="page-nav-title">Safety Model</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">FlagLint — MIT License</span>
+    <div class="footer-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglintdev</a>
+    </div>
+  </div>
+</footer>
+
+<script src="docs.js"></script>
+</body>
+</html>
