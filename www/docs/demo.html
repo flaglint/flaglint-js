@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Demo — FlagLint Docs</title>
+  <meta name="description" content="Walk through the FlagLint enterprise checkout-service demo: scan inventory, dry-run migration, guarded apply, and validate policy enforcement.">
+  <link rel="canonical" href="https://flaglint.dev/docs/demo">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">★ GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Getting Started</div>
+      <ul class="sidebar-nav">
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="demo.html">Demo</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Commands</div>
+      <ul class="sidebar-nav">
+        <li><a href="commands/scan.html">scan</a></li>
+        <li><a href="commands/migrate.html">migrate</a></li>
+        <li><a href="commands/validate.html">validate</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <ul class="sidebar-nav">
+        <li><a href="supported-scope.html">Supported Scope</a></li>
+        <li><a href="openfeature-provider-setup.html">OpenFeature Provider Setup</a></li>
+        <li><a href="safety-model.html">Safety Model</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Integrations</div>
+      <ul class="sidebar-nav">
+        <li><a href="ci-github-actions.html">GitHub Actions CI</a></li>
+        <li><a href="opentelemetry.html">OpenTelemetry</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="docs-main">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="getting-started.html">Docs</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="current">Enterprise Demo</span>
+    </div>
+
+    <h1>Enterprise Demo</h1>
+    <p class="page-subtitle">
+      A realistic checkout-service example for a platform team standardizing direct
+      LaunchDarkly Node.js server SDK calls on OpenFeature while keeping LaunchDarkly
+      as the provider.
+    </p>
+
+    <h2>Demo location</h2>
+    <p>
+      The committed demo lives in <code>examples/enterprise-checkout-service</code>.
+      It includes migration-in-progress source files, a completed state, generated
+      sample reports, and a GitHub Actions workflow example.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>git clone https://github.com/flaglint/flaglint.git
+cd flaglint
+npm ci
+npm run build
+cd examples/enterprise-checkout-service</pre>
+    </div>
+
+    <h2>Walkthrough commands</h2>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>node ../../dist/bin/flaglint.js scan ./src \
+  --config ./.flaglintrc \
+  --format markdown \
+  --output generated-reports/inventory-report.md
+
+node ../../dist/bin/flaglint.js migrate ./src \
+  --config ./.flaglintrc \
+  --dry-run
+
+node ../../dist/bin/flaglint.js validate ./src \
+  --no-direct-launchdarkly \
+  --config ./.flaglintrc
+
+node ../../dist/bin/flaglint.js validate ./after-complete \
+  --no-direct-launchdarkly \
+  --config ./.flaglintrc</pre>
+    </div>
+
+    <h2>Expected completed-state output</h2>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">text</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
+  Scanned 5 file(s).</pre>
+    </div>
+
+    <h2>What the demo proves</h2>
+    <ul>
+      <li><strong>Inventory:</strong> direct LaunchDarkly calls, dynamic keys, detail evaluations, and bulk calls are reported.</li>
+      <li><strong>Migration planning:</strong> dry-run output separates automatable calls from manual-review cases.</li>
+      <li><strong>Guarded apply:</strong> only files with a proven OpenFeature client binding can be rewritten.</li>
+      <li><strong>Policy enforcement:</strong> validation fails while direct SDK calls remain and passes for the completed state.</li>
+      <li><strong>Provider continuity:</strong> LaunchDarkly remains the provider through the OpenFeature provider bootstrap.</li>
+    </ul>
+
+    <p>
+      Source: <a href="https://github.com/flaglint/flaglint/tree/main/examples/enterprise-checkout-service" target="_blank" rel="noopener noreferrer">examples/enterprise-checkout-service</a>
+    </p>
+
+    <div class="page-nav">
+      <a href="getting-started.html" class="page-nav-item">
+        <span class="page-nav-label">Previous</span>
+        <span class="page-nav-title">Getting Started</span>
+      </a>
+      <a href="commands/scan.html" class="page-nav-item next">
+        <span class="page-nav-label">Next</span>
+        <span class="page-nav-title">flaglint scan</span>
+      </a>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">FlagLint docs</div>
+</footer>
+<script src="docs.js"></script>
+</body>
+</html>
