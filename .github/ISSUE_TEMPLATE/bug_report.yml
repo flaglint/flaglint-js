@@ -1,0 +1,77 @@
+name: Bug report
+description: Report a bug or unexpected behavior in FlagLint
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as possible.
+
+        If this is a **security vulnerability**, do not open a public issue.
+        Report it privately via [GitHub Security Advisories](https://github.com/flaglint/flaglint/security/advisories/new).
+
+  - type: input
+    id: version
+    attributes:
+      label: FlagLint version
+      description: Run `flaglint --version`
+      placeholder: "0.4.1"
+    validations:
+      required: true
+
+  - type: input
+    id: node_version
+    attributes:
+      label: Node.js version
+      description: Run `node --version`
+      placeholder: "v20.18.0"
+    validations:
+      required: true
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: "macOS 14, Ubuntu 22.04, Windows 11"
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      description: Paste the exact command including flags
+      render: bash
+      placeholder: "flaglint scan ./src --format markdown"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? Include any error output.
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: Config file (if any)
+      description: Paste the contents of your `.flaglintrc` or `flaglint.config.json` if relevant
+      render: json
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other relevant information — stack traces, sample source that triggers the issue, etc.

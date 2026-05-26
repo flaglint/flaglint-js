@@ -1,0 +1,84 @@
+name: Unsupported pattern / false positive
+description: Report a call-site FlagLint misses, misclassifies, or incorrectly flags
+labels: [false-positive, unsupported-pattern]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template when FlagLint:
+        - Reports a flag usage it should not (**false positive**)
+        - Misses a call-site it should detect (**false negative**)
+        - Produces an incorrect migration suggestion for a pattern
+
+        FlagLint currently supports the **LaunchDarkly Node.js server-side SDK** only.
+        Check the [Supported API matrix](https://github.com/flaglint/flaglint#supported-api-matrix)
+        before reporting — browser SDK, React, and other patterns are out of scope for v0.4.
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Issue kind
+      options:
+        - False positive (FlagLint flags something it should not)
+        - False negative / missed detection (FlagLint misses a call-site)
+        - Incorrect migration suggestion
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: FlagLint version
+      description: Run `flaglint --version`
+      placeholder: "0.4.1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: source
+    attributes:
+      label: Minimal source snippet
+      description: |
+        The smallest TypeScript/JavaScript snippet that reproduces the issue.
+        Remove any proprietary code — flag keys, variable names, and context
+        values are fine as placeholders.
+      render: typescript
+      placeholder: |
+        import * as ld from 'launchdarkly-node-server-sdk';
+        const result = await ldClient.boolVariation('my-flag', ctx, false);
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command you ran
+      render: bash
+      placeholder: "flaglint scan ./src --format json"
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What should FlagLint have reported or done?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What did FlagLint actually report or do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: |
+        Any other information that might help — import alias style, CJS vs ESM,
+        custom wrapper function names, etc.

@@ -147,8 +147,13 @@ flaglint migrate --exclude-tests           # skip test and spec files
 
 **`--apply` safety contracts:**
 - Refuses on a dirty git working tree unless `--allow-dirty`
-- Skips any file that does not already contain a proven `openFeatureClient` binding
-  (`openFeatureClient = OpenFeature.getClient()` from `@openfeature/server-sdk`)
+- Skips any file that does not contain a proven OpenFeature client binding:
+  either a local `OpenFeature.getClient()` binding or a configured imported
+  shared client allowlisted with `openFeatureClientBindings`
+- Imported client matching uses glob-safe `modulePatterns`; aliased imports
+  preserve the local identifier; TypeScript ESM `.js` runtime import specifiers
+  are recognized; ambiguous or unconfigured imports skip safely
+- Provider/bootstrap setup is never inserted automatically
 - Never touches detail methods, dynamic keys, unknown fallbacks, or bulk calls
 - Preserves `await` and original call arguments exactly
 - Idempotent: re-running with the same analysis has no effect
@@ -325,13 +330,16 @@ const timeout = await ldClient.numberVariation("timeout-ms",  { key: user.id }, 
 
 **After — OpenFeature via LaunchDarkly provider:**
 ```typescript
-const enabled = await openFeatureClient.getBooleanValue("checkout-v2", false, { targetingKey: user.id });
-const theme   = await openFeatureClient.getStringValue("color-theme", "light", { targetingKey: user.id });
-const timeout = await openFeatureClient.getNumberValue("timeout-ms",  5000,    { targetingKey: user.id });
+const enabled = await openFeatureClient.getBooleanValue("checkout-v2", false, { key: user.id });
+const theme   = await openFeatureClient.getStringValue("color-theme", "light", { key: user.id });
+const timeout = await openFeatureClient.getNumberValue("timeout-ms",  5000,    { key: user.id });
 ```
 
 Flag key, fallback value, `await`, and evaluation context are preserved exactly.
 LaunchDarkly continues to serve the flags — only the call-site API changes.
+When authoring new OpenFeature-native bootstrap or application code, you may use
+OpenFeature `targetingKey`; FlagLint does not silently rewrite existing
+LaunchDarkly `key` contexts.
 
 ---
 
@@ -394,22 +402,33 @@ jobs:
         with:
           node-version: 20
 
-      - name: Scan for LaunchDarkly SDK usage
-        run: npx flaglint scan --format sarif --output flaglint.sarif
+      - name: Inventory LaunchDarkly SDK usage
+        run: npx flaglint scan ./src --format html --output flaglint-inventory.html
+        continue-on-error: true
+
+      - name: Plan OpenFeature migration
+        run: npx flaglint migrate ./src --dry-run --output flaglint-migration.md
+        continue-on-error: true
+
+      - name: Validate direct LaunchDarkly policy
+        run: |
+          npx flaglint validate ./src \
+            --no-direct-launchdarkly \
+            --bootstrap-exclude "src/provider/setup.ts" \
+            --format sarif \
+            --output flaglint-validation.sarif
         continue-on-error: true
 
       - name: Upload to GitHub Code Scanning
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: flaglint.sarif
-
-      - name: Enforce OpenFeature migration
-        run: |
-          npx flaglint validate --no-direct-launchdarkly \
-            --bootstrap-exclude "src/provider/setup.ts"
+          sarif_file: flaglint-validation.sarif
 ```
 
-Code Scanning alerts show the exact file and line of each direct LD call — reviewers see them in the PR without running anything locally.
+`scan` is for inventory and reporting. `migrate --dry-run` is for migration
+planning. `validate --format sarif` is for direct-SDK policy enforcement and PR
+annotations. Code Scanning alerts show the exact file and line of each direct LD
+call — reviewers see them in the PR without running anything locally.
 
 ---
 
@@ -429,6 +448,37 @@ mixed automatable and manual-review patterns, SARIF output, and CI enforcement:
 
 **[View enterprise demo](./examples/enterprise-checkout-service/README.md)**
 
+The demo shows scan inventory, exact dry-run preview, guarded apply,
+migration-in-progress advisory findings, and a completed-state validation hard
+gate.
+
+---
+
+## Security and trust
+
+FlagLint runs entirely on your machine. No source code, flag keys, or file paths
+are transmitted to any external service. The tool makes no outbound network
+connections during a flag scan or migration. No LaunchDarkly SDK key or any
+credentials are required.
+
+`flaglint migrate --apply` refuses to write files on a dirty git working tree
+(unless `--allow-dirty` is passed), requires a proven OpenFeature client binding
+before touching a file, and verifies each source range against the original call
+expression before rewriting.
+
+The project release workflow is configured to publish through GitHub Actions
+using npm Trusted Publishing/OIDC. The publish job uses Node 24 because npm
+Trusted Publishing has stricter runtime requirements; FlagLint runtime support
+remains Node.js >=20. npm-side Trusted Publisher configuration must be completed
+before the first OIDC-based publication unless it has already been configured
+and verified.
+
+Core behavior is covered by automated tests executed in CI on supported Node
+versions.
+
+For vulnerability reports, see [SECURITY.md](./SECURITY.md).
+For a full trust and provenance statement, see [docs/trust.md](./docs/trust.md).
+
 ---
 
 ## Contributing
@@ -440,3 +490,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+Policy enforcement (SARIF)
+
+To produce SARIF suitable for CI policy enforcement and to check for direct LaunchDarkly SDK usage, run:
+
+  flaglint validate --no-direct-launchdarkly --format sarif --output flaglint.sarif
+
+Look for the rule id "flaglint.direct-launchdarkly" in the SARIF output when integrating with external policy checks.
