@@ -22,7 +22,7 @@
  *   4. Remove the LaunchDarkly SDK import from this file
  */
 
-import LaunchDarkly from "launchdarkly-node-server-sdk";
+import LaunchDarkly from "@launchdarkly/node-server-sdk";
 
 const ldClient = LaunchDarkly.init(process.env.LD_SDK_KEY!);
 
