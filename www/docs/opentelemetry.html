@@ -536,8 +536,9 @@
     <h2>OpenTelemetry feature-flag semantic conventions</h2>
     <p>
       OpenTelemetry defines semantic conventions for feature-flag signals. These
-      conventions describe how flag evaluation results should be recorded as span
-      attributes or log record attributes, giving a common schema across teams and
+      conventions describe how flag evaluation results should be recorded — as
+      attributes on a <strong><code>feature_flag.evaluation</code></strong> span event,
+      or as equivalent log record attributes — giving a common schema across teams and
       tools.
     </p>
 
@@ -552,8 +553,8 @@
     </div>
 
     <p>
-      Relevant attribute names from the current Development-status specification
-      include:
+      The current Development-status specification defines a
+      <strong><code>feature_flag.evaluation</code></strong> span event carrying these attributes:
     </p>
     <ul>
       <li><strong><code>feature_flag.key</code></strong> — the string key that identifies the flag</li>
@@ -563,9 +564,11 @@
     <p>
       These attribute names may change as the specification stabilizes. Review
       the OpenTelemetry changelog when upgrading instrumentation libraries.
+      Do not use older deprecated names such as <code>feature_flag.enabled</code>
+      or <code>feature_flag.system</code> — use the current names above.
     </p>
     <p>
-      Avoid exporting user-identifying evaluation context, unrestricted flag
+      <strong>Privacy:</strong> Avoid exporting user-identifying evaluation context, unrestricted flag
       result values, or sensitive targeting data. Prefer controlled variant
       information where appropriate, and follow the current official
       specification together with your internal data-handling policies.
