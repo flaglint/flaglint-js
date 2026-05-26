@@ -16,7 +16,7 @@
  * See migration-plan.md in generated-reports/ for guidance on manual migration.
  */
 
-import LaunchDarkly, { LDEvaluationDetail } from "launchdarkly-node-server-sdk";
+import LaunchDarkly, { LDEvaluationDetail } from "@launchdarkly/node-server-sdk";
 
 const ldClient = LaunchDarkly.init(process.env.LD_SDK_KEY!);
 

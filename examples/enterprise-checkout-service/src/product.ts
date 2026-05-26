@@ -19,7 +19,7 @@
  *             after verifying all possible key values are defined in LaunchDarkly
  */
 
-import LaunchDarkly from "launchdarkly-node-server-sdk";
+import LaunchDarkly from "@launchdarkly/node-server-sdk";
 import { openFeatureClient } from "../platform/feature-flags.js";
 
 const ldClient = LaunchDarkly.init(process.env.LD_SDK_KEY!);

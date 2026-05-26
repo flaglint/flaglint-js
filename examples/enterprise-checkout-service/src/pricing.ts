@@ -14,7 +14,7 @@
  * Run `flaglint migrate --apply` to apply it automatically.
  */
 
-import LaunchDarkly from "launchdarkly-node-server-sdk";
+import LaunchDarkly from "@launchdarkly/node-server-sdk";
 import { openFeatureClient } from "../platform/feature-flags.js";
 
 const ldClient = LaunchDarkly.init(process.env.LD_SDK_KEY!);
