@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Getting Started — FlagLint Docs</title>
+  <meta name="description" content="Install FlagLint and run your first flag scan in under two minutes.">
+  <link rel="canonical" href="https://flaglint.dev/docs/getting-started">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">★ GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Getting Started</div>
+      <ul class="sidebar-nav">
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="demo.html">Demo</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Commands</div>
+      <ul class="sidebar-nav">
+        <li><a href="commands/scan.html">scan</a></li>
+        <li><a href="commands/migrate.html">migrate</a></li>
+        <li><a href="commands/validate.html">validate</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <ul class="sidebar-nav">
+        <li><a href="supported-scope.html">Supported Scope</a></li>
+        <li><a href="openfeature-provider-setup.html">OpenFeature Provider Setup</a></li>
+        <li><a href="safety-model.html">Safety Model</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Integrations</div>
+      <ul class="sidebar-nav">
+        <li><a href="ci-github-actions.html">GitHub Actions CI</a></li>
+        <li><a href="opentelemetry.html">OpenTelemetry</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="docs-main">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="current">Getting Started</span>
+    </div>
+
+    <h1>Getting Started</h1>
+    <p class="page-subtitle">Install FlagLint and run your first flag scan in under two minutes.</p>
+
+    <h2>What is FlagLint?</h2>
+    <p>
+      FlagLint is a TypeScript CLI tool that statically analyzes JavaScript and TypeScript
+      codebases for direct LaunchDarkly Node.js server SDK calls, detects flag debt, and
+      generates reviewable OpenFeature migration plans.
+    </p>
+    <p>
+      <strong>LaunchDarkly remains your feature flag provider.</strong> FlagLint migrates your
+      application code to call OpenFeature's vendor-neutral evaluation API — keeping LaunchDarkly
+      wired in behind the OpenFeature provider interface.
+    </p>
+
+    <h2>Requirements</h2>
+    <ul>
+      <li><strong>Node.js 20 or newer</strong></li>
+      <li>A JavaScript or TypeScript project that uses the <strong>LaunchDarkly Node.js server-side SDK</strong> (<code>launchdarkly-node-server-sdk</code>)</li>
+    </ul>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div class="callout-body">
+        <p>FlagLint's scan and migrate commands currently support the <strong>LaunchDarkly Node.js server-side SDK</strong>. Browser SDKs, React SDKs, and other providers are outside the current scope and will be reported for manual review.</p>
+      </div>
+    </div>
+
+    <h2>Installation</h2>
+    <p>Install globally via npm:</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-muted">$</span> npm install -g flaglint</pre>
+    </div>
+
+    <p>Or run without installing using npx:</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-muted">$</span> npx flaglint scan .</pre>
+    </div>
+
+    <h2>Step 1 — Scan your codebase</h2>
+    <p>
+      Run a flag scan to inventory every direct LaunchDarkly Node.js SDK call in your project:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-muted">$</span> flaglint scan ./src</pre>
+    </div>
+
+    <p>Example output:</p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">output</span>
+      </div>
+      <pre><span class="c-green">✔</span> Scanning 142 files...
+<span class="c-green">✔</span> Found 18 direct LaunchDarkly Node SDK calls across 6 unique flags (61ms)
+<span class="c-amber">⚡</span> 3 dynamic flag keys — manual review required
+<span class="c-amber">↳</span> 2 detail method calls — manual review required
+
+<span class="c-green">→</span> Run <span class="c-str">flaglint migrate --dry-run</span> for a reviewable migration diff</pre>
+    </div>
+
+    <p>
+      The scan produces a Markdown report by default. Use <code>--format json</code>,
+      <code>--format html</code>, or <code>--format sarif</code> for other formats.
+    </p>
+
+    <h2>Step 2 — Preview the migration plan</h2>
+    <p>
+      Generate a reviewable before/after diff. No files are modified at this stage:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-muted">$</span> flaglint migrate --dry-run</pre>
+    </div>
+
+    <p>
+      The dry-run output includes inline provider setup guidance showing which packages to
+      install and how to wire up the LaunchDarkly OpenFeature provider. Complete this
+      one-time setup before proceeding to apply.
+    </p>
+    <p>
+      See <a href="openfeature-provider-setup.html">OpenFeature Provider Setup</a> for the
+      full bootstrap instructions.
+    </p>
+
+    <h2>Step 3 — Apply automatable transformations</h2>
+    <p>
+      Once provider setup is complete and your working tree is clean, apply the migration:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-muted">$</span> flaglint migrate --apply</pre>
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">⚠️</span>
+      <div class="callout-body">
+        <p><strong>--apply requires a clean git working tree.</strong> Commit or stash any
+        changes before running with <code>--apply</code>. FlagLint refuses to write to a
+        dirty tree unless you pass <code>--allow-dirty</code>.</p>
+        <p>Review the resulting diff and run your test suite before merging.</p>
+      </div>
+    </div>
+
+    <h2>Step 4 — Enforce in CI</h2>
+    <p>
+      After migration, prevent new direct LaunchDarkly calls from landing in PRs:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-muted">$</span> flaglint validate --no-direct-launchdarkly \
+    --bootstrap-exclude src/provider/setup.ts</pre>
+    </div>
+
+    <p>
+      This exits <code>1</code> if any direct LaunchDarkly evaluation calls are found outside
+      the specified bootstrap file. See <a href="ci-github-actions.html">GitHub Actions CI</a>
+      for a full workflow example.
+    </p>
+
+    <h2>Configuration (optional)</h2>
+    <p>
+      Create a <code>flaglint.config.json</code> (or <code>.flaglintrc</code>) in your project
+      root to customise scan behaviour:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">json</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>{
+  <span class="c-blue">"include"</span>: [<span class="c-str">"**/*.{ts,tsx,js,jsx}"</span>],
+  <span class="c-blue">"exclude"</span>: [<span class="c-str">"**/node_modules/**"</span>, <span class="c-str">"**/dist/**"</span>],
+  <span class="c-blue">"provider"</span>: <span class="c-str">"launchdarkly"</span>,
+  <span class="c-blue">"minFileCount"</span>: <span class="c-amber">0</span>,
+  <span class="c-blue">"reportTitle"</span>: <span class="c-str">"My Project Flag Report"</span>
+}</pre>
+    </div>
+
+    <div class="page-nav">
+      <div class="page-nav-item">
+        <span class="page-nav-label">← Previous</span>
+        <a href="/" class="page-nav-title">Home</a>
+      </div>
+      <div class="page-nav-item next">
+        <span class="page-nav-label">Next →</span>
+        <a href="commands/scan.html" class="page-nav-title">flaglint scan</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">FlagLint — MIT License</span>
+    <div class="footer-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglintdev</a>
+    </div>
+  </div>
+</footer>
+
+<script src="docs.js"></script>
+</body>
+</html>

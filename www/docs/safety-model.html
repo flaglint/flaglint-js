@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safety Model — FlagLint Docs</title>
+  <meta name="description" content="How FlagLint decides what is safe to apply automatically: AST analysis, clean git tree requirement, no ambiguous rewrites, and required review before merge.">
+  <link rel="canonical" href="https://flaglint.dev/docs/safety-model">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="docs.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">★ GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Getting Started</div>
+      <ul class="sidebar-nav">
+        <li><a href="getting-started.html">Getting Started</a></li>
+        <li><a href="demo.html">Demo</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Commands</div>
+      <ul class="sidebar-nav">
+        <li><a href="commands/scan.html">scan</a></li>
+        <li><a href="commands/migrate.html">migrate</a></li>
+        <li><a href="commands/validate.html">validate</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <ul class="sidebar-nav">
+        <li><a href="supported-scope.html">Supported Scope</a></li>
+        <li><a href="openfeature-provider-setup.html">OpenFeature Provider Setup</a></li>
+        <li><a href="safety-model.html">Safety Model</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Integrations</div>
+      <ul class="sidebar-nav">
+        <li><a href="ci-github-actions.html">GitHub Actions CI</a></li>
+        <li><a href="opentelemetry.html">OpenTelemetry</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="docs-main">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="getting-started.html">Docs</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="current">Safety Model</span>
+    </div>
+
+    <h1>Safety Model</h1>
+    <p class="page-subtitle">
+      FlagLint applies only transformations it can prove are correct. This page explains how
+      that proof works and what it means in practice.
+    </p>
+
+    <h2>AST-based analysis, not regular expressions</h2>
+    <p>
+      FlagLint parses your source files into an Abstract Syntax Tree (AST) using
+      <a href="https://github.com/typescript-eslint/typescript-eslint/tree/main/packages/typescript-estree" target="_blank" rel="noopener noreferrer">
+        @typescript-eslint/typescript-estree
+      </a>
+      before making any decision about flag usages.
+    </p>
+    <p>
+      This matters because regular expressions cannot reliably distinguish:
+    </p>
+    <ul>
+      <li>An aliased import (<code>import ld from "launchdarkly-node-server-sdk"</code>) from a local variable named <code>ld</code></li>
+      <li>A call on the LaunchDarkly client from a call on an object that happens to have a method named <code>boolVariation</code></li>
+      <li>A dynamic key in a template literal from a static string constant</li>
+      <li>A <code>require()</code> call from a string that contains the word "require"</li>
+    </ul>
+    <p>
+      The AST-based scanner resolves the actual binding of each identifier before deciding
+      whether it is a LaunchDarkly SDK call. This prevents false positives and false negatives
+      that a text-search approach would produce.
+    </p>
+    <p>
+      The walker is iterative (not recursive), which means it handles arbitrarily deeply
+      nested AST trees without stack overflow.
+    </p>
+
+    <h2>Clean git tree requirement for --apply</h2>
+    <p>
+      <code>flaglint migrate --apply</code> refuses to write to a dirty git working tree
+      by default. This is not an arbitrary restriction: it ensures that every file modified
+      by FlagLint appears clearly in your <code>git diff</code> and can be reviewed in
+      isolation from unrelated changes.
+    </p>
+    <p>
+      If you need to override this (for example in a CI pipeline where changes are expected),
+      pass <code>--allow-dirty</code>. When overriding, ensure the resulting diff is still
+      reviewed before merge.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-muted"># Standard path — requires clean tree</span>
+flaglint migrate --apply
+
+<span class="c-muted"># Override — review the diff carefully before merging</span>
+flaglint migrate --apply --allow-dirty</pre>
+    </div>
+
+    <h2>No automatic rewrite of ambiguous patterns</h2>
+    <p>
+      FlagLint takes the position that an incorrect rewrite is worse than no rewrite.
+      Anything that cannot be proven safe is reported for manual review, not guessed.
+      The following patterns are never automatically rewritten:
+    </p>
+
+    <ul>
+      <li>
+        <strong>Dynamic flag keys</strong> — If the flag key is a variable, template literal,
+        or any expression that is not a static string literal, FlagLint cannot know the
+        intended key and will not rewrite the call. It reports the call with the note
+        "dynamic key — manual review required".
+      </li>
+      <li>
+        <strong>Detail method calls</strong> — <code>boolVariationDetail</code>,
+        <code>stringVariationDetail</code>, <code>numberVariationDetail</code>, and
+        <code>jsonVariationDetail</code> return a structured result object whose shape
+        differs between the LaunchDarkly SDK and OpenFeature. These require manual review
+        to update any code that consumes the detail result.
+      </li>
+      <li>
+        <strong>Bulk calls</strong> — <code>allFlags()</code> and
+        <code>allFlagsState()</code> have no direct OpenFeature single-flag equivalent.
+        They are inventoried but never auto-applied.
+      </li>
+      <li>
+        <strong>Unknown fallback type</strong> — If the type of the fallback value cannot
+        be statically determined (e.g. a variable whose type is not known), FlagLint cannot
+        select the correct OpenFeature typed getter and will not rewrite the call.
+      </li>
+      <li>
+        <strong>No proven client binding</strong> — <code>--apply</code> only rewrites
+        files with a local <code>OpenFeature.getClient()</code> binding or a configured
+        imported shared client allowlisted with
+        <code>openFeatureClientBindings.modulePatterns</code>. If the binding is absent,
+        unconfigured, or ambiguous, the file is skipped.
+      </li>
+    </ul>
+
+    <h2>Required review and tests before merge</h2>
+    <p>
+      Even when FlagLint applies a transformation, it does not validate that the resulting
+      code is behaviorally identical to the original. FlagLint is a static analysis tool —
+      it does not run your application.
+    </p>
+    <p>
+      The recommended workflow after <code>--apply</code>:
+    </p>
+    <ol>
+      <li>Run <code>git diff</code> and review every changed file</li>
+      <li>Run your full test suite against the rewritten code</li>
+      <li>Verify that the LaunchDarkly OpenFeature provider is initialized before any flag evaluation in your integration and end-to-end tests</li>
+      <li>Open a pull request and require review before merging</li>
+    </ol>
+
+    <div class="callout danger">
+      <span class="callout-icon">⛔</span>
+      <div class="callout-body">
+        <p>Do not merge a <code>--apply</code> diff without running your test suite. FlagLint preserves call arguments structurally but cannot verify application-level behavior.</p>
+      </div>
+    </div>
+
+    <h2>Idempotency</h2>
+    <p>
+      <code>flaglint migrate --apply</code> is idempotent. Running it twice on the same
+      codebase — with the same analysis — produces no additional changes. Files that have
+      already been migrated to <code>openFeatureClient</code> calls are recognized and
+      skipped.
+    </p>
+
+    <h2>What FlagLint does not do</h2>
+    <ul>
+      <li>It does not evaluate feature flags at runtime</li>
+      <li>It does not connect to LaunchDarkly's API or streaming endpoints</li>
+      <li>It does not modify your LaunchDarkly dashboard or flag definitions</li>
+      <li>It does not remove LaunchDarkly packages from your <code>package.json</code></li>
+      <li>It does not generate or modify test files</li>
+      <li>It does not make networking calls of any kind during a scan or apply</li>
+    </ul>
+
+    <div class="page-nav">
+      <div class="page-nav-item">
+        <span class="page-nav-label">← Previous</span>
+        <a href="openfeature-provider-setup.html" class="page-nav-title">OpenFeature Provider Setup</a>
+      </div>
+      <div class="page-nav-item next">
+        <span class="page-nav-label">Next →</span>
+        <a href="ci-github-actions.html" class="page-nav-title">GitHub Actions CI</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">FlagLint — MIT License</span>
+    <div class="footer-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglintdev</a>
+    </div>
+  </div>
+</footer>
+
+<script src="docs.js"></script>
+</body>
+</html>

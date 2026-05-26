@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>flaglint validate — FlagLint Docs</title>
+  <meta name="description" content="Enforce OpenFeature migration in CI. Exit 1 on any direct LaunchDarkly evaluation call outside your bootstrap file.">
+  <link rel="canonical" href="https://flaglint.dev/docs/commands/validate">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">★ GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Getting Started</div>
+      <ul class="sidebar-nav">
+        <li><a href="../getting-started.html">Getting Started</a></li>
+        <li><a href="../demo.html">Demo</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Commands</div>
+      <ul class="sidebar-nav">
+        <li><a href="scan.html">scan</a></li>
+        <li><a href="migrate.html">migrate</a></li>
+        <li><a href="validate.html">validate</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <ul class="sidebar-nav">
+        <li><a href="../supported-scope.html">Supported Scope</a></li>
+        <li><a href="../openfeature-provider-setup.html">OpenFeature Provider Setup</a></li>
+        <li><a href="../safety-model.html">Safety Model</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Integrations</div>
+      <ul class="sidebar-nav">
+        <li><a href="../ci-github-actions.html">GitHub Actions CI</a></li>
+        <li><a href="../opentelemetry.html">OpenTelemetry</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="docs-main">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="../getting-started.html">Docs</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="current">validate</span>
+    </div>
+
+    <h1>flaglint validate</h1>
+    <p class="page-subtitle">
+      Validate that your codebase complies with feature flag policy rules. Designed for CI
+      enforcement after your OpenFeature migration is complete.
+    </p>
+
+    <h2>Usage</h2>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint validate [dir] [options]</pre>
+    </div>
+
+    <p><code>[dir]</code> defaults to the current working directory when omitted.</p>
+
+    <h2>Options</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--no-direct-launchdarkly</code></td>
+            <td>—</td>
+            <td>Exit 1 if any direct LaunchDarkly Node server evaluation calls are found</td>
+          </tr>
+          <tr>
+            <td><code>--bootstrap-exclude &lt;glob&gt;</code></td>
+            <td>—</td>
+            <td>Repeatable glob pattern; matching files are excluded from violation checks</td>
+          </tr>
+          <tr>
+            <td><code>--config &lt;path&gt;</code></td>
+            <td>auto-detect</td>
+            <td>Path to a config file</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Exit codes</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Code</th><th>Meaning</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>0</code></td><td>All rules passed — no violations found</td></tr>
+          <tr><td><code>1</code></td><td>Violations found (direct LD calls detected when <code>--no-direct-launchdarkly</code> is set)</td></tr>
+          <tr><td><code>130</code></td><td>Interrupted by SIGINT (Ctrl+C)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Examples</h2>
+
+    <h3>Report usages without enforcing</h3>
+    <p>Running without flags always exits 0 — useful for visibility without blocking a build:</p>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint validate</pre>
+    </div>
+
+    <h3>Enforce — exit 1 on any direct LD call</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint validate --no-direct-launchdarkly</pre>
+    </div>
+
+    <h3>Exclude a provider bootstrap file</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint validate --no-direct-launchdarkly \
+  --bootstrap-exclude src/provider/setup.ts</pre>
+    </div>
+
+    <h3>Exclude all files in a provider directory</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint validate --no-direct-launchdarkly \
+  --bootstrap-exclude "src/provider/**"</pre>
+    </div>
+
+    <h2>Example output</h2>
+
+    <h3>Pass output</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">output</span>
+      </div>
+      <pre><span class="c-green">✔</span> validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
+  Scanned 42 file(s).</pre>
+    </div>
+
+    <h3>Fail output</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">output</span>
+      </div>
+      <pre><span class="c-red">✗</span> validate --no-direct-launchdarkly: 2 direct LaunchDarkly evaluation call(s) found.
+
+  src/services/checkout.ts:42:8 — boolVariation("checkout-v2")
+  src/services/pricing.ts:17:4 — boolVariation(dynamic key — manual review required)
+
+These files must migrate to OpenFeature before this rule passes.
+Run <span class="c-str">flaglint migrate --dry-run</span> to review the migration plan.</pre>
+    </div>
+
+    <h2>Using in GitHub Actions</h2>
+    <p>
+      Add <code>flaglint validate</code> as a CI step to block PRs that introduce direct
+      LaunchDarkly calls after your migration is complete:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">yaml</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>- <span class="c-blue">name</span>: <span class="c-str">Enforce OpenFeature migration</span>
+  <span class="c-blue">run</span>: |
+    npx flaglint validate --no-direct-launchdarkly \
+      --bootstrap-exclude <span class="c-str">"src/provider/setup.ts"</span></pre>
+    </div>
+
+    <p>
+      See <a href="../ci-github-actions.html">GitHub Actions CI</a> for a full workflow
+      including SARIF upload to GitHub Code Scanning.
+    </p>
+
+    <div class="page-nav">
+      <div class="page-nav-item">
+        <span class="page-nav-label">← Previous</span>
+        <a href="migrate.html" class="page-nav-title">flaglint migrate</a>
+      </div>
+      <div class="page-nav-item next">
+        <span class="page-nav-label">Next →</span>
+        <a href="../supported-scope.html" class="page-nav-title">Supported Scope</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">FlagLint — MIT License</span>
+    <div class="footer-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglintdev</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../docs.js"></script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>flaglint migrate — FlagLint Docs</title>
+  <meta name="description" content="Generate reviewable OpenFeature migration plans and apply guarded, automatable transformations. Full options reference and examples.">
+  <link rel="canonical" href="https://flaglint.dev/docs/commands/migrate">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../docs.css">
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">★ GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<div class="docs-layout">
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Getting Started</div>
+      <ul class="sidebar-nav">
+        <li><a href="../getting-started.html">Getting Started</a></li>
+        <li><a href="../demo.html">Demo</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Commands</div>
+      <ul class="sidebar-nav">
+        <li><a href="scan.html">scan</a></li>
+        <li><a href="migrate.html">migrate</a></li>
+        <li><a href="validate.html">validate</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Reference</div>
+      <ul class="sidebar-nav">
+        <li><a href="../supported-scope.html">Supported Scope</a></li>
+        <li><a href="../openfeature-provider-setup.html">OpenFeature Provider Setup</a></li>
+        <li><a href="../safety-model.html">Safety Model</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Integrations</div>
+      <ul class="sidebar-nav">
+        <li><a href="../ci-github-actions.html">GitHub Actions CI</a></li>
+        <li><a href="../opentelemetry.html">OpenTelemetry</a></li>
+      </ul>
+    </div>
+  </aside>
+
+  <main class="docs-main">
+    <div class="breadcrumb">
+      <a href="/">Home</a>
+      <span class="breadcrumb-sep">›</span>
+      <a href="../getting-started.html">Docs</a>
+      <span class="breadcrumb-sep">›</span>
+      <span class="current">migrate</span>
+    </div>
+
+    <h1>flaglint migrate</h1>
+    <p class="page-subtitle">
+      Analyze migration readiness, generate reviewable before/after diffs, and apply guarded
+      transformations to replace direct LaunchDarkly Node.js SDK calls with OpenFeature.
+    </p>
+
+    <h2>Usage</h2>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint migrate [dir] [options]</pre>
+    </div>
+
+    <p><code>[dir]</code> defaults to the current working directory when omitted.</p>
+
+    <h2>Options</h2>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Option</th>
+            <th>Default</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>--output &lt;file&gt;</code></td>
+            <td><code>MIGRATION.md</code></td>
+            <td>Write the migration plan to a file</td>
+          </tr>
+          <tr>
+            <td><code>--dry-run</code></td>
+            <td>—</td>
+            <td>Print reviewable before/after diffs to stdout; includes provider setup guidance. No files are modified.</td>
+          </tr>
+          <tr>
+            <td><code>--apply</code></td>
+            <td>—</td>
+            <td>Apply automatable transformations in-place. Requires a clean git working tree.</td>
+          </tr>
+          <tr>
+            <td><code>--allow-dirty</code></td>
+            <td>—</td>
+            <td>Override the clean git tree requirement for <code>--apply</code>.</td>
+          </tr>
+          <tr>
+            <td><code>--config &lt;path&gt;</code></td>
+            <td>auto-detect</td>
+            <td>Path to a config file</td>
+          </tr>
+          <tr>
+            <td><code>--exclude-tests</code></td>
+            <td>—</td>
+            <td>Skip <code>*.test.*</code>, <code>*.spec.*</code>, <code>__tests__/</code>, <code>tests/</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Examples</h2>
+
+    <h3>Write migration plan to MIGRATION.md</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint migrate ./src</pre>
+    </div>
+
+    <h3>Preview diffs without modifying files</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint migrate --dry-run</pre>
+    </div>
+
+    <h3>Apply automatable transformations</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint migrate --apply</pre>
+    </div>
+
+    <h3>Apply on a dirty working tree (override guard)</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">bash</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>flaglint migrate --apply --allow-dirty</pre>
+    </div>
+
+    <h2>Example transformation</h2>
+    <p>
+      <code>--apply</code> rewrites typed LaunchDarkly Node.js server SDK evaluation calls to
+      OpenFeature equivalents. Flag key, fallback value, evaluation context, and
+      <code>await</code> are preserved exactly.
+    </p>
+
+    <h3>Before — direct LaunchDarkly Node.js server SDK</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">typescript</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-purple">const</span> enabled = <span class="c-purple">await</span> ldClient.<span class="c-green">boolVariation</span>(<span class="c-str">"checkout-v2"</span>, { key: user.id }, <span class="c-amber">false</span>);
+<span class="c-purple">const</span> theme   = <span class="c-purple">await</span> ldClient.<span class="c-green">stringVariation</span>(<span class="c-str">"color-theme"</span>, { key: user.id }, <span class="c-str">"light"</span>);
+<span class="c-purple">const</span> timeout = <span class="c-purple">await</span> ldClient.<span class="c-green">numberVariation</span>(<span class="c-str">"timeout-ms"</span>,  { key: user.id }, <span class="c-amber">5000</span>);</pre>
+    </div>
+
+    <h3>After — OpenFeature via LaunchDarkly provider</h3>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">typescript</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre><span class="c-purple">const</span> enabled = <span class="c-purple">await</span> openFeatureClient.<span class="c-green">getBooleanValue</span>(<span class="c-str">"checkout-v2"</span>, <span class="c-amber">false</span>, { key: user.id });
+	<span class="c-purple">const</span> theme   = <span class="c-purple">await</span> openFeatureClient.<span class="c-green">getStringValue</span>(<span class="c-str">"color-theme"</span>, <span class="c-str">"light"</span>, { key: user.id });
+	<span class="c-purple">const</span> timeout = <span class="c-purple">await</span> openFeatureClient.<span class="c-green">getNumberValue</span>(<span class="c-str">"timeout-ms"</span>,  <span class="c-amber">5000</span>,    { key: user.id });</pre>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">ℹ️</span>
+      <div class="callout-body">
+        <p>LaunchDarkly continues to serve the flags — only the call-site API changes. Your <code>LD_SDK_KEY</code> and all provider configuration remain untouched.</p>
+      </div>
+    </div>
+
+    <h2>--apply safety contracts</h2>
+    <p>
+      FlagLint applies only transformations it can prove are safe. The following guarantees
+      always hold when using <code>--apply</code>:
+    </p>
+    <ul>
+      <li><strong>Clean tree required</strong> — Refuses to write on a dirty git working tree unless <code>--allow-dirty</code> is passed</li>
+      <li><strong>Proven client binding</strong> — Only rewrites files that already contain a local <code>OpenFeature.getClient()</code> binding or a configured imported shared client allowlisted with <code>openFeatureClientBindings.modulePatterns</code></li>
+      <li><strong>No dynamic keys</strong> — Flag keys computed at runtime are never rewritten; they are reported for manual review</li>
+      <li><strong>No detail methods</strong> — <code>*VariationDetail</code> calls are excluded; their result shapes differ and require manual review</li>
+      <li><strong>No bulk calls</strong> — <code>allFlags()</code> and <code>allFlagsState()</code> are excluded</li>
+      <li><strong>Argument preservation</strong> — Flag key, fallback value, evaluation context, and <code>await</code> are preserved exactly</li>
+      <li><strong>Idempotent</strong> — Running <code>--apply</code> twice on the same codebase has no additional effect</li>
+    </ul>
+
+    <p>
+      See <a href="../safety-model.html">Safety Model</a> for the full explanation of how
+      FlagLint determines what is safe to apply automatically.
+    </p>
+
+    <h2>Output example</h2>
+    <div class="code-block">
+      <div class="code-block-header">
+        <span class="code-block-lang">text</span>
+        <button class="copy-btn">Copy</button>
+      </div>
+      <pre>LaunchDarkly usages found: 19
+Safely automatable: 10 · Manual review: 9
+
+Reviewable diffs:
+  src/services/checkout.ts
+    boolVariation("checkout-v2") → getBooleanValue("checkout-v2")
+    stringVariation("payment-provider") → getStringValue("payment-provider")
+
+Skipped manual-review items:
+  src/services/pricing.ts:17 dynamic key
+  src/services/checkout.ts:42 variationDetail result
+  src/services/bootstrap.ts:12 bulk allFlagsState()</pre>
+    </div>
+
+    <h2>Provider setup prerequisite</h2>
+    <p>
+      Before running <code>--apply</code>, complete the one-time provider bootstrap.
+      <code>--dry-run</code> includes inline guidance. See
+      <a href="../openfeature-provider-setup.html">OpenFeature Provider Setup</a> for details.
+    </p>
+
+    <div class="page-nav">
+      <div class="page-nav-item">
+        <span class="page-nav-label">← Previous</span>
+        <a href="scan.html" class="page-nav-title">flaglint scan</a>
+      </div>
+      <div class="page-nav-item next">
+        <span class="page-nav-label">Next →</span>
+        <a href="validate.html" class="page-nav-title">flaglint validate</a>
+      </div>
+    </div>
+  </main>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">FlagLint — MIT License</span>
+    <div class="footer-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglintdev</a>
+    </div>
+  </div>
+</footer>
+
+<script src="../docs.js"></script>
+</body>
+</html>
