@@ -256,6 +256,60 @@ export const openFeatureClient = OpenFeature.getClient();
 
 ---
 
+## Using an existing shared OpenFeature client
+
+If your platform team already exports an OpenFeature client from a shared internal module
+(e.g. `platform/feature-flags.ts`), FlagLint can use that import as the proven binding for
+`--apply` — no local `OpenFeature.getClient()` call is required in every file.
+
+Declare the allowed import in `.flaglintrc`:
+
+```json
+{
+  "openFeatureClientBindings": [
+    {
+      "importName": "openFeatureClient",
+      "modulePatterns": ["**/platform/feature-flags"]
+    }
+  ]
+}
+```
+
+`modulePatterns` are **glob patterns** matched against the module import specifier
+(leading `./` and `../` traversal is stripped before matching). A pattern of
+`"**/platform/feature-flags"` matches `"../platform/feature-flags"` and
+`"../../shared/platform/feature-flags"`, but **not** `"../platform/feature-flags-legacy"` or
+`"../other/platform/feature-flags-backup"`.
+
+**Before:**
+```typescript
+// services/checkout.ts
+import { openFeatureClient } from "../platform/feature-flags";
+import LaunchDarkly from "launchdarkly-node-server-sdk";
+
+const enabled = ldClient.boolVariation("checkout-v2", { key: user.id }, false);
+```
+
+**After (`flaglint migrate --apply`):**
+```typescript
+// services/checkout.ts
+import { openFeatureClient } from "../platform/feature-flags";
+import LaunchDarkly from "launchdarkly-node-server-sdk";
+
+const enabled = openFeatureClient.getBooleanValue("checkout-v2", false, { key: user.id });
+```
+
+If the import is aliased (e.g. `import { openFeatureClient as flags } from "..."`), FlagLint
+previews and applies the transformation using the **local alias name** (`flags.getBooleanValue(...)`).
+
+When two configured bindings both match a file, FlagLint considers the result ambiguous and
+**skips that file** rather than guessing. Skipped files are reported in `--dry-run` output.
+
+Provider initialization remains the platform team's responsibility. FlagLint never inserts or
+modifies bootstrap/provider setup code.
+
+---
+
 ## Example transformation
 
 **Before — direct LaunchDarkly Node.js server SDK:**
@@ -298,6 +352,7 @@ Create `.flaglintrc`, `.flaglintrc.json`, or `flaglint.config.json` in your proj
 | `provider` | `string` | `"launchdarkly"` | Feature flag provider |
 | `minFileCount` | `number` | `0` | Opt-in staleness heuristic. When set above 0, a flag is a staleness candidate if it appears in ≤ N files |
 | `wrappers` | `string[]` | `[]` | Function names wrapping LD SDK calls. Example: `["flagPredicate", "useFlag"]` |
+| `openFeatureClientBindings` | `{ importName: string; modulePatterns: string[] }[]` | `[]` | Allowlist shared imported OpenFeature client bindings for `--apply` eligibility. See [Using an existing shared OpenFeature client](#using-an-existing-shared-openfeature-client). |
 | `reportTitle` | `string` | — | Custom title for generated reports |
 | `outputDir` | `string` | `"."` | Default output directory |
 
