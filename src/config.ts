@@ -20,6 +20,11 @@ export const FlagLintConfigSchema = z.object({
   // TODO v0.3: replace minFileCount with real date-based staleness via git log
   minFileCount: z.number().int().min(0).default(0),
   wrappers: z.array(z.string()).default([]),
+  openFeatureClientBindings: z
+    .array(
+      z.object({ importName: z.string(), modulePatterns: z.array(z.string()).default([]) })
+    )
+    .default([]),
   reportTitle: z.string().optional(),
   outputDir: z.string().default("."),
 });
