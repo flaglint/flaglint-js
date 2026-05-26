@@ -532,6 +532,28 @@ describe("applyMigration — configured imported bindings", () => {
     expect(source.getContent("service.ts")).toContain('openFeatureClient.getBooleanValue("my-flag", false, ctx)');
   });
 
+  it("applies when configured named binding uses TypeScript ESM .js import specifier", async () => {
+    const provider = [
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'export const openFeatureClient = OpenFeature.getClient();',
+    ].join("\n");
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient } from "./platform/feature-flags.js";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      'declare const ctx: unknown;',
+      'export const r = ldClient.boolVariation("esm-js-flag", ctx, false);',
+    ].join("\n");
+    const files = { "platform/feature-flags.ts": provider, "service.ts": service };
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["platform/feature-flags"] }];
+    const { source, applyResult } = await runApply(files, NO_DIRTY_CHECK, allowed);
+
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain(
+      'openFeatureClient.getBooleanValue("esm-js-flag", false, ctx)'
+    );
+  });
+
   it("applies using the local alias for an aliased import", async () => {
     const provider = [
       'import { OpenFeature } from "@openfeature/server-sdk";',
@@ -618,6 +640,15 @@ describe("applyMigration — glob modulePatterns matching", () => {
     expect(source.getContent("service.ts")).toContain('openFeatureClient.getBooleanValue("glob-flag", false, ctx)');
   });
 
+  it("B2: ../../shared/platform/feature-flags.js matches **/platform/feature-flags", async () => {
+    const service = makeService("../../shared/platform/feature-flags.js");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { source, applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain('openFeatureClient.getBooleanValue("glob-flag", false, ctx)');
+  });
+
   // C — lookalike suffix must NOT match
   it("C: ../platform/feature-flags-legacy does NOT match **/platform/feature-flags", async () => {
     const service = makeService("../platform/feature-flags-legacy");
@@ -627,11 +658,38 @@ describe("applyMigration — glob modulePatterns matching", () => {
     expect(applyResult.skipped).toBe(1);
   });
 
+  it("C2: ../platform/feature-flags-legacy.js does NOT match **/platform/feature-flags", async () => {
+    const service = makeService("../platform/feature-flags-legacy.js");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
+  it("C3: ../platform/feature-flags-backup.js does NOT match **/platform/feature-flags", async () => {
+    const service = makeService("../platform/feature-flags-backup.js");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
   // D — wrong directory must NOT match
   it("D: ../legacy/feature-flags does NOT match **/platform/feature-flags", async () => {
     const service = makeService("../legacy/feature-flags");
     const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
     const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
+  it("D2: ../legacy/feature-flags.js does NOT match **/platform/feature-flags", async () => {
+    const service = makeService("../legacy/feature-flags.js");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+
     expect(applyResult.transformed).toBe(0);
     expect(applyResult.skipped).toBe(1);
   });
@@ -652,6 +710,22 @@ describe("applyMigration — glob modulePatterns matching", () => {
     expect(source.getContent("service.ts")).not.toContain("openFeatureClient.getBooleanValue");
   });
 
+  it("E2: aliased .js import produces flags.getBooleanValue(…)", async () => {
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient as flags } from "../platform/feature-flags.js";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      "declare const ctx: unknown;",
+      'export const r = ldClient.boolVariation("alias-js-flag", ctx, false);',
+    ].join("\n");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { source, applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain('flags.getBooleanValue("alias-js-flag", false, ctx)');
+    expect(source.getContent("service.ts")).not.toContain("openFeatureClient.getBooleanValue");
+  });
+
   // F — two configured bindings both match in same file → ambiguous → skips
   it("F: two matching configured bindings in same file → ambiguous → skips", async () => {
     const service = [
@@ -667,6 +741,25 @@ describe("applyMigration — glob modulePatterns matching", () => {
       { importName: "anotherClient", modulePatterns: ["**/platform/other-flags"] },
     ];
     const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
+  it("F2: two matching .js configured bindings in same file → ambiguous → skips", async () => {
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { flagsClient } from "../platform/feature-flags.js";',
+      'import { anotherClient } from "../platform/other-flags.js";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      "declare const ctx: unknown;",
+      'export const r = ldClient.boolVariation("ambig-js-flag", ctx, false);',
+    ].join("\n");
+    const allowed = [
+      { importName: "flagsClient", modulePatterns: ["**/platform/feature-flags"] },
+      { importName: "anotherClient", modulePatterns: ["**/platform/other-flags"] },
+    ];
+    const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+
     expect(applyResult.transformed).toBe(0);
     expect(applyResult.skipped).toBe(1);
   });
