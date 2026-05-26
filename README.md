@@ -490,3 +490,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 ## License
 
 MIT — see [LICENSE](./LICENSE).
+
+Policy enforcement (SARIF)
+
+To produce SARIF suitable for CI policy enforcement and to check for direct LaunchDarkly SDK usage, run:
+
+  flaglint validate --no-direct-launchdarkly --format sarif --output flaglint.sarif
+
+Look for the rule id "flaglint.direct-launchdarkly" in the SARIF output when integrating with external policy checks.

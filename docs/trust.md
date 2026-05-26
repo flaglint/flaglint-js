@@ -181,3 +181,11 @@ https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml
 
 For security vulnerabilities, see [SECURITY.md](../SECURITY.md).
 For bugs or feature requests, see [GitHub Issues](https://github.com/flaglint/flaglint/issues).
+
+SARIF enforcement and rule ID
+
+For CI-based policy enforcement, run:
+
+  flaglint validate --no-direct-launchdarkly --format sarif --output policy-report.sarif
+
+The SARIF output includes a policy rule with the id "flaglint.direct-launchdarkly" which can be consumed by code-scanning or policy tooling to gate merges.
