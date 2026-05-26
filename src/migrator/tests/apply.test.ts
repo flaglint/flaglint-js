@@ -50,12 +50,13 @@ const NO_DIRTY_CHECK = { isWorkingTreeDirty: async (): Promise<boolean> => false
 /** Scan + analyze an in-memory source, then apply and return everything. */
 async function runApply(
   files: Record<string, string>,
-  opts: { allowDirty?: boolean; isWorkingTreeDirty?: () => Promise<boolean> } = NO_DIRTY_CHECK
+  opts: { allowDirty?: boolean; isWorkingTreeDirty?: () => Promise<boolean> } = NO_DIRTY_CHECK,
+  allowedBindings: Array<{ importName: string; modulePatterns: string[] }> = []
 ) {
   const source = new MemoryWritableFileSource(files);
   const scanResult = await scan(source, BASE_CONFIG);
   const analysis = analyze(scanResult);
-  const applyResult = await applyMigration(analysis, source, { ...NO_DIRTY_CHECK, ...opts });
+  const applyResult = await applyMigration(analysis, source, { ...NO_DIRTY_CHECK, ...opts, allowedOpenFeatureClientBindings: allowedBindings });
   return { source, analysis, applyResult };
 }
 
@@ -418,6 +419,48 @@ describe("applyMigration — binding absent or unproven", () => {
     expect(source.getContent("feature.ts")).toBe(code);
   });
 
+  it("skips when multiple possible client bindings exist (ambiguous)", async () => {
+    const code = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      'const openFeatureClient = OpenFeature.getClient();',
+      'const flags = OpenFeature.getClient();',
+      'declare const ctx: unknown;',
+      'export const r = ldClient.boolVariation("my-flag", ctx, false);',
+    ].join("\n");
+
+    const { source, applyResult } = await runApply({ "feature.ts": code });
+    // ambiguous binding -> apply must skip
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
+  it("skips when multiple configured imports map to multiple locals (ambiguous)", async () => {
+    const providerA = [
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'export const openFeatureClient = OpenFeature.getClient();',
+    ].join("\n");
+    const providerB = [
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'export const openFeatureClient = OpenFeature.getClient();',
+    ].join("\n");
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient } from "./platform/a";',
+      'import { openFeatureClient as flags } from "./platform/b";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      'declare const ctx: unknown;',
+      'export const r = ldClient.boolVariation("my-flag", ctx, false);',
+    ].join("\n");
+    const files = {"platform/a.ts": providerA, "platform/b.ts": providerB, "service.ts": service};
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["platform/a", "platform/b"] }];
+    const { source, applyResult } = await runApply(files, NO_DIRTY_CHECK, allowed);
+    // ambiguous imports -> apply must skip
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
   it("skips when openFeatureClient is assigned from an unrelated object's getClient", async () => {
     const code = [
       'import LaunchDarkly from "launchdarkly-node-server-sdk";',
@@ -465,6 +508,167 @@ describe("applyMigration — binding absent or unproven", () => {
       'openFeatureClient.getBooleanValue("a", false, ctx)'
     );
     expect(source.getContent("without-binding.ts")).toBe(withoutBinding);
+  });
+});
+
+// ── configured imported binding tests ─────────────────────────────────────────
+describe("applyMigration — configured imported bindings", () => {
+  it("applies when service imports configured named binding", async () => {
+    const provider = [
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'export const openFeatureClient = OpenFeature.getClient();',
+    ].join("\n");
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient } from "./platform/feature-flags";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      'declare const ctx: unknown;',
+      'export const r = ldClient.boolVariation("my-flag", ctx, false);',
+    ].join("\n");
+    const files = { "platform/feature-flags.ts": provider, "service.ts": service };
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["platform/feature-flags"] }];
+    const { source, applyResult } = await runApply(files, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain('openFeatureClient.getBooleanValue("my-flag", false, ctx)');
+  });
+
+  it("applies using the local alias for an aliased import", async () => {
+    const provider = [
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'export const openFeatureClient = OpenFeature.getClient();',
+    ].join("\n");
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient as flags } from "./platform/feature-flags";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      'declare const ctx: unknown;',
+      'export const r = ldClient.boolVariation("a-flag", ctx, false);',
+    ].join("\n");
+    const files = {"platform/feature-flags.ts": provider, "service.ts": service};
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["platform/feature-flags"] }];
+    const { source, applyResult } = await runApply(files, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain('flags.getBooleanValue("a-flag", false, ctx)');
+  });
+
+  it("skips when imported binding is not configured", async () => {
+    const provider = [
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'export const openFeatureClient = OpenFeature.getClient();',
+    ].join("\n");
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient } from "./platform/feature-flags";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      'declare const ctx: unknown;',
+      'export const r = ldClient.boolVariation("my-flag", ctx, false);',
+    ].join("\n");
+    const files = {"platform/feature-flags.ts": provider, "service.ts": service};
+    const { source, applyResult } = await runApply(files);
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
+  it("skips when modulePatterns do not match import source", async () => {
+    const provider = [
+      'import { OpenFeature } from "@openfeature/server-sdk";',
+      'export const openFeatureClient = OpenFeature.getClient();',
+    ].join("\n");
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient } from "./platform/feature-flags";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      'declare const ctx: unknown;',
+      'export const r = ldClient.boolVariation("my-flag", ctx, false);',
+    ].join("\n");
+    const files = {"platform/feature-flags.ts": provider, "service.ts": service};
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["other-pattern"] }];
+    const { source, applyResult } = await runApply(files, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+});
+
+// ── glob modulePatterns regression tests ─────────────────────────────────────
+describe("applyMigration — glob modulePatterns matching", () => {
+  const makeService = (importPath: string) =>
+    [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      `import { openFeatureClient } from "${importPath}";`,
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      "declare const ctx: unknown;",
+      'export const r = ldClient.boolVariation("glob-flag", ctx, false);',
+    ].join("\n");
+
+  // A — single-level relative path matches **/platform/feature-flags
+  it("A: ../platform/feature-flags matches **/platform/feature-flags", async () => {
+    const service = makeService("../platform/feature-flags");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { source, applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain('openFeatureClient.getBooleanValue("glob-flag", false, ctx)');
+  });
+
+  // B — deep nested path matches **/platform/feature-flags
+  it("B: ../../shared/platform/feature-flags matches **/platform/feature-flags", async () => {
+    const service = makeService("../../shared/platform/feature-flags");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { source, applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain('openFeatureClient.getBooleanValue("glob-flag", false, ctx)');
+  });
+
+  // C — lookalike suffix must NOT match
+  it("C: ../platform/feature-flags-legacy does NOT match **/platform/feature-flags", async () => {
+    const service = makeService("../platform/feature-flags-legacy");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
+  // D — wrong directory must NOT match
+  it("D: ../legacy/feature-flags does NOT match **/platform/feature-flags", async () => {
+    const service = makeService("../legacy/feature-flags");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
+  });
+
+  // E — aliased import: apply uses the local alias name, not the importName
+  it("E: aliased import { openFeatureClient as flags } produces flags.getBooleanValue(…)", async () => {
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { openFeatureClient as flags } from "../platform/feature-flags";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      "declare const ctx: unknown;",
+      'export const r = ldClient.boolVariation("alias-flag", ctx, false);',
+    ].join("\n");
+    const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+    const { source, applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(1);
+    expect(source.getContent("service.ts")).toContain('flags.getBooleanValue("alias-flag", false, ctx)');
+    expect(source.getContent("service.ts")).not.toContain("openFeatureClient.getBooleanValue");
+  });
+
+  // F — two configured bindings both match in same file → ambiguous → skips
+  it("F: two matching configured bindings in same file → ambiguous → skips", async () => {
+    const service = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'import { flagsClient } from "../platform/feature-flags";',
+      'import { anotherClient } from "../platform/other-flags";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      "declare const ctx: unknown;",
+      'export const r = ldClient.boolVariation("ambig-flag", ctx, false);',
+    ].join("\n");
+    const allowed = [
+      { importName: "flagsClient", modulePatterns: ["**/platform/feature-flags"] },
+      { importName: "anotherClient", modulePatterns: ["**/platform/other-flags"] },
+    ];
+    const { applyResult } = await runApply({ "service.ts": service }, NO_DIRTY_CHECK, allowed);
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(1);
   });
 });
 
