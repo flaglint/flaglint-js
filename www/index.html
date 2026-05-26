@@ -87,6 +87,21 @@
       font-family: inherit;
     }
     .btn-outline:hover { color: var(--text-primary); border-color: #444; }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+    .nav-link {
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 500;
+      transition: color var(--transition);
+    }
+    .nav-link:hover { color: var(--text-primary); }
+    @media (max-width: 640px) {
+      .nav-link { display: none; }
+    }
 
     /* ── HERO ────────────────────────────────────────────────────── */
     .hero {
@@ -139,6 +154,17 @@
       max-width: 640px;
       line-height: 1.6;
     }
+
+    .terminal-caption {
+      margin-top: 14px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+    .terminal-caption a {
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .terminal-caption a:hover { text-decoration: underline; }
 
     /* Terminal */
     .terminal {
@@ -278,7 +304,7 @@
     .card:hover { border-color: #333; transform: translateY(-2px); }
     .card-icon { font-size: 32px; margin-bottom: 16px; display: block; }
     .card-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; line-height: 1.3; }
-    .card-body { font-size: 15px; color: var(--text-secondary); line-height: 1.6; }
+    .card-body { font-size: 15px; color: #a0a0a0; line-height: 1.65; }
 
     /* ── HOW IT WORKS ────────────────────────────────────────────── */
     .how { background: var(--bg); }
@@ -351,6 +377,42 @@
     .feature-icon { font-size: 24px; margin-bottom: 12px; display: block; }
     .feature-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
     .feature-body { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
+
+    /* ── PLATFORM TEAMS ─────────────────────────────────────────── */
+    .platform-teams { background: var(--surface); }
+    .pt-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin-top: 8px;
+    }
+    @media (max-width: 680px) { .pt-grid { grid-template-columns: 1fr; } }
+    .pt-card {
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px 28px;
+    }
+    .pt-card-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .pt-card-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .pt-card-body {
+      font-size: 14px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
 
     /* ── INSTALL ─────────────────────────────────────────────────── */
     .install { background: var(--bg); }
@@ -548,9 +610,14 @@
   <nav id="nav">
     <div class="nav-inner">
       <a href="/" class="logo">Flag<span>Lint</span></a>
-      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
-        <button class="btn-outline">★ Star on GitHub</button>
-      </a>
+      <div class="nav-links">
+        <a href="/docs/getting-started" class="nav-link">Docs</a>
+        <a href="/docs/demo" class="nav-link">Enterprise Demo</a>
+        <a href="/docs/ci-github-actions" class="nav-link">CI Integration</a>
+        <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+          <button class="btn-outline">★ GitHub</button>
+        </a>
+      </div>
     </div>
   </nav>
 
@@ -577,6 +644,7 @@
         <div class="term-body" id="term-body" aria-live="polite">
         </div>
       </div>
+      <p class="terminal-caption"><a href="/docs/demo">See the full checkout-service migration demo →</a></p>
 
       <div class="cta-row">
         <a href="/docs/getting-started" class="btn-primary">Getting Started</a>
@@ -593,8 +661,8 @@
           <span class="stat-label">verified</span>
         </div>
         <div class="stat-item">
-          <span class="stat-num">7</span>
-          <span class="stat-label">dependencies</span>
+          <span class="stat-num">AST</span>
+          <span class="stat-label">local source analysis</span>
         </div>
         <div class="stat-item">
           <span class="stat-num">MIT</span>
@@ -645,7 +713,7 @@
             <span class="badge-pill">HTML</span>
             <span class="badge-pill">SARIF</span>
           </div>
-          <p class="step-body">Generates detailed reports in JSON, Markdown, HTML, or SARIF. Know exactly what LaunchDarkly Node.js SDK calls exist, where they are, and which are safely automatable.</p>
+          <p class="step-body">Generates an inventory report in JSON, Markdown, HTML, or SARIF. Know exactly what LaunchDarkly Node.js SDK calls exist, where they are, and which require manual review. Use <code style="font-family:monospace;font-size:12px">validate --format sarif</code> to emit policy-violation findings for GitHub Code Scanning.</p>
         </div>
         <div class="step">
           <div class="step-num">02</div>
@@ -702,7 +770,7 @@
         <div class="feature-tile">
           <span class="feature-icon">📊</span>
           <div class="feature-title">Four report formats</div>
-          <p class="feature-body">JSON for pipelines. Markdown for PRs. HTML for sharing. SARIF for GitHub Code Scanning.</p>
+          <p class="feature-body">JSON for pipelines. Markdown for PRs. HTML for sharing. SARIF via <code style="font-family:monospace;font-size:12px">validate --format sarif</code> for GitHub Code Scanning policy enforcement.</p>
         </div>
         <div class="feature-tile">
           <span class="feature-icon">🛡</span>
@@ -728,11 +796,58 @@
     </div>
   </section>
 
+  <!-- PLATFORM TEAMS -->
+  <section class="platform-teams">
+    <div class="section-inner">
+      <div class="section-label">Built For</div>
+      <h2 class="section-heading">Platform teams managing flag sprawl</h2>
+      <div class="pt-grid">
+        <div class="pt-card">
+          <div class="pt-card-label">Visibility</div>
+          <div class="pt-card-title">Know exactly what you have before you touch anything</div>
+          <p class="pt-card-body">
+            FlagLint gives you a complete inventory of every direct LaunchDarkly Node.js SDK
+            call in your codebase — per flag, per file, per call type — before migration starts.
+            No surprises mid-refactor.
+          </p>
+        </div>
+        <div class="pt-card">
+          <div class="pt-card-label">Safe automation</div>
+          <div class="pt-card-title">Automate only what can be proven correct</div>
+          <p class="pt-card-body">
+            <code style="font-size:13px;font-family:monospace">--apply</code> rewrites only
+            call-sites where the OpenFeature client binding is provably present in the file.
+            Detail methods, dynamic keys, and bulk calls are surfaced for manual review — never
+            silently rewritten.
+          </p>
+        </div>
+        <div class="pt-card">
+          <div class="pt-card-label">Policy enforcement</div>
+          <div class="pt-card-title">Prevent new vendor-coupled calls from landing in PRs</div>
+          <p class="pt-card-body">
+            <code style="font-size:13px;font-family:monospace">flaglint validate --no-direct-launchdarkly</code>
+            exits 1 if any direct LaunchDarkly evaluation call appears outside your bootstrap file.
+            Add it to CI and migration stays complete on every merge.
+          </p>
+        </div>
+        <div class="pt-card">
+          <div class="pt-card-label">Observability hook</div>
+          <div class="pt-card-title">One place to attach telemetry after migration</div>
+          <p class="pt-card-body">
+            Once your services call OpenFeature, evaluations pass through the OpenFeature hook
+            lifecycle. Register one telemetry hook at the bootstrap boundary — no code changes
+            needed in individual service files.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- INSTALL -->
   <section id="install" class="install">
     <div class="section-inner">
       <div class="section-label">Install</div>
-      <h2 class="section-heading" style="text-align:center">Works with any Node.js TypeScript or JavaScript project</h2>
+      <h2 class="section-heading" style="text-align:center">Works with Node.js services using the LaunchDarkly server SDK</h2>
       <div class="install-blocks">
         <div class="code-block">
           <div class="code-block-label">Install globally</div>
@@ -747,7 +862,13 @@
       </div>
       <p class="install-note">
         Supports Node.js 20+. Works with Express, NestJS, Fastify, or any
-        Node.js TypeScript/JavaScript codebase using the LaunchDarkly server-side SDK.
+        Node.js TypeScript/JavaScript codebase using the LaunchDarkly Node.js server-side SDK
+        (<code style="font-family:monospace;font-size:13px">launchdarkly-node-server-sdk</code>
+        or <code style="font-family:monospace;font-size:13px">@launchdarkly/node-server-sdk</code>).
+      </p>
+      <p class="install-note" style="margin-top:10px;font-size:13px;color:#555">
+        Current npm release: <strong style="color:#666">v0.4.1</strong>.
+        Version 0.5.0 with expanded coverage is in preparation.
       </p>
     </div>
   </section>
