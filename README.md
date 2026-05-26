@@ -418,6 +418,15 @@ forms are resolved before matching.
 
 ---
 
+## Enterprise demo
+
+See a realistic end-to-end migration walkthrough — multiple Node.js services,
+mixed automatable and manual-review patterns, SARIF output, and CI enforcement:
+
+**[View enterprise demo](./examples/enterprise-checkout-service/README.md)**
+
+---
+
 ## Contributing
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md).

@@ -291,4 +291,70 @@ describe("reporter — html format", () => {
     const output = formatReport(resultWithStale, { format: "html" });
     expect(output).toContain("prefers-color-scheme");
   });
+
+  it("includes Executive Summary heading", () => {
+    const output = formatReport(resultWithStale, { format: "html" });
+    expect(output).toContain("Executive Summary");
+  });
+
+  it("includes total call-sites count in summary cards", () => {
+    const output = formatReport(resultWithStale, { format: "html" });
+    // totalUsages is 3 in resultWithStale
+    expect(output).toContain("Total Call-Sites");
+  });
+
+  it("includes Findings by Directory section", () => {
+    const output = formatReport(resultWithStale, { format: "html" });
+    expect(output).toContain("Findings by Directory");
+    expect(output).toContain("dir-table");
+  });
+
+  it("includes Recommended Next Steps section", () => {
+    const output = formatReport(resultWithStale, { format: "html" });
+    expect(output).toContain("Recommended Next Steps");
+    expect(output).toContain("flaglint migrate --dry-run");
+    expect(output).toContain("flaglint migrate --apply");
+    expect(output).toContain("flaglint validate --no-direct-launchdarkly");
+  });
+
+  it("includes copy markdown summary button", () => {
+    const output = formatReport(resultWithStale, { format: "html" });
+    expect(output).toContain("copy-btn");
+    expect(output).toContain("Copy Markdown Summary");
+  });
+
+  it("shows automatable/manual-review cards when migrationInventory is present", () => {
+    const resultWithInventory: ScanResult = {
+      ...resultWithStale,
+      migrationInventory: [
+        {
+          file: "src/Header.tsx",
+          line: 10,
+          column: 0,
+          launchDarklyMethod: "boolVariation",
+          isDynamic: false,
+          valueType: "boolean",
+          safelyAutomatable: true,
+        },
+        {
+          file: "src/util.ts",
+          line: 3,
+          column: 0,
+          launchDarklyMethod: "variation",
+          isDynamic: true,
+          valueType: "unknown",
+          safelyAutomatable: false,
+          manualReviewReason: "dynamic-key",
+        },
+      ],
+    };
+    const output = formatReport(resultWithInventory, { format: "html" });
+    expect(output).toContain("Auto-Migratable");
+    expect(output).toContain("Manual Review");
+  });
+
+  it("omits automatable/manual-review cards when migrationInventory is absent", () => {
+    const output = formatReport(resultWithStale, { format: "html" });
+    expect(output).not.toContain("Auto-Migratable");
+  });
 });
