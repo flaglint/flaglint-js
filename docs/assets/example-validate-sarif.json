@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "FlagLint",
+          "informationUri": "https://github.com/flaglint/flaglint",
+          "rules": [
+            {
+              "id": "flaglint.direct-launchdarkly",
+              "name": "DirectLaunchDarklySDKUsage",
+              "shortDescription": {
+                "text": "Direct LaunchDarkly SDK evaluation call detected"
+              },
+              "fullDescription": {
+                "text": "A direct LaunchDarkly Node.js server SDK evaluation call was found. Migrate this call to OpenFeature so the codebase is provider-independent."
+              },
+              "helpUri": "https://github.com/flaglint/flaglint#flaglint-validate-dir",
+              "properties": {
+                "tags": ["openfeature", "migration", "launchdarkly"]
+              }
+            }
+          ]
+        }
+      },
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "startTimeUtc": "2026-05-25T10:00:00.000Z",
+          "properties": {
+            "scannedFiles": 24,
+            "totalUsages": 3,
+            "violations": 2,
+            "passed": false
+          }
+        }
+      ],
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "file:///home/runner/work/my-app/my-app/"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call boolVariation(\"checkout-v2\") at src/services/checkout.ts:42. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/services/checkout.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 42,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "checkout-v2"
+          },
+          "properties": {
+            "flagKey": "checkout-v2",
+            "callType": "boolVariation",
+            "isDynamic": false
+          }
+        },
+        {
+          "ruleId": "flaglint.direct-launchdarkly",
+          "level": "error",
+          "message": {
+            "text": "Direct LaunchDarkly SDK call stringVariation(\"color-theme\") at src/components/Header.ts:17. Migrate to OpenFeature using flaglint migrate --dry-run."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/components/Header.ts",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 17,
+                  "startColumn": 5
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "flagKey/v1": "color-theme"
+          },
+          "properties": {
+            "flagKey": "color-theme",
+            "callType": "stringVariation",
+            "isDynamic": false
+          }
+        }
+      ]
+    }
+  ]
+}
