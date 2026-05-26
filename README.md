@@ -426,9 +426,10 @@ jobs:
 ```
 
 `scan` is for inventory and reporting. `migrate --dry-run` is for migration
-planning. `validate --format sarif` is for direct-SDK policy enforcement and PR
-annotations. Code Scanning alerts show the exact file and line of each direct LD
-call — reviewers see them in the PR without running anything locally.
+planning. `validate --no-direct-launchdarkly --format sarif` is for CI policy
+annotations and enforcement. Code Scanning alerts show the exact file and line of
+each direct LD call under the SARIF rule id `flaglint.direct-launchdarkly` —
+reviewers see them in the PR without running anything locally.
 
 ---
 
@@ -490,11 +491,3 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md).
 ## License
 
 MIT — see [LICENSE](./LICENSE).
-
-Policy enforcement (SARIF)
-
-To produce SARIF suitable for CI policy enforcement and to check for direct LaunchDarkly SDK usage, run:
-
-  flaglint validate --no-direct-launchdarkly --format sarif --output flaglint.sarif
-
-Look for the rule id "flaglint.direct-launchdarkly" in the SARIF output when integrating with external policy checks.
