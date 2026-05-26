@@ -7,16 +7,85 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.5.0] - 2026-05-26
+
+### Added
+
+- **Configured imported OpenFeature client bindings** (`openFeatureClientBindings` in `.flaglintrc`):
+  Declare shared OpenFeature client exports by import name and glob module pattern.
+  `migrate --apply` recognises these imports as proven bindings without requiring every
+  service file to call `OpenFeature.getClient()` locally.
+  ```json
+  {
+    "openFeatureClientBindings": [
+      { "importName": "openFeatureClient", "modulePatterns": ["**/platform/feature-flags"] }
+    ]
+  }
+  ```
+
+- **TypeScript ESM `.js` import compatibility**: `modulePatterns` globs now match TypeScript
+  source imports that carry a `.js` extension at the specifier level
+  (`import { openFeatureClient } from "../platform/feature-flags.js"`) even when the
+  configured pattern omits the extension (`**/platform/feature-flags`).
+
+- **`validate --format sarif`**: `flaglint validate --no-direct-launchdarkly --format sarif
+  --output flaglint.sarif` emits SARIF 2.1.0 with rule id `flaglint.direct-launchdarkly`
+  and level `error`. Designed for GitHub Code Scanning upload — each direct LaunchDarkly
+  evaluation call produces a PR annotation. Zero violations produces a valid SARIF document
+  that GitHub Code Scanning interprets as "all clear".
+
+- **Enterprise HTML audit report**: `flaglint scan --format html` now includes an Executive
+  Summary (total call-sites, unique flags, auto-migratable vs. manual-review breakdown),
+  Findings by Directory table, Recommended Next Steps workflow, and a Copy Markdown Summary
+  clipboard button.
+
+- **Enterprise OpenFeature migration demo** (`examples/enterprise-checkout-service/`): end-to-end
+  walkthrough across five Node.js services (checkout, pricing, analytics, product, flags-wrapper).
+  Includes `before/`/`after/` snapshots, `after-complete/` (fully migrated, passes hard gate),
+  generated reports, `.flaglintrc` config, and a sample GitHub Actions CI workflow.
+
+- **Docs site** (`www/docs/`): nine documentation pages covering getting started, all three
+  commands, supported scope, OpenFeature provider setup, CI/GitHub Actions integration,
+  OpenTelemetry observability guidance, safety model, and the enterprise demo.
+
+- **Enterprise trust documentation**: `SECURITY.md`, `CONTRIBUTING.md`, and `CODE_OF_CONDUCT.md`
+  with SARIF rule-ID reference for the `flaglint.direct-launchdarkly` policy rule.
+
+- **OpenFeature + OpenTelemetry observability guidance** (`www/docs/opentelemetry.html`):
+  documents how to instrument OpenFeature flag evaluations with OpenTelemetry using the
+  OpenFeature hooks API. FlagLint does not emit runtime telemetry; this page explains the
+  complementary integration pattern.
+
+### Fixed
+
+- **Deterministic test execution from clean checkout**: `vitest` configuration no longer
+  relies on `process.env.INIT_CWD` for test file discovery, ensuring the test suite
+  is reproducible on first-time `npm ci && npm test` runs.
+
 ### Changed
 
-- Reposition README and homepage messaging around standardizing LaunchDarkly usage on OpenFeature while keeping LaunchDarkly as the provider.
-- Document the focused automation scope: LaunchDarkly Node.js server-side evaluation calls in TypeScript and JavaScript, with dynamic keys, detail evaluations, bulk calls, browser SDKs, React usage, and ambiguous patterns reported for manual review.
-- Align supported runtime documentation and package metadata to Node.js 20 and newer.
+- Reposition README and homepage messaging around standardizing LaunchDarkly usage on
+  OpenFeature while keeping LaunchDarkly as the provider.
+- Document the focused automation scope: LaunchDarkly Node.js server-side evaluation calls
+  in TypeScript and JavaScript, with dynamic keys, detail evaluations, bulk calls, browser
+  SDKs, React usage, and ambiguous patterns reported for manual review.
+- Align supported runtime documentation and package metadata to Node.js `>=20`.
+  Resolves the Node.js engine metadata mismatch in `flaglint@0.4.1` (published as `>=22`).
 
 ### Security
 
-- Add Node.js 20/22 CI coverage, CodeQL analysis, Dependabot configuration, and vulnerability reporting instructions.
+- Add Node.js 20/22 CI coverage, CodeQL analysis, Dependabot configuration, and vulnerability
+  reporting instructions.
 - Update npm release workflow for Trusted Publishing/OIDC without long-lived npm publish tokens.
+
+### Scope boundaries (non-claims)
+
+The following are explicitly out of scope for this release:
+- LaunchDarkly replacement — LaunchDarkly remains the feature flag provider throughout.
+- Automatic provider/bootstrap setup — `migrate --apply` never generates bootstrap files.
+- Flag deletion or billing reduction — FlagLint does not evaluate live flag values.
+- Built-in runtime OpenTelemetry instrumentation — see `www/docs/opentelemetry.html` for
+  the complementary integration pattern using OpenFeature hooks.
 
 ## [0.4.1] - 2026-05-25
 
