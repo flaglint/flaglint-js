@@ -88,18 +88,18 @@ async function main(): Promise<void> {
   );
   next = replaceRequired(
     next,
-    /<div class="format-badges">[\s\S]*?<\/div>\s*\n\s*<p class="step-body">Generates (?:a )?detailed reports? in [\s\S]*?<\/p>/,
+    /<div class="format-badges">[\s\S]*?<\/div>\s*\n\s*<p class="step-body">Generates (?:an? )?(?:detailed )?(?:reports?|inventory report) in [\s\S]*?<\/p>/,
     `<div class="format-badges">
             ${formatted.map((f) => `<span class="badge-pill">${f}</span>`).join("\n            ")}
           </div>
-          <p class="step-body">Generates detailed reports in ${formatList(formatted)}. Know exactly what LaunchDarkly Node.js SDK calls exist, where they are, and which are safely automatable.</p>`,
+          <p class="step-body">Generates an inventory report in ${formatList(formatted)}. Know exactly what LaunchDarkly Node.js SDK calls exist, where they are, and which require manual review. Use <code style="font-family:monospace;font-size:12px">validate --format sarif</code> to emit policy-violation findings for GitHub Code Scanning.</p>`,
     "report format step"
   );
   next = replaceRequired(
     next,
-    /<div class="feature-title">[^<]* report formats<\/div>\s*\n\s*<p class="feature-body">[^<]*<\/p>/,
+    /<div class="feature-title">[^<]* report formats<\/div>\s*\n\s*<p class="feature-body">[\s\S]*?<\/p>/,
     `<div class="feature-title">${formatCountWord(formatted.length)} report formats</div>
-          <p class="feature-body">JSON for pipelines. Markdown for PRs. HTML for sharing. SARIF for GitHub Code Scanning.</p>`,
+          <p class="feature-body">JSON for pipelines. Markdown for PRs. HTML for sharing. SARIF via <code style="font-family:monospace;font-size:12px">validate --format sarif</code> for GitHub Code Scanning policy enforcement.</p>`,
     "report format feature"
   );
   next = replaceRequired(
