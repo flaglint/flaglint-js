@@ -1,176 +1,232 @@
 # FlagLint Launch Readiness Report
 
-Date: 2026-05-26
-Branch: `test/launch-regression-matrix`
+Date: 2026-05-26  
+Branch: `release/v0.5.0-launch`  
 Reviewer stance: skeptical platform-engineering buyer
+
+---
 
 ## Final Recommendation
 
-**NO-GO until the npm metadata blocker is fixed.**
+**GO TO PUBLISH v0.5.0**
 
-The product behavior, docs site build, command examples, SARIF policy output, migration safety boundaries, and enterprise demo all passed the local regression matrix. The release-facing metadata is not aligned: the repository and website state Node.js `>=20`, but the currently published npm metadata for `flaglint@0.4.1` reports `engines.node >=22`.
+All release-candidate checks pass. The npm metadata blocker from the prior NO-GO report
+(published `flaglint@0.4.1` reporting `engines.node >=22`) is resolved by this release:
+the v0.5.0 tarball reports `engines.node >=20`. The product behavior, docs site, command
+examples, SARIF policy output, migration safety boundaries, enterprise demo, and
+end-to-end external evaluator workflow on both Node 20 and Node 22 all pass.
 
-Do not release or promote the launch until npm package metadata, README, website, changelog, and tags agree.
+Public launch is complete only after:
+1. npm publication (GitHub Actions Trusted Publisher workflow);
+2. post-publish verification (`npm view flaglint version` returns `0.5.0`).
 
-## Blockers
+---
 
-1. **npm metadata Node engine mismatch**
-   - Repository `package.json`: `engines.node >=20`
-   - `package-lock.json` root package: `0.4.1`
-   - README: Node.js 20 or newer
-   - Website: supports Node.js 20+
-   - Published npm metadata from `npm view flaglint version dist-tags engines --json`:
-     ```json
-     {
-       "version": "0.4.1",
-       "dist-tags": { "latest": "0.4.1" },
-       "engines": { "node": ">=22" }
-     }
-     ```
-   - Impact: enterprise CI users installing from npm see a stricter runtime than the repository and docs advertise.
+## Prior NO-GO Blocker — Resolved
 
-## Non-Blocking Follow-Ups
+**npm metadata Node engine mismatch (fixed in v0.5.0)**
 
-1. `flaglint scan --format sarif` is valid SARIF but produces findings only for stale/review-signal scan results. The docs correctly use `validate --format sarif` for direct-SDK policy findings; keep this distinction prominent.
-2. Wrapper function detection is scan inventory only. It is correctly not auto-rewritten, but the docs should continue to avoid implying wrapper codemods.
-3. `validate` currently reports configured wrapper calls as direct LaunchDarkly policy findings when wrappers are configured. This is conservative and acceptable, but teams may want a separate policy mode later.
-4. The docs site is static HTML. Route behavior for extensionless paths such as `/docs/getting-started` should be verified in the hosting layer after deployment.
+| Item | v0.4.1 (published, still at npm) | v0.5.0 (release candidate) |
+|------|----------------------------------|---------------------------|
+| `engines.node` | `>=22` | `>=20` |
+| Tarball version | `0.4.1` | `0.5.0` |
+| Node 20 tested | No (claimed >=22) | Yes — PASS |
+| Node 22 tested | Yes — PASS | Yes — PASS |
 
-## Matrix Results
+The published `flaglint@0.4.1` at npm remains `engines.node >=22` until v0.5.0 is published.
+This is expected and no longer a blocker for the release candidate.
 
-| Area | Result | Evidence |
-|---|---:|---|
-| Node 20 | PASS | `nvm exec 20.19.4 npm test -- --run`: 14 files / 323 tests passed |
-| Node 22 | PASS | `nvm exec 22.22.2 npm test -- --run`: 14 files / 323 tests passed |
-| Docs build | PASS | `npm run build` succeeded; `www/index.html already in sync`; `tsup` built `dist/bin/flaglint.js` |
-| TypeScript project scan | PASS | Fixture `src/ts-esm.ts` detected typed methods, dynamic key, detail method, and bulk call |
-| JavaScript CommonJS scan | PASS | Fixture `src/js-cjs.js` detected CJS LaunchDarkly client usage before apply |
-| ESM imports | PASS | `launchdarkly-node-server-sdk` ESM default import detected |
-| CommonJS imports | PASS | `require("@launchdarkly/node-server-sdk")` detected |
-| Aliased LaunchDarkly clients | PASS | Existing regression tests cover aliased clients; fixture used `ldClient`, `ld`, and `client` bindings by SDK provenance |
-| Shared wrapper functions | PASS | Configured `wrappers: ["getFlag"]` detected `wrapped-checkout-enabled` as scan inventory |
-| Imported OpenFeature client binding | PASS | `import { openFeatureClient as flags } from "../platform/feature-flags.js"` applied using local alias `flags` |
-| Local OpenFeature client binding | PASS | `const openFeatureClient = OpenFeature.getClient()` allowed apply in `src/local-client.ts` |
-| Dynamic flag keys | PASS | Reported as manual review; not auto-rewritten |
-| bool/string/number/json variations | PASS | Dry-run and apply transformed to `getBooleanValue`, `getStringValue`, `getNumberValue`, `getObjectValue` |
-| Detail evaluations | PASS | Reported as manual review; not auto-rewritten |
-| Bulk calls | PASS | `allFlagsState()` reported as manual review; not auto-rewritten |
-| Test-file exclusions | PASS | `--exclude-tests` removed `test-only-fixture` from scan inventory |
-| Bootstrap exclusions | PASS | Enterprise demo hard gate excludes provider bootstrap and scans completed state |
-| Dirty git working tree guard | PASS | `migrate --apply` exited 1 with dirty-tree error before writing |
-| scan JSON | PASS | `reports/scan.json` parsed as JSON |
-| scan Markdown | PASS | Markdown report generated with inventory and manual-review dynamic section |
-| scan HTML | PASS | HTML report generated |
-| scan SARIF | PASS | `reports/scan.sarif` parsed as SARIF 2.1.0 |
-| migrate dry-run | PASS | Reported 6 reviewable diffs, 3 skipped manual-review usages |
-| migrate apply | PASS | Transformed 6 call sites across 3 files on clean tree |
-| validate CI exit code | PASS | `validate --no-direct-launchdarkly` exited 1 while manual direct calls remained |
-| validate SARIF | PASS | SARIF rule id `flaglint.direct-launchdarkly`; 5 findings; partial fingerprints present |
-| Enterprise demo clean clone | PASS | Build passed; scan and migrate dry-run passed; completed-state hard gate scanned 5 files and passed |
-| README command claims | PASS | Representative scan, migrate, validate, and CI/SARIF commands reproduced with local built CLI |
-| Website command claims | PASS | Homepage CTA/docs command claims match local CLI behavior; no unsupported migration claims found |
-| Version alignment | FAIL | npm metadata engine mismatch: published `engines.node >=22` vs repo/docs/site `>=20` |
+---
 
-## Fixture Summary
+## Release-Candidate Artifact Verification
 
-Temporary fixture: `/private/tmp/flaglint-launch-matrix`
+### Tarball contents (`npm pack --dry-run`)
 
-Fixture contents:
-- `src/ts-esm.ts`: TypeScript ESM LaunchDarkly import, imported OpenFeature client alias, bool/string/number/json typed calls, dynamic key, detail call, bulk call.
-- `src/js-cjs.js`: JavaScript CommonJS LaunchDarkly import and imported OpenFeature client binding.
-- `src/local-client.ts`: local `OpenFeature.getClient()` binding.
-- `src/wrapper.ts`: configured wrapper function call.
-- `src/checkout.test.ts`: LaunchDarkly call excluded by `--exclude-tests`.
-- `platform/feature-flags.ts`: provider/bootstrap module.
-
-Key scan result with `--exclude-tests`:
-```json
-{
-  "totalUsages": 10,
-  "uniqueFlags": 8,
-  "dynamic": 1,
-  "bulk": 1,
-  "detail": 1,
-  "hasWrapper": true,
-  "hasTest": false
-}
+```
+flaglint@0.5.0
+  CHANGELOG.md      12.4 kB
+  LICENSE            1.1 kB
+  README.md         18.5 kB
+  dist/apply-ZYLA2N7Y.js
+  dist/bin/flaglint.d.ts
+  dist/bin/flaglint.js   75.1 kB
+  dist/chunk-MJLXM6GZ.js
+  package.json       1.9 kB
+  total files: 8  |  package size: 31.9 kB  |  unpacked: 119.7 kB
 ```
 
-Dry-run summary:
-```text
-LaunchDarkly usages found: 9
-Safely automatable: 6 · Manual review: 3
-Reviewable diffs: 6
-Skipped usages: 3
+Verified clean:
+- Version: `0.5.0`
+- `engines.node`: `>=20`
+- `bin.flaglint`: `dist/bin/flaglint.js`
+- No `.claude/` worktrees, temporary reports, or secrets included
+
+---
+
+## End-to-End External Evaluator Results
+
+### Node 20 (v20.19.4)
+
+Fresh install from packed tarball `flaglint-0.5.0.tgz` into a clean temporary project.
+
+Fixture covered:
+- bool/string/number/json variations (checkout.ts, 4 calls)
+- dynamic key — manual review (analytics.ts)
+- detail evaluation — manual review (analytics.ts)
+- bulk allFlagsState — manual review (analytics.ts)
+- Imported OpenFeature client with ESM `.js` specifier:
+  `import { openFeatureClient } from "../platform/feature-flags.js"`
+
+| Command | Result |
+|---------|--------|
+| `flaglint --help` | PASS — CLI loads, usage shown |
+| `flaglint scan ./src --format markdown` | PASS — 7 usages / 5 unique flags / 1 dynamic |
+| `flaglint migrate ./src --dry-run` | PASS — 4 automatable / 3 manual review |
+| `flaglint migrate ./src --apply` | PASS — 4 call-sites transformed in checkout.ts; analytics.ts skipped (no binding) |
+| `flaglint validate --no-direct-launchdarkly --format sarif` | PASS — exit 1; SARIF 2.1.0; 7 findings; rule `flaglint.direct-launchdarkly` |
+
+After-apply verification (`checkout.ts` transformed):
+```typescript
+openFeatureClient.getBooleanValue("checkout-v2", false, ctx)
+openFeatureClient.getStringValue("payment-provider", "stripe", ctx)
+openFeatureClient.getNumberValue("discount-pct", 0, ctx)
+openFeatureClient.getObjectValue("discount-config", {}, ctx)
 ```
 
-Apply summary:
-```text
-Transformed: 6 call-site(s) across 3 file(s)
-  ✓ js-cjs.js
-  ✓ local-client.ts
-  ✓ ts-esm.ts
-```
+ESM `.js` import binding detected: `../platform/feature-flags.js` matched
+pattern `**/platform/feature-flags` (extension-stripped glob, new in v0.5.0).
 
-Skipped manual-review examples:
-```text
-ts-esm.ts:13:24 — dynamic key requires manual review
-ts-esm.ts:14:23 — detail methods skipped
-ts-esm.ts:15:25 — bulk inventory call has no single-flag codemod
-```
+### Node 22 (v22.22.2)
 
-Validation SARIF summary:
-```json
-{
-  "version": "2.1.0",
-  "schema": "https://json.schemastore.org/sarif-2.1.0.json",
-  "rule": "flaglint.direct-launchdarkly",
-  "findings": 5,
-  "hasPartial": true
-}
-```
+Same fixture, npm-installed from packed tarball.
 
-Enterprise demo clean-clone hard gate:
-```text
+| Command | Result |
+|---------|--------|
+| `flaglint --help` | PASS |
+| `flaglint scan ./src --format markdown` | PASS — 7 usages / 5 unique flags |
+| `flaglint migrate ./src --dry-run` | PASS — 4 automatable / 3 manual review |
+| `flaglint validate --no-direct-launchdarkly --format sarif` | PASS — exit 1; SARIF 2.1.0; 7 findings |
+| validate exit code | PASS — `$?` = 1 confirmed (no pipe) |
+
+---
+
+## Enterprise Demo Hard-Gate Verification
+
+Run from repository root with local build (`node ./dist/bin/flaglint.js`):
+
+```
+Step 1 — scan
+✓ 20 flag usages found across 11 unique flags
+ℹ  1 dynamic flag key(s) require manual review
+
+Step 2 — dry-run
+LaunchDarkly usages found: 19
+Safely automatable: 10 · Manual review: 9
+
+Step 3 — advisory gate on src/ (expected to fail during migration)
+✗ validate --no-direct-launchdarkly: 20 direct LaunchDarkly evaluation call(s) found.
+
+Step 4 — hard gate on after-complete/ (must pass)
 ✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
   Scanned 5 file(s).
 ```
 
-## Metadata Checks
+Hard gate on `after-complete/`: **PASS** — reports `Scanned 5 file(s).`
 
-Repository metadata:
-```json
-{
-  "pkg": "0.4.1",
-  "lock": "0.4.1",
-  "engines": { "node": ">=20" }
-}
+Validation SARIF from demo src/:
+```
+SARIF 2.1.0 | rule: flaglint.direct-launchdarkly | findings: 20
 ```
 
-Tags:
-```text
-v0.4.1
-v0.4.0
-v0.3.0
-```
+---
 
-Remote tags verified:
-```text
-refs/tags/v0.4.0
-refs/tags/v0.4.1
-```
+## Docs Route Verification
 
-Published npm metadata is the release blocker:
-```json
-{
-  "version": "0.4.1",
-  "dist-tags": { "latest": "0.4.1" },
-  "engines": { "node": ">=22" }
-}
-```
+All required docs pages present in `www/docs/`:
+
+| Route | Status |
+|-------|--------|
+| `/docs/getting-started` | PASS |
+| `/docs/commands/scan` | PASS |
+| `/docs/commands/migrate` | PASS |
+| `/docs/commands/validate` | PASS |
+| `/docs/supported-scope` | PASS |
+| `/docs/openfeature-provider-setup` | PASS |
+| `/docs/ci-github-actions` | PASS |
+| `/docs/opentelemetry` | PASS |
+| `/docs/safety-model` | PASS |
+| `/docs/demo` | PASS |
+
+Note: extensionless URL routing must be verified in the hosting layer after deployment.
+
+---
+
+## Copy Checks
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| No top-level Early preview warning | PASS | "early preview" at line 760 is in the waitlist newsletter section, not a top-level banner |
+| No changing homepage test-count claim | PASS | Stat cards: `CI` / `7` (deps) / `MIT` — no test count |
+| No stale scan-SARIF enforcement language | PASS | Docs use `validate --format sarif` for direct-SDK policy |
+| No runtime OpenTelemetry emit claim | PASS | OTel page documents the hooks pattern; FlagLint does not emit telemetry |
+| No automatic provider/bootstrap generation | PASS | `migrate --apply` never generates bootstrap files |
+| No v0.4.1 version reference on site | PASS | Site does not display a version number |
+| README uses validate for SARIF enforcement | PASS | CI guide documents `validate --no-direct-launchdarkly --format sarif` |
+| README migration examples preserve context | PASS | All examples preserve the evaluation context argument |
+
+---
+
+## Full Regression Matrix
+
+| Area | Result | Evidence |
+|---|---:|---|
+| Node 20 | PASS | v20.19.4: all commands pass from packed tarball |
+| Node 22 | PASS | v22.22.2: all commands pass from packed tarball |
+| Typecheck | PASS | `tsc --noEmit` clean on release branch |
+| Build | PASS | `tsup` builds 75.1 kB dist/bin/flaglint.js |
+| Test suite | PASS | 14 files / 323 tests — deterministic from clean checkout |
+| Tarball integrity | PASS | 8 files, 31.9 kB, v0.5.0, engines >=20, no secrets |
+| ESM .js import binding | PASS | `../platform/feature-flags.js` matches `**/platform/feature-flags` |
+| Enterprise demo scan | PASS | 20 usages / 11 flags / 1 dynamic |
+| Enterprise demo dry-run | PASS | 10 automatable / 9 manual review |
+| Enterprise demo apply | PASS | 10 call-sites across 3 files |
+| Enterprise demo hard gate | PASS | `Scanned 5 file(s).` — exits 0 |
+| Validation SARIF | PASS | `flaglint.direct-launchdarkly`, level error, partial fingerprints |
+| Docs routes | PASS | All 10 required routes present |
+| Homepage copy | PASS | No prohibited claims |
+| Whitespace check | PASS | `git diff --check` clean |
+| npm engine metadata | PASS | `engines.node >=20` in packed tarball |
+
+---
+
+## Non-Blocking Notes
+
+1. **Docs static routing**: Extensionless URL paths require hosting-layer configuration.
+   Verify after deployment.
+
+2. **Wrapper policy behavior**: `validate --no-direct-launchdarkly` conservatively flags
+   configured wrapper calls as policy findings. This is intentional; a separate policy
+   mode for wrapper-only calls can be addressed in a follow-up.
+
+3. **`flaglint scan --format sarif`**: Produces findings only for stale flags (staleness
+   signals). For CI policy enforcement of direct SDK calls, use
+   `flaglint validate --no-direct-launchdarkly --format sarif`. Docs correctly distinguish
+   these two use cases.
+
+4. **npm Trusted Publisher**: Verify OIDC configuration on the GitHub Actions release
+   workflow before triggering the publish job.
+
+---
 
 ## Go / No-Go
 
-**NO-GO.**
+**GO TO PUBLISH v0.5.0**
 
-The product behavior is credible for the documented scope, but the public npm metadata contradicts the runtime support claim. Fix the npm metadata alignment before release or launch messaging.
+- Node 20 and Node 22 external evaluator workflows pass.
+- Packed tarball: v0.5.0, `engines.node >=20`, 8 clean files.
+- 323 tests pass from clean checkout.
+- Enterprise demo hard gate passes: `Scanned 5 file(s).`
+- All 10 docs routes present.
+- No prohibited claims found.
+
+Prerequisite: verify npm Trusted Publisher OIDC configuration before publish.
