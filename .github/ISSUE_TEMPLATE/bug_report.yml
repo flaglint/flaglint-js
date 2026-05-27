@@ -15,7 +15,7 @@ body:
     attributes:
       label: FlagLint version
       description: Run `flaglint --version`
-      placeholder: "0.4.1"
+      placeholder: "0.5.1"
     validations:
       required: true
 

@@ -74,8 +74,8 @@
     <h2>What is FlagLint?</h2>
     <p>
       FlagLint is a TypeScript CLI tool that statically analyzes JavaScript and TypeScript
-      codebases for direct LaunchDarkly Node.js server SDK calls, detects flag debt, and
-      generates reviewable OpenFeature migration plans.
+      codebases for direct LaunchDarkly Node.js server SDK calls, identifies direct SDK
+      coupling and migration hotspots, and generates reviewable OpenFeature migration plans.
     </p>
     <p>
       <strong>LaunchDarkly remains your feature flag provider.</strong> FlagLint migrates your
@@ -163,9 +163,9 @@
     </div>
 
     <p>
-      The dry-run output includes inline provider setup guidance showing which packages to
-      install and how to wire up the LaunchDarkly OpenFeature provider. Complete this
-      one-time setup before proceeding to apply.
+      The dry-run output includes inline provider setup guidance when a previewed diff needs
+      a client binding, showing which packages to install and how to wire up the LaunchDarkly
+      OpenFeature provider. Complete this one-time setup before applying those diffs.
     </p>
     <p>
       See <a href="openfeature-provider-setup.html">OpenFeature Provider Setup</a> for the

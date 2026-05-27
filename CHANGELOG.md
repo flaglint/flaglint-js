@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.5.1] - 2026-05-27
+
+### Fixed
+
+- Corrected `migrate --dry-run` messaging when all previewed diffs use proven
+  OpenFeature client bindings. Dry-run output no longer claims placeholder
+  provider/client setup is required when configured imported bindings, aliases,
+  or local `OpenFeature.getClient()` bindings are already present.
+- Clarified README and docs scope wording for both supported LaunchDarkly Node.js
+  server SDK package names: current `@launchdarkly/node-server-sdk` and legacy
+  `launchdarkly-node-server-sdk`.
+- Corrected OpenTelemetry feature-flag semantic-convention guidance to use the
+  current `feature_flag.evaluation` event model and current attribute names.
+- Corrected homepage release-state and lower CTA messaging now that `flaglint@0.5.0`
+  is published.
+- Narrowed broad flag-debt wording where it could imply comprehensive unused-flag
+  lifecycle analysis rather than direct SDK coupling and migration review work.
+
 ## [0.5.0] - 2026-05-26
 
 ### Added

@@ -32,7 +32,7 @@ flaglint scan ./src --format sarif --output flaglint-scan.sarif
 ### `flaglint migrate --dry-run` — migration readiness reporting
 
 Analyzes each LD SDK call site and generates a reviewable before/after diff showing the exact
-OpenFeature equivalent. Includes provider setup guidance. Never modifies files. Never exits non-zero
+OpenFeature equivalent. Includes provider setup guidance when a diff needs it. Never modifies files. Never exits non-zero
 (it is a read-only report). Use it to plan the migration before running `--apply`.
 
 ```bash

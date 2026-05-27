@@ -639,7 +639,7 @@
             <div class="dot dot-y"></div>
             <div class="dot dot-g"></div>
           </div>
-          <span class="term-version">flaglint v0.5.0</span>
+          <span class="term-version">flaglint v0.5.1</span>
         </div>
         <div class="term-body" id="term-body" aria-live="polite">
         </div>
@@ -719,7 +719,7 @@
           <div class="step-num">02</div>
           <div class="step-title">Review and apply migration</div>
           <div class="code-snippet">$ flaglint migrate --dry-run</div>
-          <p class="step-body">Generates reviewable before/after diffs with provider setup guidance. When ready, <code style="font-family:monospace;font-size:12px">--apply</code> rewrites only automatable call-sites — preserving flag key, fallback, context, and <code style="font-family:monospace;font-size:12px">await</code> exactly. Detail methods, dynamic keys, and bulk calls require manual review.</p>
+          <p class="step-body">Generates reviewable before/after diffs and includes provider setup guidance when a diff needs it. When ready, <code style="font-family:monospace;font-size:12px">--apply</code> rewrites only automatable call-sites — preserving flag key, fallback, context, and <code style="font-family:monospace;font-size:12px">await</code> exactly. Detail methods, dynamic keys, and bulk calls require manual review.</p>
         </div>
         <div class="step">
           <div class="step-num">03</div>
@@ -866,35 +866,22 @@
         (<code style="font-family:monospace;font-size:13px">launchdarkly-node-server-sdk</code>
         or <code style="font-family:monospace;font-size:13px">@launchdarkly/node-server-sdk</code>).
       </p>
-      <p class="install-note" style="margin-top:10px;font-size:13px;color:#555">
-        Current npm release: <strong style="color:#666">v0.4.1</strong>.
-        Version 0.5.0 with expanded coverage is in preparation.
-      </p>
     </div>
   </section>
 
-  <!-- WAITLIST -->
+  <!-- CTA -->
   <section class="waitlist-section">
     <div id="waitlist" class="waitlist-card">
-      <h2>Stay in the loop.</h2>
+      <h2>Planning an OpenFeature standardization effort?</h2>
       <p class="waitlist-sub">
-        FlagLint is in early preview. Get notified about new call-type coverage,
-        migration guides, and early access for teams on their OpenFeature journey.
+        Evaluate the enterprise demo, report an unsupported pattern, or follow upcoming
+        SDK coverage.
       </p>
-
-      <!-- Loops waitlist form -->
-      <div id="loops-form-wrap">
-        <form id="loops-form" action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0" method="POST">
-          <input type="email" name="email" id="loops-email" placeholder="you@company.com" required autocomplete="email">
-          <button type="submit" id="loops-submit">Join the waitlist</button>
-          <button type="button" id="loops-loading" style="display:none" disabled>Please wait...</button>
-        </form>
-        <div id="loops-success" style="display:none"></div>
-        <div id="loops-error" style="display:none"></div>
-        <button id="loops-back" style="display:none" onclick="resetFormHandler()">← Back</button>
+      <div class="cta-row">
+        <a href="/docs/demo" class="btn-primary">View enterprise demo</a>
+        <a href="https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml" target="_blank" rel="noopener noreferrer" class="btn-secondary">Report unsupported pattern</a>
+        <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer" class="btn-secondary">Star on GitHub</a>
       </div>
-
-      <p class="waitlist-disclaimer">No spam. Just launch updates and early access.</p>
     </div>
   </section>
 
@@ -975,58 +962,61 @@
     var loopsError = document.getElementById('loops-error');
     var loopsBack = document.getElementById('loops-back');
 
-    var rateLimit = false;
+    if (loopsForm && loopsEmail && loopsSubmit && loopsLoading && loopsSuccess && loopsError && loopsBack) {
+      var rateLimit = false;
 
-    function submitHandler(event) {
-      event.preventDefault();
-      if (rateLimit) return;
-      rateLimit = true;
-      setTimeout(function () { rateLimit = false; }, 10000);
+      function submitHandler(event) {
+        event.preventDefault();
+        if (rateLimit) return;
+        rateLimit = true;
+        setTimeout(function () { rateLimit = false; }, 10000);
 
-      loopsSubmit.style.display = 'none';
-      loopsLoading.style.display = 'block';
-      loopsError.style.display = 'none';
+        loopsSubmit.style.display = 'none';
+        loopsLoading.style.display = 'block';
+        loopsError.style.display = 'none';
 
-      var formBody = 'userGroup=&mailingLists=&email=' + encodeURIComponent(loopsEmail.value);
+        var formBody = 'userGroup=&mailingLists=&email=' + encodeURIComponent(loopsEmail.value);
 
-      fetch(loopsForm.action, {
-        method: 'POST',
-        body: formBody,
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      })
-        .then(function (res) { return res.json(); })
-        .then(function (json) {
-          loopsLoading.style.display = 'none';
-          if (json.success) {
-            loopsSuccess.textContent = 'Thanks! We\'ll be in touch.';
-            loopsSuccess.style.display = 'block';
-            loopsBack.style.display = 'block';
-            loopsForm.style.display = 'none';
-          } else {
-            loopsError.textContent = json.message || 'Something went wrong. Please try again.';
+        fetch(loopsForm.action, {
+          method: 'POST',
+          body: formBody,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        })
+          .then(function (res) { return res.json(); })
+          .then(function (json) {
+            loopsLoading.style.display = 'none';
+            if (json.success) {
+              loopsSuccess.textContent = 'Thanks! We\'ll be in touch.';
+              loopsSuccess.style.display = 'block';
+              loopsBack.style.display = 'block';
+              loopsForm.style.display = 'none';
+            } else {
+              loopsError.textContent = json.message || 'Something went wrong. Please try again.';
+              loopsError.style.display = 'block';
+              loopsSubmit.style.display = 'block';
+            }
+          })
+          .catch(function () {
+            loopsLoading.style.display = 'none';
+            loopsError.textContent = 'Something went wrong. Please try again.';
             loopsError.style.display = 'block';
             loopsSubmit.style.display = 'block';
-          }
-        })
-        .catch(function () {
-          loopsLoading.style.display = 'none';
-          loopsError.textContent = 'Something went wrong. Please try again.';
-          loopsError.style.display = 'block';
-          loopsSubmit.style.display = 'block';
-          rateLimit = false;
-        });
-    }
+            rateLimit = false;
+          });
+      }
 
-    function resetFormHandler() {
-      loopsEmail.value = '';
-      loopsSuccess.style.display = 'none';
-      loopsError.style.display = 'none';
-      loopsBack.style.display = 'none';
-      loopsForm.style.display = 'flex';
-      loopsSubmit.style.display = 'block';
-    }
+      function resetFormHandler() {
+        loopsEmail.value = '';
+        loopsSuccess.style.display = 'none';
+        loopsError.style.display = 'none';
+        loopsBack.style.display = 'none';
+        loopsForm.style.display = 'flex';
+        loopsSubmit.style.display = 'block';
+      }
 
-    loopsForm.addEventListener('submit', submitHandler);
+      window.resetFormHandler = resetFormHandler;
+      loopsForm.addEventListener('submit', submitHandler);
+    }
   </script>
 </body>
 </html>

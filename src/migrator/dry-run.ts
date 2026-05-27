@@ -141,7 +141,7 @@ function itemLabel(item: MigrationInventoryItem): string {
 function formatProviderSetupSection(): string[] {
   const lines: string[] = [];
 
-  lines.push("## Provider Setup (Required Before Applying Diffs)");
+  lines.push("## Provider Setup Guidance (For Diffs Requiring Setup)");
   lines.push("");
   lines.push("LaunchDarkly remains your feature flag provider.");
   lines.push("OpenFeature becomes the evaluation API your application code calls.");
@@ -170,7 +170,7 @@ function formatProviderSetupSection(): string[] {
   lines.push("await OpenFeature.setProviderAndWait(ldProvider);");
   lines.push("");
   lines.push("// Share this client across your application.");
-  lines.push("// Replace the `openFeatureClient` placeholder in the diffs below.");
+  lines.push("// Replace the `openFeatureClient` placeholder in affected diffs.");
   lines.push("const openFeatureClient = OpenFeature.getClient();");
   lines.push("```");
   lines.push("");
@@ -226,24 +226,39 @@ export async function formatDryRunDiff(
   }
 
   const lines: string[] = [];
+  const reviewableDiffCount = [...replacementsByFile.values()].reduce((sum, items) => sum + items.length, 0);
+  const setupRequiredCount = [...replacementsByFile.values()].reduce(
+    (sum, items) => sum + items.filter((item) => item.requiresProviderSetup).length,
+    0
+  );
 
   // ── Header ────────────────────────────────────────────────────────────────
   lines.push("# FlagLint migrate --dry-run");
   lines.push("");
-  lines.push(
-    "These diffs use the placeholder `openFeatureClient` and require OpenFeature provider/client setup before they can be applied."
-  );
+  if (reviewableDiffCount > 0 && setupRequiredCount === 0) {
+    lines.push(
+      "The transformations below use proven OpenFeature client bindings already present in the affected files."
+    );
+  } else if (setupRequiredCount > 0 && setupRequiredCount === reviewableDiffCount) {
+    lines.push(
+      "These diffs use the placeholder `openFeatureClient` and require OpenFeature provider/client setup before they can be applied."
+    );
+  } else if (setupRequiredCount > 0) {
+    lines.push(
+      "Some diffs use proven OpenFeature client bindings; diffs using the `openFeatureClient` placeholder require provider/client setup before they can be applied."
+    );
+  }
   lines.push("No files are modified by dry-run output.");
   lines.push("");
-  lines.push(`Reviewable diffs: ${[...replacementsByFile.values()].reduce((sum, items) => sum + items.length, 0)}`);
-  lines.push(
-    `Diffs requiring provider setup: ${[...replacementsByFile.values()].reduce((sum, items) => sum + items.filter((item) => item.requiresProviderSetup).length, 0)}`
-  );
+  lines.push(`Reviewable diffs: ${reviewableDiffCount}`);
+  lines.push(`Diffs requiring provider setup: ${setupRequiredCount}`);
   lines.push(`Skipped usages: ${skipped.length}`);
   lines.push("");
 
-  // ── Provider setup guidance (always present; must be done before applying diffs) ──
-  lines.push(...formatProviderSetupSection());
+  // ── Provider setup guidance (only when at least one preview uses the placeholder) ──
+  if (setupRequiredCount > 0) {
+    lines.push(...formatProviderSetupSection());
+  }
 
   // ── Call-site diffs ───────────────────────────────────────────────────────
   if (replacementsByFile.size > 0) {
