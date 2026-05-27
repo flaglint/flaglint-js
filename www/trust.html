@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Security and Trust — FlagLint</title>
+  <meta name="description" content="FlagLint security, trust, data handling, and release provenance summary.">
+  <meta property="og:title" content="Security and Trust — FlagLint">
+  <meta property="og:description" content="FlagLint runs locally, performs static source analysis, and publishes through the project release workflow.">
+  <meta property="og:url" content="https://flaglint.dev/trust">
+  <meta property="og:site_name" content="FlagLint">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://flaglint.dev/trust">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/docs/docs.css">
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="/docs/demo" class="hide-mobile">Demo</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main class="docs-main" style="max-width:860px;margin:0 auto">
+  <div class="breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="current">Security and Trust</span>
+  </div>
+
+  <h1>Security and Trust</h1>
+  <p class="page-subtitle">A concise summary of FlagLint's data handling, safety boundaries, and release posture.</p>
+
+  <h2>Runs locally</h2>
+  <p>
+    FlagLint is a local CLI. It reads source files from the directory you specify,
+    performs static AST analysis in process, and writes reports or transformed files
+    to stdout or disk. It does not require a LaunchDarkly SDK key for scan or
+    migration commands.
+  </p>
+
+  <h2>Guarded apply</h2>
+  <p>
+    <code>flaglint migrate --apply</code> requires a clean git working tree unless
+    explicitly overridden. It rewrites only call sites where FlagLint can prove a
+    local or configured imported OpenFeature client binding. Dynamic keys, detail
+    evaluations, unknown fallbacks, and bulk calls remain manual review.
+  </p>
+
+  <h2>CI and provenance</h2>
+  <p>
+    The repository includes Node 20 and Node 22 CI checks, CodeQL, Dependabot, and a
+    release workflow configured for npm Trusted Publishing/OIDC. Runtime support
+    remains Node.js 20 or newer.
+  </p>
+
+  <h2>Security reporting</h2>
+  <p>
+    Report suspected vulnerabilities privately through
+    <a href="https://github.com/flaglint/flaglint/security/advisories/new" target="_blank" rel="noopener noreferrer">GitHub Security Advisories</a>.
+    For unsupported patterns or false positives, use the
+    <a href="https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml" target="_blank" rel="noopener noreferrer">unsupported pattern issue template</a>.
+  </p>
+
+  <div class="callout info">
+    <span class="callout-icon">i</span>
+    <div class="callout-body">
+      <p>For the full source-grounded trust statement, read <a href="https://github.com/flaglint/flaglint/blob/main/docs/trust.md" target="_blank" rel="noopener noreferrer">docs/trust.md on GitHub</a>.</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 FlagLint</span>
+    <div class="footer-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">Contact</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
