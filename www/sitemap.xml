@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://flaglint.dev/</loc></url>
+  <url><loc>https://flaglint.dev/docs/getting-started</loc></url>
+  <url><loc>https://flaglint.dev/docs/demo</loc></url>
+  <url><loc>https://flaglint.dev/docs/ci-github-actions</loc></url>
+  <url><loc>https://flaglint.dev/docs/supported-scope</loc></url>
+  <url><loc>https://flaglint.dev/docs/opentelemetry</loc></url>
+  <url><loc>https://flaglint.dev/trust</loc></url>
+  <url><loc>https://flaglint.dev/privacy</loc></url>
+</urlset>

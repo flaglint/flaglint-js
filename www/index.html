@@ -8,6 +8,7 @@
   <meta property="og:title" content="FlagLint — Standardize LaunchDarkly usage on OpenFeature">
   <meta property="og:description" content="Keep LaunchDarkly as your provider. Use OpenFeature as the application-facing evaluation API.">
   <meta property="og:url" content="https://flaglint.dev">
+  <meta property="og:site_name" content="FlagLint">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@flaglintdev">
@@ -24,7 +25,7 @@
       --surface-raised: #1a1a1a;
       --border: #222222;
       --text-primary: #f0f0f0;
-      --text-secondary: #888888;
+      --text-secondary: #a0a0a0;
       --accent: #00d97e;
       --accent-navy: #1a2744;
       --code-bg: #0d1117;
@@ -46,6 +47,12 @@
     }
 
     a { color: inherit; text-decoration: none; }
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
 
     /* ── NAV ─────────────────────────────────────────────────────── */
     nav {
@@ -378,6 +385,47 @@
     .feature-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
     .feature-body { font-size: 14px; color: var(--text-secondary); line-height: 1.5; }
 
+    /* ── PROOF ───────────────────────────────────────────────────── */
+    .proof { background: var(--bg); }
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .proof-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 22px;
+      min-width: 0;
+    }
+    .proof-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .proof-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 14px;
+    }
+    .proof-code {
+      background: var(--code-bg);
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      color: #e6edf3;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      padding: 14px;
+      overflow-x: auto;
+      white-space: pre;
+    }
+
     /* ── PLATFORM TEAMS ─────────────────────────────────────────── */
     .platform-teams { background: var(--surface); }
     .pt-grid {
@@ -475,7 +523,7 @@
       border: 1px solid rgba(0, 217, 126, 0.2);
       border-radius: 16px;
       padding: 60px 40px;
-      max-width: 640px;
+      max-width: 760px;
       margin: 0 auto;
       text-align: center;
     }
@@ -567,8 +615,8 @@
       flex-wrap: wrap;
       gap: 16px;
     }
-    .footer-copy { color: #444; font-size: 14px; }
-    .footer-links { display: flex; gap: 24px; }
+    .footer-copy { color: #777; font-size: 14px; }
+    .footer-links { display: flex; gap: 18px; flex-wrap: wrap; }
     .footer-links a {
       color: #555;
       font-size: 14px;
@@ -582,6 +630,7 @@
       .steps-grid { grid-template-columns: 1fr; gap: 40px; }
       .steps-grid::before { display: none; }
       .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .proof-grid { grid-template-columns: 1fr; }
       .install-blocks { grid-template-columns: 1fr; }
       .waitlist-card { padding: 40px 24px; }
       .stat-item { padding: 0 20px; }
@@ -614,6 +663,7 @@
         <a href="/docs/getting-started" class="nav-link">Docs</a>
         <a href="/docs/demo" class="nav-link">Enterprise Demo</a>
         <a href="/docs/ci-github-actions" class="nav-link">CI Integration</a>
+        <a href="/trust.html" class="nav-link">Trust</a>
         <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
           <button class="btn-outline">★ GitHub</button>
         </a>
@@ -731,6 +781,40 @@
     </div>
   </section>
 
+  <!-- PLATFORM TEAM POSITIONING -->
+  <section class="platform-teams">
+    <div class="section-inner">
+      <div class="section-label">Built For</div>
+      <h2 class="section-heading">Built for platform teams standardizing feature-flag access</h2>
+      <p class="hero-sub" style="text-align:left;margin:0 0 32px;max-width:760px">
+        FlagLint helps teams using LaunchDarkly across Node.js services move application
+        evaluation calls behind an OpenFeature boundary without changing providers on day one.
+      </p>
+      <div class="pt-grid">
+        <div class="pt-card">
+          <div class="pt-card-label">Inventory</div>
+          <div class="pt-card-title">Inventory direct SDK coupling.</div>
+          <p class="pt-card-body">Find direct LaunchDarkly Node.js server SDK evaluation calls by file, flag key, and call type before migration starts.</p>
+        </div>
+        <div class="pt-card">
+          <div class="pt-card-label">Review</div>
+          <div class="pt-card-title">Separate safe rewrites from manual review.</div>
+          <p class="pt-card-body">Typed static evaluations can be previewed for migration. Dynamic keys, detail evaluations, and bulk calls stay visible for human review.</p>
+        </div>
+        <div class="pt-card">
+          <div class="pt-card-label">Architecture</div>
+          <div class="pt-card-title">Support shared OpenFeature client architectures.</div>
+          <p class="pt-card-body">Configured shared client bindings let services import a platform-owned OpenFeature client instead of creating one in every file.</p>
+        </div>
+        <div class="pt-card">
+          <div class="pt-card-label">CI</div>
+          <div class="pt-card-title">Enforce the boundary in CI with SARIF annotations.</div>
+          <p class="pt-card-body">Use <code style="font-size:13px;font-family:monospace">validate --format sarif</code> to annotate direct SDK policy violations in pull requests.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- SCOPE -->
   <section class="scope">
     <div class="section-inner">
@@ -796,48 +880,48 @@
     </div>
   </section>
 
-  <!-- PLATFORM TEAMS -->
-  <section class="platform-teams">
+  <!-- PROOF -->
+  <section class="proof">
     <div class="section-inner">
-      <div class="section-label">Built For</div>
-      <h2 class="section-heading">Platform teams managing flag sprawl</h2>
-      <div class="pt-grid">
-        <div class="pt-card">
-          <div class="pt-card-label">Visibility</div>
-          <div class="pt-card-title">Know exactly what you have before you touch anything</div>
-          <p class="pt-card-body">
-            FlagLint gives you a complete inventory of every direct LaunchDarkly Node.js SDK
-            call in your codebase — per flag, per file, per call type — before migration starts.
-            No surprises mid-refactor.
-          </p>
+      <div class="section-label">Proof</div>
+      <h2 class="section-heading">See what a migration review looks like</h2>
+      <div class="proof-grid">
+        <div class="proof-card">
+          <div class="proof-label">Inventory report</div>
+          <div class="proof-title">Inventory direct SDK usage.</div>
+          <pre class="proof-code">Flag usages: 20 across 11 unique flags
+
+| checkout-v2 | boolVariation |
+| payment-provider | stringVariation |
+| discount-config | jsonVariation |
+
+Dynamic keys:
+- analytics.ts:51
+- flags-wrapper.ts:48</pre>
         </div>
-        <div class="pt-card">
-          <div class="pt-card-label">Safe automation</div>
-          <div class="pt-card-title">Automate only what can be proven correct</div>
-          <p class="pt-card-body">
-            <code style="font-size:13px;font-family:monospace">--apply</code> rewrites only
-            call-sites where the OpenFeature client binding is provably present in the file.
-            Detail methods, dynamic keys, and bulk calls are surfaced for manual review — never
-            silently rewritten.
-          </p>
+        <div class="proof-card">
+          <div class="proof-label">Migration diff</div>
+          <div class="proof-title">Preview safe rewrites before apply.</div>
+          <pre class="proof-code">- return ldClient.boolVariation(
+-   "checkout-v2", ctx, false);
++ return openFeatureClient.getBooleanValue(
++   "checkout-v2", false, ctx);
+
+Skipped:
+- detail methods
+- dynamic keys
+- bulk calls</pre>
         </div>
-        <div class="pt-card">
-          <div class="pt-card-label">Policy enforcement</div>
-          <div class="pt-card-title">Prevent new vendor-coupled calls from landing in PRs</div>
-          <p class="pt-card-body">
-            <code style="font-size:13px;font-family:monospace">flaglint validate --no-direct-launchdarkly</code>
-            exits 1 if any direct LaunchDarkly evaluation call appears outside your bootstrap file.
-            Add it to CI and migration stays complete on every merge.
-          </p>
-        </div>
-        <div class="pt-card">
-          <div class="pt-card-label">Observability hook</div>
-          <div class="pt-card-title">One place to attach telemetry after migration</div>
-          <p class="pt-card-body">
-            Once your services call OpenFeature, evaluations pass through the OpenFeature hook
-            lifecycle. Register one telemetry hook at the bootstrap boundary — no code changes
-            needed in individual service files.
-          </p>
+        <div class="proof-card">
+          <div class="proof-label">CI enforcement</div>
+          <div class="proof-title">Block new direct SDK calls in CI.</div>
+          <pre class="proof-code">{
+  "ruleId": "flaglint.direct-launchdarkly",
+  "level": "error",
+  "message": {
+    "text": "A direct LaunchDarkly Node.js server SDK evaluation call was found."
+  }
+}</pre>
         </div>
       </div>
     </div>
@@ -869,13 +953,13 @@
     </div>
   </section>
 
-  <!-- CTA -->
+  <!-- EVALUATOR CTA -->
   <section class="waitlist-section">
     <div id="waitlist" class="waitlist-card">
       <h2>Planning an OpenFeature standardization effort?</h2>
       <p class="waitlist-sub">
-        Evaluate the enterprise demo, report an unsupported pattern, or follow upcoming
-        SDK coverage.
+        Run the enterprise demo, report an unsupported pattern, or star the project to
+        follow upcoming SDK coverage.
       </p>
       <div class="cta-row">
         <a href="/docs/demo" class="btn-primary">View enterprise demo</a>
@@ -888,11 +972,13 @@
   <!-- FOOTER -->
   <footer>
     <div class="footer-inner">
-      <span class="footer-copy">FlagLint — MIT License</span>
+      <span class="footer-copy">© 2026 FlagLint</span>
       <div class="footer-links">
         <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
-        <a href="https://x.com/flaglintdev" target="_blank" rel="noopener noreferrer">@flaglintdev on X</a>
+        <a href="/trust.html">Security</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">Contact</a>
       </div>
     </div>
   </footer>
@@ -953,70 +1039,6 @@
       });
     }
 
-    // ── 4. LOOPS FORM ──────────────────────────────────────────────
-    var loopsForm = document.getElementById('loops-form');
-    var loopsEmail = document.getElementById('loops-email');
-    var loopsSubmit = document.getElementById('loops-submit');
-    var loopsLoading = document.getElementById('loops-loading');
-    var loopsSuccess = document.getElementById('loops-success');
-    var loopsError = document.getElementById('loops-error');
-    var loopsBack = document.getElementById('loops-back');
-
-    if (loopsForm && loopsEmail && loopsSubmit && loopsLoading && loopsSuccess && loopsError && loopsBack) {
-      var rateLimit = false;
-
-      function submitHandler(event) {
-        event.preventDefault();
-        if (rateLimit) return;
-        rateLimit = true;
-        setTimeout(function () { rateLimit = false; }, 10000);
-
-        loopsSubmit.style.display = 'none';
-        loopsLoading.style.display = 'block';
-        loopsError.style.display = 'none';
-
-        var formBody = 'userGroup=&mailingLists=&email=' + encodeURIComponent(loopsEmail.value);
-
-        fetch(loopsForm.action, {
-          method: 'POST',
-          body: formBody,
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        })
-          .then(function (res) { return res.json(); })
-          .then(function (json) {
-            loopsLoading.style.display = 'none';
-            if (json.success) {
-              loopsSuccess.textContent = 'Thanks! We\'ll be in touch.';
-              loopsSuccess.style.display = 'block';
-              loopsBack.style.display = 'block';
-              loopsForm.style.display = 'none';
-            } else {
-              loopsError.textContent = json.message || 'Something went wrong. Please try again.';
-              loopsError.style.display = 'block';
-              loopsSubmit.style.display = 'block';
-            }
-          })
-          .catch(function () {
-            loopsLoading.style.display = 'none';
-            loopsError.textContent = 'Something went wrong. Please try again.';
-            loopsError.style.display = 'block';
-            loopsSubmit.style.display = 'block';
-            rateLimit = false;
-          });
-      }
-
-      function resetFormHandler() {
-        loopsEmail.value = '';
-        loopsSuccess.style.display = 'none';
-        loopsError.style.display = 'none';
-        loopsBack.style.display = 'none';
-        loopsForm.style.display = 'flex';
-        loopsSubmit.style.display = 'block';
-      }
-
-      window.resetFormHandler = resetFormHandler;
-      loopsForm.addEventListener('submit', submitHandler);
-    }
   </script>
 </body>
 </html>

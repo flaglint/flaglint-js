@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy — FlagLint</title>
+  <meta name="description" content="FlagLint website and CLI privacy summary.">
+  <meta property="og:title" content="Privacy — FlagLint">
+  <meta property="og:description" content="FlagLint is a local static-analysis CLI. This website does not collect source code or flag data.">
+  <meta property="og:url" content="https://flaglint.dev/privacy">
+  <meta property="og:site_name" content="FlagLint">
+  <meta property="og:type" content="website">
+  <link rel="canonical" href="https://flaglint.dev/privacy">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/docs/docs.css">
+</head>
+<body>
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <div class="nav-right">
+      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
+      <a href="/trust.html" class="hide-mobile">Trust</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+        <button class="btn-outline">GitHub</button>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main class="docs-main" style="max-width:860px;margin:0 auto">
+  <div class="breadcrumb">
+    <a href="/">Home</a>
+    <span class="breadcrumb-sep">›</span>
+    <span class="current">Privacy</span>
+  </div>
+
+  <h1>Privacy</h1>
+  <p class="page-subtitle">FlagLint is designed as a local static-analysis CLI.</p>
+
+  <h2>CLI data handling</h2>
+  <p>
+    The FlagLint CLI reads source files from paths you provide and writes reports
+    or transformed files locally. It does not send source code, flag keys, file
+    paths, LaunchDarkly SDK keys, or migration reports to FlagLint servers.
+  </p>
+
+  <h2>Website data handling</h2>
+  <p>
+    The website provides static documentation and links to GitHub and npm. The
+    homepage does not include an email signup form or collect project source data.
+    External sites such as GitHub, npm, and Cloudflare may process requests under
+    their own policies when you visit or interact with them.
+  </p>
+
+  <h2>Contact</h2>
+  <p>
+    For privacy or security questions, use
+    <a href="https://github.com/flaglint/flaglint/security/advisories/new" target="_blank" rel="noopener noreferrer">GitHub Security Advisories</a>
+    for vulnerabilities or
+    <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>
+    for general project questions.
+  </p>
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <span class="footer-copy">© 2026 FlagLint</span>
+    <div class="footer-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+      <a href="/trust.html">Security</a>
+      <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">Contact</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>
