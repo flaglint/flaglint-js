@@ -26,15 +26,15 @@ Public launch is complete only after:
 
 **npm metadata Node engine mismatch (fixed in v0.5.0)**
 
-| Item | v0.4.1 (published, still at npm) | v0.5.0 (release candidate) |
+| Item | v0.4.1 (published before v0.5.0) | v0.5.0 (release candidate) |
 |------|----------------------------------|---------------------------|
 | `engines.node` | `>=22` | `>=20` |
 | Tarball version | `0.4.1` | `0.5.0` |
 | Node 20 tested | No (claimed >=22) | Yes — PASS |
 | Node 22 tested | Yes — PASS | Yes — PASS |
 
-The published `flaglint@0.4.1` at npm remains `engines.node >=22` until v0.5.0 is published.
-This is expected and no longer a blocker for the release candidate.
+The published `flaglint@0.4.1` metadata mismatch was expected until v0.5.0 publication.
+`flaglint@0.5.0` has since been published with `engines.node >=20`.
 
 ---
 
@@ -165,12 +165,12 @@ Note: extensionless URL routing must be verified in the hosting layer after depl
 
 | Check | Status | Notes |
 |-------|--------|-------|
-| No top-level Early preview warning | PASS | "early preview" at line 760 is in the waitlist newsletter section, not a top-level banner |
+| No top-level Early preview warning | PASS | No warning-first homepage hero |
 | No changing homepage test-count claim | PASS | Stat cards: `CI` / `7` (deps) / `MIT` — no test count |
 | No stale scan-SARIF enforcement language | PASS | Docs use `validate --format sarif` for direct-SDK policy |
 | No runtime OpenTelemetry emit claim | PASS | OTel page documents the hooks pattern; FlagLint does not emit telemetry |
 | No automatic provider/bootstrap generation | PASS | `migrate --apply` never generates bootstrap files |
-| No v0.4.1 version reference on site | PASS | Site does not display a version number |
+| No stale v0.4.1 version reference on site | PASS | Site release messaging must track the published npm version |
 | README uses validate for SARIF enforcement | PASS | CI guide documents `validate --no-direct-launchdarkly --format sarif` |
 | README migration examples preserve context | PASS | All examples preserve the evaluation context argument |
 

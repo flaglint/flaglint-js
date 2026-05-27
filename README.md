@@ -41,7 +41,7 @@ Docs: [Getting Started](https://flaglint.dev/docs/getting-started) · [Commands]
 | Step | Command | Purpose |
 |------|---------|---------|
 | 1 | `flaglint scan` | AST inventory of every direct LD Node server SDK call |
-| 2 | `flaglint migrate --dry-run` | Reviewable before/after diffs with provider setup guidance |
+| 2 | `flaglint migrate --dry-run` | Reviewable before/after diffs; provider setup guidance appears when needed |
 | 3 | `flaglint migrate --apply` | Apply only guarded, provably automatable transformations |
 | 4 | `flaglint validate --no-direct-launchdarkly` | CI gate: exit 1 if direct LD calls remain |
 
@@ -141,7 +141,7 @@ flaglint migrate --exclude-tests           # skip test and spec files
 | Option | Default | Description |
 |--------|---------|-------------|
 | `--output` | `MIGRATION.md` | Write migration plan to file |
-| `--dry-run` | — | Print reviewable diffs to stdout; includes provider setup guidance |
+| `--dry-run` | — | Print reviewable diffs to stdout; includes provider setup guidance when a diff needs it |
 | `--apply` | — | Apply automatable transformations in-place (requires clean git tree) |
 | `--allow-dirty` | — | Override dirty-tree guard for `--apply` |
 | `--config` | auto-detect | Path to a config file |
@@ -216,7 +216,8 @@ but they are not automatically transformed.
 
 ## Supported API matrix
 
-**Scope: LaunchDarkly Node.js server-side SDK** (`launchdarkly-node-server-sdk`).
+**Scope: LaunchDarkly Node.js server-side SDK evaluation calls from
+`@launchdarkly/node-server-sdk` and legacy `launchdarkly-node-server-sdk` imports.**
 
 | LaunchDarkly call | Automatable | OpenFeature equivalent |
 |---|---|---|

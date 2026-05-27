@@ -469,9 +469,9 @@
         <div class="role-card-title">OpenTelemetry</div>
         <div class="role-card-body">
           The CNCF observability framework. OpenTelemetry can record feature-flag
-          evaluation signals as span attributes or log records, giving platform
-          teams a way to correlate flag decisions with runtime behavior in their
-          existing observability pipeline.
+          evaluation events, giving platform teams a way to correlate flag
+          decisions with runtime behavior in their existing observability
+          pipeline.
         </div>
       </div>
     </div>
@@ -535,11 +535,11 @@
   <section class="doc-section">
     <h2>OpenTelemetry feature-flag semantic conventions</h2>
     <p>
-      OpenTelemetry defines semantic conventions for feature-flag signals. These
-      conventions describe how flag evaluation results should be recorded — as
-      attributes on a <strong><code>feature_flag.evaluation</code></strong> span event,
-      or as equivalent log record attributes — giving a common schema across teams and
-      tools.
+      OpenTelemetry defines semantic conventions for feature-flag signals. The
+      current convention defines feature-flag evaluation as a
+      <strong><code>feature_flag.evaluation</code></strong> event emitted through
+      the event/logging signal, giving teams a common schema for evaluation
+      telemetry.
     </p>
 
     <div class="callout warning">
@@ -553,19 +553,22 @@
     </div>
 
     <p>
-      The current Development-status specification defines a
-      <strong><code>feature_flag.evaluation</code></strong> span event carrying these attributes:
+      The current Development-status specification defines the event name
+      <strong><code>feature_flag.evaluation</code></strong> with these attributes:
     </p>
     <ul>
       <li><strong><code>feature_flag.key</code></strong> — the string key that identifies the flag</li>
-      <li><strong><code>feature_flag.provider_name</code></strong> — the name of the provider that resolved the flag (e.g., <code>"LaunchDarkly"</code>)</li>
-      <li><strong><code>feature_flag.variant</code></strong> — a controlled variant identifier, where one is available and approved for export</li>
+      <li><strong><code>feature_flag.provider.name</code></strong> — the name of the provider that resolved the flag (e.g., <code>"LaunchDarkly"</code>)</li>
+      <li><strong><code>feature_flag.result.variant</code></strong> — a semantic variant identifier, where one is available and approved for export</li>
+      <li><strong><code>feature_flag.result.value</code></strong> — the evaluated value, treated as opt-in when a variant is available</li>
+      <li><strong><code>feature_flag.result.reason</code></strong> — the reason code for the evaluated result</li>
     </ul>
     <p>
-      These attribute names may change as the specification stabilizes. Review
-      the OpenTelemetry changelog when upgrading instrumentation libraries.
-      Do not use older deprecated names such as <code>feature_flag.enabled</code>
-      or <code>feature_flag.system</code> — use the current names above.
+      Teams may correlate evaluation events with traces in their observability
+      system, but should follow the current OpenTelemetry specification when
+      implementing instrumentation. These attribute names may change as the
+      specification stabilizes. Review the OpenTelemetry changelog when
+      upgrading instrumentation libraries.
     </p>
     <p>
       <strong>Privacy:</strong> Avoid exporting user-identifying evaluation context, unrestricted flag
@@ -629,34 +632,36 @@
 // stabilization. See:
 // https://opentelemetry.io/docs/specs/semconv/feature-flags/
 //
-// A real implementation would import a Tracer from the OpenTelemetry SDK
-// and set span attributes rather than logging. The hook boundary itself
-// does not change — only the instrumentation body.</span>
+// A real implementation would emit a feature_flag.evaluation event using
+// your OpenTelemetry SDK/logger setup. The hook boundary itself does not
+// change — only the instrumentation body.</span>
 <span class="kw">const</span> featureFlagTelemetryHook: <span class="tp">Hook</span> = {
   <span class="fn">after</span>&lt;<span class="tp">T</span>&gt;(hookCtx: <span class="tp">HookContext</span>&lt;<span class="tp">T</span>&gt;, details: <span class="tp">EvaluationDetails</span>&lt;<span class="tp">T</span>&gt;): <span class="kw">void</span> {
-    <span class="cm">// Register span attributes using the OpenTelemetry feature-flag
-    // semantic conventions (Development status as of this writing):
-    //   feature_flag.key           → hookCtx.flagKey
-    //   feature_flag.provider_name → hookCtx.providerMetadata.name
-	    //   feature_flag.variant       → approved controlled variant identifier
+    <span class="cm">// Emit a feature_flag.evaluation event using the current OpenTelemetry
+    // feature-flag semantic conventions (Development status):
+    //   feature_flag.key            → hookCtx.flagKey
+    //   feature_flag.provider.name  → hookCtx.providerMetadata.name
+	    //   feature_flag.result.variant → approved controlled variant identifier
+	    //   feature_flag.result.reason  → approved reason code, where available
 	    //
-	    // Example (replace with your actual OpenTelemetry tracer setup):
+	    // Example (replace with your actual OpenTelemetry SDK/logger setup):
 	    // Emit only an approved, controlled variant identifier where available.
 	    // Do not export unrestricted evaluation values or sensitive context.
 	    //
-	    //   const span = trace.getActiveSpan();
-	    //   span?.setAttribute("feature_flag.key", hookCtx.flagKey);
-	    //   span?.setAttribute("feature_flag.provider_name",
-	    //                      hookCtx.providerMetadata.name);
-	    //   span?.setAttribute("feature_flag.variant", approvedVariantId);
+	    //   logger.emit({
+	    //     name: "feature_flag.evaluation",
+	    //     attributes: {
+	    //       "feature_flag.key": hookCtx.flagKey,
+	    //       "feature_flag.provider.name": hookCtx.providerMetadata.name,
+	    //       "feature_flag.result.variant": approvedVariantId,
+	    //     },
+	    //   });
   </span>},
 
   <span class="fn">error</span>&lt;<span class="tp">T</span>&gt;(hookCtx: <span class="tp">HookContext</span>&lt;<span class="tp">T</span>&gt;, err: <span class="tp">Error</span>): <span class="kw">void</span> {
     <span class="cm">// Record the evaluation error in your observability pipeline.
-    // Example:
-    //   const span = trace.getActiveSpan();
-    //   span?.recordException(err);
-    //   span?.setAttribute("feature_flag.key", hookCtx.flagKey);
+    // Follow the current OpenTelemetry feature-flag event specification
+    // and your organization's data-handling controls.
     </span>},
 };
 
@@ -769,7 +774,7 @@
         <span class="ref-link-icon">📡</span>
         <div class="ref-link-body">
           <div class="ref-link-title">OpenTelemetry — Feature-flag semantic conventions <span style="color:#f0a500;font-size:12px;font-weight:600;vertical-align:middle;margin-left:6px">Development</span></div>
-          <div class="ref-link-desc">Attribute schema for recording flag evaluation signals as span attributes or log record attributes. Currently Development status — check before adopting in production.</div>
+      <div class="ref-link-desc">Event and attribute schema for recording flag evaluation signals. Currently Development status — check before adopting in production.</div>
         </div>
       </a>
       <a class="ref-link" href="https://docs.launchdarkly.com/sdk/features/openfeature/node-js" target="_blank" rel="noopener">

@@ -140,7 +140,7 @@
         </thead>
         <tbody>
           <tr><td><code>0</code></td><td>Scan completed — no staleness signals detected</td></tr>
-          <tr><td><code>1</code></td><td>Scan completed — staleness signals present (flag debt detected)</td></tr>
+          <tr><td><code>1</code></td><td>Scan completed — configured staleness/review signals present</td></tr>
           <tr><td><code>2</code></td><td>Invalid option or argument</td></tr>
           <tr><td><code>130</code></td><td>Interrupted by SIGINT (Ctrl+C)</td></tr>
         </tbody>
@@ -148,9 +148,10 @@
     </div>
 
     <p>
-      Exit code <code>1</code> on staleness signals allows CI pipelines to surface flag debt
-      visibility without blocking builds. Use <code>continue-on-error: true</code> in GitHub
-      Actions if you want the SARIF upload to succeed even when flag debt is detected.
+      Exit code <code>1</code> on staleness/review signals allows CI pipelines to surface
+      configured review candidates without blocking builds. Use
+      <code>continue-on-error: true</code> in GitHub Actions if you want the SARIF upload to
+      succeed even when review signals are present.
     </p>
 
     <h2>Examples</h2>
@@ -225,8 +226,8 @@
 
     <p>
       <code>file</code> is always relative to the scan root, making reports comparable across
-      machines. <code>stalenessSignals</code> is an array of signal strings when flag debt is
-      detected.
+      machines. <code>stalenessSignals</code> is an array of configured review signal strings
+      when any are present.
     </p>
 
     <h2>How detection works</h2>

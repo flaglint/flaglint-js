@@ -6,6 +6,7 @@ import { LocalFileSource } from "../../scanner/local-source.js";
 import { FlagLintConfigSchema } from "../../config.js";
 import { analyze } from "../index.js";
 import { formatDryRunDiff } from "../dry-run.js";
+import { applyMigration } from "../apply.js";
 
 const FIXTURES = join(dirname(fileURLToPath(import.meta.url)), "fixtures");
 
@@ -22,6 +23,7 @@ class MemoryFileSource {
   constructor(files: Record<string, string>) { this.store = files; }
   async listFiles(_include: string[], _exclude: string[]): Promise<string[]> { return Object.keys(this.store); }
   async readFile(path: string): Promise<string> { const v = this.store[path]; if (v === undefined) throw new Error(`file not found: ${path}`); return v; }
+  async writeFile(path: string, content: string): Promise<void> { this.store[path] = content; }
 }
 
 it("dry-run classifies configured imported binding as apply-ready when configured", async () => {
@@ -42,6 +44,9 @@ it("dry-run classifies configured imported binding as apply-ready when configure
   const allowed = [{ importName: "openFeatureClient", modulePatterns: ["platform/feature-flags"] }];
   const report = await formatDryRunDiff(analysis, source, allowed);
   expect(report).toContain("Diffs requiring provider setup: 0");
+  expect(report).toContain("use proven OpenFeature client bindings");
+  expect(report).not.toContain("placeholder `openFeatureClient`");
+  expect(report).not.toContain("## Provider Setup");
   // Should preview the exact local alias used in the file, not the placeholder
   expect(report).toContain('flags.getBooleanValue("my-flag", false, ctx)');
   expect(report).not.toContain('openFeatureClient.getBooleanValue("my-flag"');
@@ -69,8 +74,60 @@ it("dry-run previews aliased configured .js imports with the local alias", async
   const report = await formatDryRunDiff(analysis, source, allowed);
 
   expect(report).toContain("Diffs requiring provider setup: 0");
+  expect(report).toContain("use proven OpenFeature client bindings");
+  expect(report).not.toContain("placeholder `openFeatureClient`");
+  expect(report).not.toContain("## Provider Setup");
   expect(report).toContain('flags.getBooleanValue("my-js-flag", false, ctx)');
   expect(report).not.toContain('openFeatureClient.getBooleanValue("my-js-flag"');
+});
+
+it("dry-run previews configured named imports without provider setup wording", async () => {
+  const provider = [
+    'import { OpenFeature } from "@openfeature/server-sdk";',
+    "export const openFeatureClient = OpenFeature.getClient();",
+  ].join("\n");
+  const service = [
+    'import LaunchDarkly from "@launchdarkly/node-server-sdk";',
+    'import { openFeatureClient } from "../platform/feature-flags.js";',
+    'const ldClient = LaunchDarkly.init("sdk-key");',
+    "declare const ctx: unknown;",
+    'export const r = ldClient.stringVariation("pricing-tier", ctx, "standard");',
+  ].join("\n");
+
+  const files = { "platform/feature-flags.ts": provider, "src/service.ts": service };
+  const source = new MemoryFileSource(files);
+  const cfg = FlagLintConfigSchema.parse({ include: ["**"], exclude: [], minFileCount: 0 });
+  const scanResult = await scan(source, cfg);
+  const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+  const report = await formatDryRunDiff(analyze(scanResult), source, allowed);
+
+  expect(report).toContain("Diffs requiring provider setup: 0");
+  expect(report).toContain("use proven OpenFeature client bindings");
+  expect(report).toContain('openFeatureClient.getStringValue("pricing-tier", "standard", ctx)');
+  expect(report).not.toContain("placeholder `openFeatureClient`");
+  expect(report).not.toContain("## Provider Setup");
+});
+
+it("dry-run previews local OpenFeature.getClient bindings without provider setup wording", async () => {
+  const service = [
+    'import { OpenFeature } from "@openfeature/server-sdk";',
+    'import LaunchDarkly from "@launchdarkly/node-server-sdk";',
+    "const openFeatureClient = OpenFeature.getClient();",
+    'const ldClient = LaunchDarkly.init("sdk-key");',
+    "declare const ctx: unknown;",
+    'export const r = ldClient.numberVariation("timeout-ms", ctx, 2500);',
+  ].join("\n");
+
+  const source = new MemoryFileSource({ "service.ts": service });
+  const cfg = FlagLintConfigSchema.parse({ include: ["**"], exclude: [], minFileCount: 0 });
+  const scanResult = await scan(source, cfg);
+  const report = await formatDryRunDiff(analyze(scanResult), source, []);
+
+  expect(report).toContain("Diffs requiring provider setup: 0");
+  expect(report).toContain("use proven OpenFeature client bindings");
+  expect(report).toContain('openFeatureClient.getNumberValue("timeout-ms", 2500, ctx)');
+  expect(report).not.toContain("placeholder `openFeatureClient`");
+  expect(report).not.toContain("## Provider Setup");
 });
 
 it("dry-run marks missing binding as requiring provider setup and uses placeholder", async () => {
@@ -92,7 +149,78 @@ it("dry-run marks missing binding as requiring provider setup and uses placehold
   const report = await formatDryRunDiff(analysis, source, []);
   // no proven binding -> diff requires provider setup and uses placeholder
   expect(report).toContain("Diffs requiring provider setup: 1");
+  expect(report).toContain("placeholder `openFeatureClient`");
+  expect(report).toContain("## Provider Setup");
   expect(report).toContain('openFeatureClient.getBooleanValue("my-flag", false, ctx)');
+});
+
+it("dry-run scopes setup guidance to only setup-required diffs in mixed output", async () => {
+  const provider = [
+    'import { OpenFeature } from "@openfeature/server-sdk";',
+    "export const openFeatureClient = OpenFeature.getClient();",
+  ].join("\n");
+  const proven = [
+    'import LaunchDarkly from "@launchdarkly/node-server-sdk";',
+    'import { openFeatureClient as flags } from "../platform/feature-flags.js";',
+    'const ldClient = LaunchDarkly.init("sdk-key");',
+    "declare const ctx: unknown;",
+    'export const r = ldClient.boolVariation("proven-flag", ctx, false);',
+  ].join("\n");
+  const missing = [
+    'import LaunchDarkly from "@launchdarkly/node-server-sdk";',
+    'const ldClient = LaunchDarkly.init("sdk-key");',
+    "declare const ctx: unknown;",
+    'export const r = ldClient.boolVariation("setup-flag", ctx, false);',
+  ].join("\n");
+
+  const source = new MemoryFileSource({
+    "platform/feature-flags.ts": provider,
+    "src/proven.ts": proven,
+    "src/missing.ts": missing,
+  });
+  const cfg = FlagLintConfigSchema.parse({ include: ["**"], exclude: [], minFileCount: 0 });
+  const scanResult = await scan(source, cfg);
+  const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+  const report = await formatDryRunDiff(analyze(scanResult), source, allowed);
+
+  expect(report).toContain("Reviewable diffs: 2");
+  expect(report).toContain("Diffs requiring provider setup: 1");
+  expect(report).toContain("Some diffs use proven OpenFeature client bindings");
+  expect(report).toContain("placeholder require provider/client setup");
+  expect(report).toContain('flags.getBooleanValue("proven-flag", false, ctx)');
+  expect(report).toContain('openFeatureClient.getBooleanValue("setup-flag", false, ctx)');
+  expect(report).toContain("## Provider Setup");
+});
+
+it("apply uses the same configured aliased .js binding previewed by dry-run", async () => {
+  const provider = [
+    'import { OpenFeature } from "@openfeature/server-sdk";',
+    "export const openFeatureClient = OpenFeature.getClient();",
+  ].join("\n");
+  const service = [
+    'import LaunchDarkly from "@launchdarkly/node-server-sdk";',
+    'import { openFeatureClient as flags } from "../platform/feature-flags.js";',
+    'const ldClient = LaunchDarkly.init("sdk-key");',
+    "declare const ctx: unknown;",
+    'export const r = ldClient.boolVariation("my-js-flag", ctx, false);',
+  ].join("\n");
+
+  const source = new MemoryFileSource({ "platform/feature-flags.ts": provider, "src/service.ts": service });
+  const cfg = FlagLintConfigSchema.parse({ include: ["**"], exclude: [], minFileCount: 0 });
+  const scanResult = await scan(source, cfg);
+  const analysis = analyze(scanResult);
+  const allowed = [{ importName: "openFeatureClient", modulePatterns: ["**/platform/feature-flags"] }];
+  const report = await formatDryRunDiff(analysis, source, allowed);
+  const result = await applyMigration(analysis, source, {
+    allowDirty: true,
+    allowedOpenFeatureClientBindings: allowed,
+  });
+
+  expect(report).toContain('flags.getBooleanValue("my-js-flag", false, ctx)');
+  expect(result.transformed).toBe(1);
+  await expect(source.readFile("src/service.ts")).resolves.toContain(
+    'flags.getBooleanValue("my-js-flag", false, ctx)'
+  );
 });
 
 describe("migrate --dry-run diffs", () => {
@@ -107,7 +235,7 @@ describe("migrate --dry-run diffs", () => {
       Diffs requiring provider setup: 6
       Skipped usages: 4
 
-      ## Provider Setup (Required Before Applying Diffs)
+      ## Provider Setup Guidance (For Diffs Requiring Setup)
 
       LaunchDarkly remains your feature flag provider.
       OpenFeature becomes the evaluation API your application code calls.
@@ -132,7 +260,7 @@ describe("migrate --dry-run diffs", () => {
       await OpenFeature.setProviderAndWait(ldProvider);
 
       // Share this client across your application.
-      // Replace the \`openFeatureClient\` placeholder in the diffs below.
+      // Replace the \`openFeatureClient\` placeholder in affected diffs.
       const openFeatureClient = OpenFeature.getClient();
       \`\`\`
 

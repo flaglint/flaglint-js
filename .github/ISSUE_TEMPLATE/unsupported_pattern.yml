@@ -12,7 +12,7 @@ body:
 
         FlagLint currently supports the **LaunchDarkly Node.js server-side SDK** only.
         Check the [Supported API matrix](https://github.com/flaglint/flaglint#supported-api-matrix)
-        before reporting — browser SDK, React, and other patterns are out of scope for v0.4.
+        before reporting — browser SDK, React, and other patterns are outside the current automation scope.
 
   - type: dropdown
     id: kind
@@ -31,7 +31,7 @@ body:
     attributes:
       label: FlagLint version
       description: Run `flaglint --version`
-      placeholder: "0.4.1"
+      placeholder: "0.5.1"
     validations:
       required: true
 
