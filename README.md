@@ -440,8 +440,8 @@ reviewers see them in the PR without running anything locally.
 
 Validated against 120 deterministic benchmark cases within the supported LaunchDarkly Node.js server-side SDK scope. 100% precision and recall are limited to those 120 tested cases and to the Node.js server-side SDK call patterns explicitly listed in the Supported API matrix above.
 
-Detection is AST-based, not regex: client binding patterns, import aliases, and CJS require
-forms are resolved before matching.
+Detection is AST-based, not regex: client binding patterns, named `init` import aliases,
+OpenFeature import aliases, and CJS require forms are resolved before matching.
 
 ---
 

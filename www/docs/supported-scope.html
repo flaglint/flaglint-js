@@ -79,8 +79,9 @@
     <p>
       FlagLint currently supports the <strong>LaunchDarkly Node.js server-side SDK</strong>
       in both package forms: <code>launchdarkly-node-server-sdk</code> (legacy) and
-      <code>@launchdarkly/node-server-sdk</code> (SDK v8+, scoped package). Both ESM import
-      and CJS <code>require()</code> forms are recognized. Import aliases are resolved before matching.
+      <code>@launchdarkly/node-server-sdk</code> (SDK v8+, scoped package). ESM namespace/default
+      imports, named <code>init</code> imports and aliases, and CJS <code>require()</code> forms
+      are recognized. Import aliases are resolved before matching.
     </p>
     <p>
       Browser SDKs, React SDKs, Go, Java, Python, and other server SDKs are outside the
@@ -264,8 +265,8 @@
     <p>
       FlagLint's scanner is validated against 120 deterministic benchmark cases within the
       supported LaunchDarkly Node.js server-side SDK scope. Detection is AST-based, not
-      regex: client binding patterns, import aliases, and CJS <code>require()</code> forms
-      are resolved before matching.
+      regex: client binding patterns, named <code>init</code> import aliases, OpenFeature import
+      aliases, and CJS <code>require()</code> forms are resolved before matching.
     </p>
     <p>
       100% precision and recall are limited to those 120 tested cases and to the Node.js

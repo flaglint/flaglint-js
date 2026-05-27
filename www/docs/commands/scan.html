@@ -236,7 +236,7 @@
       LaunchDarkly Node.js SDK calls. The scanner:
     </p>
     <ul>
-      <li>Resolves import aliases and CJS <code>require()</code> forms</li>
+      <li>Resolves named <code>init</code> import aliases, OpenFeature import aliases, and CJS <code>require()</code> forms</li>
       <li>Identifies the LaunchDarkly client binding by import source, not variable name</li>
       <li>Detects typed method calls: <code>boolVariation</code>, <code>stringVariation</code>, <code>numberVariation</code>, <code>jsonVariation</code>, and their <code>*Detail</code> variants</li>
       <li>Flags dynamic keys (computed at runtime) as manual-review items without guessing their value</li>

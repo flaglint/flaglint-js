@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+## [0.5.2] - 2026-05-27
+
+### Fixed
+
+- Fixed LaunchDarkly client provenance for aliased named `init` imports from both
+  supported Node.js server SDK package names. Calls initialized via
+  `import { init as ldInit } from "@launchdarkly/node-server-sdk"` or legacy
+  `launchdarkly-node-server-sdk` are now consistently detected by `scan`,
+  enforced by `validate --no-direct-launchdarkly`, emitted in validation SARIF,
+  and handled by existing guarded migration dry-run/apply flows.
+- No migration safety boundary changed: `migrate --apply` still requires a proven
+  OpenFeature client binding and continues to skip dynamic keys, detail
+  evaluations, bulk calls, unknown fallbacks, and ambiguous cases.
+
 ## [0.5.1] - 2026-05-27
 
 ### Fixed

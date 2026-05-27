@@ -202,19 +202,23 @@ function walk(root: TSESTree.Node | null | undefined, visit: (n: TSESTree.Node) 
  * Collect the set of local variable names that are proven LaunchDarkly clients.
  *
  * A variable is a proven LD client if and only if it is directly initialized
- * from `<LDNamespace>.init(...)` where <LDNamespace> was imported or required
- * from a known LaunchDarkly SDK package.
+ * from `<LDNamespace>.init(...)` or from a named `init(...)` binding where the
+ * namespace/function was imported or required from a known LaunchDarkly SDK
+ * package.
  *
  * No name-based heuristics are used: only import/require bindings establish
- * the namespace, and only `.init()` calls on those namespaces establish clients.
+ * the namespace/initializer, and only those initializer calls establish clients.
  */
 function collectLDClients(ast: TSESTree.Program): Set<string> {
-  // ── Step 1: collect namespace names from top-level LD imports / require() ──
+  // ── Step 1: collect namespace and named init bindings from top-level LD imports / require() ──
   const ldNamespaces = new Set<string>();
+  const ldInitFunctions = new Set<string>();
 
   for (const stmt of ast.body) {
     // ESM: import * as X from 'launchdarkly-...'
     //      import X from 'launchdarkly-...'
+    //      import { init } from 'launchdarkly-...'
+    //      import { init as ldInit } from 'launchdarkly-...'
     if (stmt.type === "ImportDeclaration") {
       const importDecl = stmt as TSESTree.ImportDeclaration;
       if (LD_NODE_SERVER_PACKAGES.has(importDecl.source.value)) {
@@ -224,6 +228,15 @@ function collectLDClients(ast: TSESTree.Program): Set<string> {
             spec.type === "ImportDefaultSpecifier"
           ) {
             ldNamespaces.add(spec.local.name);
+          }
+          if (spec.type === "ImportSpecifier") {
+            const importedName =
+              spec.imported.type === "Identifier"
+                ? (spec.imported as TSESTree.Identifier).name
+                : (spec.imported as TSESTree.StringLiteral).value;
+            if (importedName === "init") {
+              ldInitFunctions.add(spec.local.name);
+            }
           }
         }
       }
@@ -253,9 +266,9 @@ function collectLDClients(ast: TSESTree.Program): Set<string> {
     }
   }
 
-  if (ldNamespaces.size === 0) return new Set();
+  if (ldNamespaces.size === 0 && ldInitFunctions.size === 0) return new Set();
 
-  // ── Step 2: collect variable names assigned from LDNamespace.init(...) ──
+  // ── Step 2: collect variable names assigned from LDNamespace.init(...) or named init(...) ──
   const ldClients = new Set<string>();
   walk(ast, (node) => {
     if (node.type !== "VariableDeclaration") return;
@@ -267,6 +280,13 @@ function collectLDClients(ast: TSESTree.Program): Set<string> {
         decl.init.type !== "CallExpression"
       ) continue;
       const initCall = decl.init as TSESTree.CallExpression;
+      if (
+        initCall.callee.type === "Identifier" &&
+        ldInitFunctions.has((initCall.callee as TSESTree.Identifier).name)
+      ) {
+        ldClients.add((decl.id as TSESTree.Identifier).name);
+        continue;
+      }
       if (
         initCall.callee.type !== "MemberExpression" ||
         (initCall.callee as TSESTree.MemberExpression).computed

@@ -87,6 +87,7 @@
     </p>
     <ul>
       <li>An aliased import (<code>import ld from "launchdarkly-node-server-sdk"</code>) from a local variable named <code>ld</code></li>
+      <li>An aliased named initializer (<code>import { init as ldInit } from "@launchdarkly/node-server-sdk"</code>) from an unrelated local function named <code>ldInit</code></li>
       <li>A call on the LaunchDarkly client from a call on an object that happens to have a method named <code>boolVariation</code></li>
       <li>A dynamic key in a template literal from a static string constant</li>
       <li>A <code>require()</code> call from a string that contains the word "require"</li>
