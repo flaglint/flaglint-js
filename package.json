@@ -35,7 +35,9 @@
   },
   "scripts": {
     "sync:www": "tsx scripts/sync-www.ts",
-    "build": "npm run sync:www && tsup",
+    "build:docs": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "build": "npm run sync:www && npm run build:docs && tsup",
+    "dev:docs": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "typecheck:agent": "tsc --project tsconfig.agent.json",
@@ -62,9 +64,11 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@astrojs/starlight": "^0.39.2",
     "@types/micromatch": "^4.0.10",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.1.6",
+    "astro": "^6.3.8",
     "clipboardy": "^4.0.0",
     "tsup": "^8.2.4",
     "tsx": "^4.19.0",
