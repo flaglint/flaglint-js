@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Added truth-gate coverage and scanner support for destructured CommonJS
+  LaunchDarkly initializer aliases such as
+  `const { init: ldInit } = require("@launchdarkly/node-server-sdk")`. This
+  keeps the public alias/CJS provenance claim backed across scan, validate,
+  validation SARIF, dry-run, and guarded apply flows.
+
 ## [0.5.2] - 2026-05-27
 
 ### Fixed

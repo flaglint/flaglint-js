@@ -69,8 +69,22 @@ function serviceWithNamedInit(pkg: string): string {
 function serviceWithNamespaceImport(pkg: string): string {
   return [
     `import * as LaunchDarkly from "${pkg}";`,
+    'import { openFeatureClient as flags } from "../platform/feature-flags.js";',
     "",
     'const ldClient = LaunchDarkly.init("sdk-key");',
+    "",
+    "export async function checkout(ctx: { key: string }) {",
+    '  return await ldClient.boolVariation("checkout-v2", ctx, false);',
+    "}",
+  ].join("\n");
+}
+
+function serviceWithCjsAliasedInit(pkg: string): string {
+  return [
+    `const { init: ldInit } = require("${pkg}");`,
+    'import { openFeatureClient as flags } from "../platform/feature-flags.js";',
+    "",
+    'const ldClient = ldInit("sdk-key");',
     "",
     "export async function checkout(ctx: { key: string }) {",
     '  return await ldClient.boolVariation("checkout-v2", ctx, false);',
@@ -84,6 +98,46 @@ const provider = [
 ].join("\n");
 
 describe("LaunchDarkly named init import provenance", () => {
+  it.each([
+    ["scoped namespace import", serviceWithNamespaceImport("@launchdarkly/node-server-sdk")],
+    ["scoped ESM aliased init import", serviceWithAliasedInit("@launchdarkly/node-server-sdk")],
+    ["legacy ESM aliased init import", serviceWithAliasedInit("launchdarkly-node-server-sdk")],
+    ["scoped CJS destructured aliased init require", serviceWithCjsAliasedInit("@launchdarkly/node-server-sdk")],
+    ["legacy CJS destructured aliased init require", serviceWithCjsAliasedInit("launchdarkly-node-server-sdk")],
+  ])(
+    "supports %s across scan, validate, SARIF, dry-run, and guarded apply",
+    async (_name, service) => {
+      const source = new MemoryWritableFileSource({
+        "src/checkout.ts": service,
+        "platform/feature-flags.ts": provider,
+      });
+
+      const result = await scan(source, cfg);
+      const validation = validateScanResult(result, { noDirectLaunchDarkly: true });
+      const sarif = JSON.parse(formatValidationSarif(validation, result.scanRoot, result.scannedAt)) as {
+        runs: Array<{ results: Array<{ ruleId: string }> }>;
+      };
+      const dryRun = await formatDryRunDiff(analyze(result), source, cfg.openFeatureClientBindings);
+      const applyResult = await applyMigration(analyze(result), source, {
+        allowDirty: true,
+        allowedOpenFeatureClientBindings: cfg.openFeatureClientBindings,
+      });
+
+      expect(result.totalUsages).toBe(1);
+      expect(result.uniqueFlags).toEqual(["checkout-v2"]);
+      expect(validation.passed).toBe(false);
+      expect(validation.violations).toHaveLength(1);
+      expect(sarif.runs[0]!.results[0]!.ruleId).toBe("flaglint.direct-launchdarkly");
+      expect(dryRun).toContain('flags.getBooleanValue("checkout-v2", false, ctx)');
+      expect(dryRun).toContain("Diffs requiring provider setup: 0");
+      expect(applyResult.transformed).toBe(1);
+      expect(applyResult.skipped).toBe(0);
+      await expect(source.readFile("src/checkout.ts")).resolves.toContain(
+        'return await flags.getBooleanValue("checkout-v2", false, ctx);'
+      );
+    }
+  );
+
   it("detects scoped SDK clients initialized from aliased named init imports", async () => {
     const source = new MemoryWritableFileSource({
       "src/checkout.ts": serviceWithAliasedInit("@launchdarkly/node-server-sdk"),
@@ -147,6 +201,22 @@ describe("LaunchDarkly named init import provenance", () => {
     const source = new MemoryWritableFileSource({
       "src/checkout.ts": [
         'import { init as ldInit } from "./not-launchdarkly";',
+        "",
+        'const ldClient = ldInit("sdk-key");',
+        'export const enabled = ldClient.boolVariation("checkout-v2", ctx, false);',
+      ].join("\n"),
+    });
+
+    const result = await scan(source, cfg);
+
+    expect(result.totalUsages).toBe(0);
+    expect(result.uniqueFlags).toEqual([]);
+  });
+
+  it("does not match destructured aliased init required from a non-LaunchDarkly module", async () => {
+    const source = new MemoryWritableFileSource({
+      "src/checkout.ts": [
+        'const { init: ldInit } = require("./not-launchdarkly");',
         "",
         'const ldClient = ldInit("sdk-key");',
         'export const enabled = ldClient.boolVariation("checkout-v2", ctx, false);',

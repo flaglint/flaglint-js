@@ -245,12 +245,14 @@ function collectLDClients(ast: TSESTree.Program): Set<string> {
 
     // CJS: const X = require('launchdarkly-...')
     //      const X: any = require('launchdarkly-...')
+    //      const { init } = require('launchdarkly-...')
+    //      const { init: ldInit } = require('launchdarkly-...')
     if (stmt.type === "VariableDeclaration") {
       const varDecl = stmt as TSESTree.VariableDeclaration;
       for (const decl of varDecl.declarations) {
-        if (decl.id.type !== "Identifier" || !decl.init) continue;
+        if (!decl.init) continue;
         const init = decl.init;
-        if (
+        const isLDRequire =
           init.type === "CallExpression" &&
           (init as TSESTree.CallExpression).callee.type === "Identifier" &&
           ((init as TSESTree.CallExpression).callee as TSESTree.Identifier).name === "require" &&
@@ -258,9 +260,27 @@ function collectLDClients(ast: TSESTree.Program): Set<string> {
           (init as TSESTree.CallExpression).arguments[0]!.type === "Literal" &&
           LD_NODE_SERVER_PACKAGES.has(
             ((init as TSESTree.CallExpression).arguments[0] as TSESTree.StringLiteral).value as string
-          )
-        ) {
+          );
+        if (!isLDRequire) continue;
+
+        if (decl.id.type === "Identifier") {
           ldNamespaces.add((decl.id as TSESTree.Identifier).name);
+          continue;
+        }
+
+        if (decl.id.type === "ObjectPattern") {
+          for (const prop of decl.id.properties) {
+            if (prop.type !== "Property") continue;
+            const keyName =
+              prop.key.type === "Identifier"
+                ? (prop.key as TSESTree.Identifier).name
+                : prop.key.type === "Literal" && typeof (prop.key as TSESTree.Literal).value === "string"
+                  ? ((prop.key as TSESTree.StringLiteral).value as string)
+                  : undefined;
+            if (keyName === "init" && prop.value.type === "Identifier") {
+              ldInitFunctions.add((prop.value as TSESTree.Identifier).name);
+            }
+          }
         }
       }
     }
