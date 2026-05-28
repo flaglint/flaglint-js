@@ -42,3 +42,9 @@ Teams may correlate evaluation events with traces in their observability system,
 ## Privacy Guidance
 
 Prefer an approved variant identifier where available. Avoid exporting sensitive evaluation context or unrestricted flag-result values. Follow your organization’s data-handling controls and the current OpenTelemetry specification.
+
+## Feedback
+
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/integrations/opentelemetry.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [Supported Scope](/docs/reference/supported-scope/)

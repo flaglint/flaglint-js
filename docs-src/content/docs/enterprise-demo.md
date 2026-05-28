@@ -57,6 +57,7 @@ node ./dist/bin/flaglint.js validate \
 Expected output:
 
 ```text
+- Scanning ./examples/enterprise-checkout-service/after-complete...
 ✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
   Scanned 5 file(s).
 ```
@@ -70,3 +71,9 @@ npx flaglint scan ./src
 npx flaglint migrate ./src --dry-run
 npx flaglint validate ./src --no-direct-launchdarkly
 ```
+
+## Feedback
+
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/enterprise-demo.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [Migrate a Node Service](/docs/tutorials/migrate-a-node-service/)

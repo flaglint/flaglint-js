@@ -66,3 +66,9 @@ Do not set `continue-on-error: true` on the blocking validation step. The job sh
 ```text
 flaglint.direct-launchdarkly
 ```
+
+## Feedback
+
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/integrations/github-actions.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [OpenTelemetry](/docs/integrations/opentelemetry/)

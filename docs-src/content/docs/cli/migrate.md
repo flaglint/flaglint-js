@@ -1,80 +1,67 @@
 ---
 title: flaglint migrate
-description: Generate migration plans and guarded OpenFeature call-site rewrites.
+description: Generate migration plans, preview diffs, and apply guarded OpenFeature rewrites.
 lastUpdated: 2026-05-28
 ---
 
-`flaglint migrate` analyzes supported LaunchDarkly Node.js server SDK evaluation calls and produces an OpenFeature migration plan.
+`flaglint migrate` analyzes supported LaunchDarkly Node.js server SDK evaluation calls and separates safe call-site rewrites from manual-review work.
+
+## Commands
 
 ```bash
-flaglint migrate [dir] [options]
+npx flaglint migrate ./src
 ```
-
-## Examples
 
 ```bash
-flaglint migrate ./src
-flaglint migrate ./src --dry-run
-flaglint migrate ./src --apply
-flaglint migrate ./src --apply --allow-dirty
-flaglint migrate ./src --output MIGRATION.md
+npx flaglint migrate ./src --dry-run
 ```
 
-Dry-run example:
-
-```diff
-- const enabled = await ldClient.boolVariation("checkout-v2", ctx, false);
-+ const enabled = await openFeatureClient.getBooleanValue("checkout-v2", false, ctx);
+```bash
+npx flaglint migrate ./src --apply
 ```
 
 ## Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--output` | `MIGRATION.md` | Write migration plan to a file. |
-| `--dry-run` | off | Print reviewable diffs without writing source files. |
-| `--apply` | off | Apply only provably automatable transformations in-place. |
-| `--allow-dirty` | off | Override the clean git tree guard for `--apply`. |
-| `--config` | auto-detect | Path to a config file. |
-| `--exclude-tests` | off | Skip test and spec files. |
+| Option | Description |
+| --- | --- |
+| `--dry-run` | Print reviewable diffs without modifying files. |
+| `--apply` | Apply only safely automatable rewrites. |
+| `--allow-dirty` | Allow `--apply` on a dirty git working tree. |
+| `--output <file>` | Write the default migration report to a file. |
+| `--config <path>` | Use an explicit config file. |
+| `--exclude-tests` | Exclude test/spec files and test directories. |
 
-## Apply Safety Contract
+## Dry-Run Output
 
-`--apply` only rewrites a call site when all of these are true:
+Generated from the enterprise demo:
 
-- The call is a supported LaunchDarkly Node.js server SDK evaluation method.
-- The flag key is static.
-- The value type is known from the SDK method or literal fallback.
-- The fallback and evaluation context can be preserved exactly.
-- A proven OpenFeature client binding exists in the file.
+```text
+LaunchDarkly usages found: 19
+Safely automatable: 10 · Manual review: 9
+Reviewable diffs: 10
+Diffs requiring provider setup: 0
+Skipped usages: 9
+```
 
-The OpenFeature client binding may be local:
+```diff
+-  return ldClient.boolVariation("checkout-v2", ctx, false);
++  return openFeatureClient.getBooleanValue("checkout-v2", false, ctx);
+```
+
+## Apply Contract
+
+`--apply` rewrites only when a proven OpenFeature client binding exists. That binding may be local:
 
 ```ts
-import { OpenFeature } from "@openfeature/server-sdk";
-
 const openFeatureClient = OpenFeature.getClient();
 ```
 
-Or imported from an allowlisted shared module:
+or imported through configured `openFeatureClientBindings`.
 
-```ts
-import { openFeatureClient as flags } from "../platform/feature-flags.js";
-```
+Provider/bootstrap setup is never inserted automatically.
 
-```json
-{
-  "openFeatureClientBindings": [
-    {
-      "importName": "openFeatureClient",
-      "modulePatterns": ["**/platform/feature-flags"]
-    }
-  ]
-}
-```
+## Feedback
 
-Aliased imports preserve the local identifier. TypeScript ESM `.js` runtime import specifiers are recognized when the configured `modulePatterns` entry omits `.js`.
-
-## Manual Review
-
-FlagLint does not automatically rewrite dynamic keys, detail evaluations, bulk flag-state calls, unknown fallback types, ambiguous OpenFeature client bindings, browser SDKs, React SDKs, non-Node SDKs, or non-LaunchDarkly providers.
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/migrate.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [validate CLI](/docs/cli/validate/)

@@ -3,13 +3,33 @@
   <url><loc>https://flaglint.dev/</loc></url>
   <url><loc>https://flaglint.dev/docs</loc></url>
   <url><loc>https://flaglint.dev/docs/quickstart</loc></url>
+  <url><loc>https://flaglint.dev/docs/why-flaglint</loc></url>
   <url><loc>https://flaglint.dev/docs/enterprise-demo</loc></url>
+  <url><loc>https://flaglint.dev/docs/tutorials/migrate-a-node-service</loc></url>
+  <url><loc>https://flaglint.dev/docs/tutorials/add-openfeature-provider</loc></url>
+  <url><loc>https://flaglint.dev/docs/tutorials/enforce-in-github-actions</loc></url>
+  <url><loc>https://flaglint.dev/docs/tutorials/shared-client-architecture</loc></url>
+  <url><loc>https://flaglint.dev/docs/concepts/how-flaglint-works</loc></url>
+  <url><loc>https://flaglint.dev/docs/concepts/safety-model</loc></url>
+  <url><loc>https://flaglint.dev/docs/concepts/openfeature-boundary</loc></url>
+  <url><loc>https://flaglint.dev/docs/concepts/source-level-debt-signals</loc></url>
   <url><loc>https://flaglint.dev/docs/cli/scan</loc></url>
   <url><loc>https://flaglint.dev/docs/cli/migrate</loc></url>
   <url><loc>https://flaglint.dev/docs/cli/validate</loc></url>
+  <url><loc>https://flaglint.dev/docs/cli/configuration</loc></url>
+  <url><loc>https://flaglint.dev/docs/cli/report-formats</loc></url>
+  <url><loc>https://flaglint.dev/docs/cli/exit-codes</loc></url>
+  <url><loc>https://flaglint.dev/docs/guides/express</loc></url>
+  <url><loc>https://flaglint.dev/docs/guides/nestjs</loc></url>
+  <url><loc>https://flaglint.dev/docs/guides/monorepos</loc></url>
+  <url><loc>https://flaglint.dev/docs/guides/manual-review-patterns</loc></url>
+  <url><loc>https://flaglint.dev/docs/guides/troubleshooting</loc></url>
   <url><loc>https://flaglint.dev/docs/reference/supported-scope</loc></url>
+  <url><loc>https://flaglint.dev/docs/reference/limitations</loc></url>
+  <url><loc>https://flaglint.dev/docs/reference/security</loc></url>
+  <url><loc>https://flaglint.dev/docs/reference/faq</loc></url>
+  <url><loc>https://flaglint.dev/docs/reference/changelog</loc></url>
   <url><loc>https://flaglint.dev/docs/integrations/openfeature-provider</loc></url>
-  <url><loc>https://flaglint.dev/docs/concepts/safety-model</loc></url>
   <url><loc>https://flaglint.dev/docs/integrations/github-actions</loc></url>
   <url><loc>https://flaglint.dev/docs/integrations/opentelemetry</loc></url>
   <url><loc>https://flaglint.dev/docs/trust/security</loc></url>

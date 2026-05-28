@@ -1,48 +1,48 @@
 ---
 title: Safety Model
-description: How FlagLint limits automatic migration to reviewable, proven transformations.
+description: How FlagLint avoids rewriting ambiguous or unsupported flag evaluations.
 lastUpdated: 2026-05-28
 ---
 
-FlagLint is intentionally conservative. It performs local static analysis and only rewrites call sites that preserve behavior at the source level.
+FlagLint is conservative. It separates inventory, review, and source edits so teams can inspect migration work before applying it.
 
-## AST-Based Analysis
-
-FlagLint parses JavaScript and TypeScript with `@typescript-eslint/typescript-estree`. It uses AST bindings instead of regular expressions so it can distinguish:
-
-- LaunchDarkly imports from unrelated local variables.
-- Named `init` import aliases from unrelated functions named `ldInit`.
-- Static string keys from dynamic expressions.
-- Known fallback literals from unknown fallback expressions.
-
-## Clean Git Tree Requirement
-
-`flaglint migrate --apply` refuses to run on a dirty git working tree unless `--allow-dirty` is set.
-
-```bash
-flaglint migrate ./src --apply
-```
-
-If the tree is dirty:
+## Safety Model Diagram
 
 ```text
-Refusing to apply migration with uncommitted changes.
-Commit or stash changes first, or rerun with --allow-dirty.
+Source files
+  -> local AST analysis
+  -> inventory / diff / SARIF
+  -> developer review
 ```
 
-## No Automatic Rewrite of Ambiguous Patterns
+## What `--apply` Requires
 
-FlagLint does not automatically rewrite:
+`migrate --apply` rewrites a call site only when all of these are true:
+
+- The LaunchDarkly client is proven from supported Node.js server SDK provenance.
+- The call is a supported value evaluation method.
+- The flag key is static.
+- The fallback value and value type are known.
+- The evaluation context expression is present.
+- A local or configured imported OpenFeature client binding is proven.
+- The git working tree is clean, unless `--allow-dirty` is explicitly used.
+
+## What Is Never Auto-Rewritten
 
 - Dynamic keys.
-- Detail evaluations.
-- Bulk flag-state calls.
+- Detail evaluations such as `variationDetail` and `boolVariationDetail`.
+- Bulk calls such as `allFlags()` and `allFlagsState()`.
 - Unknown fallback types.
+- Configured wrappers.
 - Ambiguous or unconfigured OpenFeature client bindings.
-- Browser SDKs, React SDKs, non-Node SDKs, or non-LaunchDarkly providers.
+- Browser SDKs, React SDKs, non-Node SDKs, and non-LaunchDarkly providers.
 
-## Review and Tests Required
+## Required Review
 
-Generated changes require human review and project tests before merge. FlagLint can preserve source-level arguments and enforce direct-SDK policy, but it cannot prove business behavior, flag targeting, or production rollout safety.
+Generated diffs are reviewable migration assistance, not proof of production safety. Run tests and review each diff before merging.
 
-FlagLint does not query LaunchDarkly for flag age, owner, evaluation history, environment configuration, or production usage. Local review signals are not proof that a production flag is stale.
+## Feedback
+
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/concepts/safety-model.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [OpenFeature Boundary](/docs/concepts/openfeature-boundary/)

@@ -12,7 +12,7 @@ npx flaglint scan ./src
 
 <div class="button-grid">
   <a href="/docs/quickstart">Quickstart</a>
-  <a href="/docs/enterprise-demo">Migration Tutorial</a>
+  <a href="/docs/tutorials/migrate-a-node-service">Migration Tutorial</a>
   <a href="/docs/cli/scan">CLI Reference</a>
   <a href="/docs/integrations/github-actions">GitHub Actions</a>
 </div>
@@ -69,3 +69,9 @@ npx flaglint scan ./src
 - It does not generate provider/bootstrap files automatically.
 - It does not query LaunchDarkly for flag age, owner, evaluation history, environment configuration, or production usage.
 - It does not detect browser SDKs, React SDKs, non-Node SDKs, or non-LaunchDarkly providers.
+
+## Feedback
+
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/index.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [Quickstart](/docs/quickstart/)

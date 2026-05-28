@@ -1,71 +1,59 @@
 ---
 title: flaglint validate
-description: Enforce direct LaunchDarkly usage policy in CI.
+description: Enforce no-direct-LaunchDarkly policy and emit SARIF findings.
 lastUpdated: 2026-05-28
 ---
 
-`flaglint validate` checks policy rules after migration. It is the command to use for direct-SDK CI enforcement.
+`flaglint validate` checks whether source files comply with migration policy.
+
+## Blocking Policy Command
 
 ```bash
-flaglint validate [dir] [options]
+npx flaglint validate ./src --no-direct-launchdarkly
 ```
 
-## Examples
+Fail output from the enterprise demo migration-in-progress state:
 
-Report only:
+```text
+✗ validate --no-direct-launchdarkly: 20 direct LaunchDarkly evaluation call(s) found.
 
-```bash
-flaglint validate ./src
+  checkout.ts:40:9 — boolVariation("checkout-v2")
+  pricing.ts:46:9 — numberVariation("discount-percentage")
+
+These files must migrate to OpenFeature before this rule passes.
+Run `flaglint migrate --dry-run` to review the migration plan.
 ```
 
-Fail when direct LaunchDarkly evaluation calls remain:
-
-```bash
-flaglint validate ./src --no-direct-launchdarkly
-```
-
-Allow a provider/bootstrap file:
-
-```bash
-flaglint validate ./src \
-  --no-direct-launchdarkly \
-  --bootstrap-exclude "src/provider/setup.ts"
-```
-
-Emit SARIF:
-
-```bash
-flaglint validate ./src \
-  --no-direct-launchdarkly \
-  --bootstrap-exclude "src/provider/setup.ts" \
-  --format sarif \
-  --output flaglint-validation.sarif
-```
-
-## Output
-
-Pass:
+Pass output from the completed demo state:
 
 ```text
 ✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
-  Scanned 42 file(s).
-```
-
-Fail:
-
-```text
-✗ validate --no-direct-launchdarkly: 2 direct LaunchDarkly evaluation call(s) found.
-
-  src/services/checkout.ts:42:8 — boolVariation("checkout-v2")
-  src/services/pricing.ts:17:4 — boolVariation(dynamic key — manual review required)
+  Scanned 5 file(s).
 ```
 
 ## SARIF
 
-Validation SARIF uses rule id:
-
-```text
-flaglint.direct-launchdarkly
+```bash
+npx flaglint validate ./src \
+  --no-direct-launchdarkly \
+  --format sarif \
+  --output flaglint-validation.sarif
 ```
 
-Each direct LaunchDarkly evaluation call produces a policy finding. Upload the generated SARIF file to GitHub Code Scanning to annotate pull requests.
+SARIF findings use rule id `flaglint.direct-launchdarkly`.
+
+## Bootstrap Exclusions
+
+Use `--bootstrap-exclude` for files that are allowed to wire the provider:
+
+```bash
+npx flaglint validate ./src \
+  --no-direct-launchdarkly \
+  --bootstrap-exclude "src/provider/setup.ts"
+```
+
+## Feedback
+
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/validate.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [Configuration](/docs/cli/configuration/)

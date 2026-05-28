@@ -6,49 +6,51 @@ lastUpdated: 2026-05-28
 
 `flaglint scan` performs AST-based inventory of supported direct LaunchDarkly Node.js server SDK calls.
 
-```bash
-flaglint scan [dir] [options]
-```
-
-## Examples
+## Command
 
 ```bash
-flaglint scan ./src
-flaglint scan ./src --format json --output report.json
-flaglint scan ./src --format markdown --output report.md
-flaglint scan ./src --format html --output report.html
-flaglint scan ./src --format sarif --output inventory.sarif
-```
-
-Example output:
-
-```text
-✓ 18 flag usages found across 6 unique flags (61ms)
-ℹ  3 dynamic flag key(s) require manual review
+npx flaglint scan ./src
 ```
 
 ## Options
 
-| Option | Default | Description |
-| --- | --- | --- |
-| `--format` | `markdown` | Output format: `json`, `markdown`, `html`, or `sarif`. |
-| `--output` | stdout | Write report to a file. |
-| `--config` | auto-detect | Path to a config file. |
-| `--exclude-tests` | off | Exclude test files from scan results. |
+| Option | Description |
+| --- | --- |
+| `--format json` | Write structured JSON. |
+| `--format markdown` | Write a Markdown report. |
+| `--format html` | Write an HTML report. |
+| `--format sarif` | Write inventory SARIF. Use `validate --format sarif` for policy enforcement. |
+| `--output <file>` | Write report to a file. |
+| `--config <path>` | Use an explicit config file. |
+| `--exclude-tests` | Exclude test/spec files and test directories. |
 
-## JSON Shape
+## Example Output
 
-```json
-{
-  "flagKey": "checkout-v2",
-  "isDynamic": false,
-  "file": "src/services/checkout.ts",
-  "line": 14,
-  "callType": "boolVariation",
-  "stalenessSignals": []
-}
+Generated from `examples/enterprise-checkout-service/src`:
+
+```text
+- Scanning ./examples/enterprise-checkout-service/src...
+✓ 20 flag usages found across 11 unique flags (90ms)
+ℹ  1 dynamic flag key(s) require manual review
 ```
 
-## Notes
+## Markdown Report Excerpt
 
-`scan --format sarif` is inventory SARIF. For direct-SDK policy enforcement in CI, use [`flaglint validate --format sarif`](/docs/cli/validate/).
+```text
+## Usages by File
+### checkout.ts
+- Line 40: `checkout-v2` (boolVariation)
+- Line 49: `payment-provider` (stringVariation)
+- Line 58: `one-click-checkout` (boolVariation)
+- Line 67: `checkout-currency` (stringVariation)
+```
+
+## Exit Behavior
+
+`scan` exits `1` only when configured review signals mark non-dynamic, non-bulk flags as stale candidates. A one-file flag is not stale by default because `minFileCount` defaults to `0`.
+
+## Feedback
+
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/scan.md)
+- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
+- Next: [migrate CLI](/docs/cli/migrate/)

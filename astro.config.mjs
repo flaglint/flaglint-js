@@ -31,7 +31,26 @@ export default defineConfig({
           items: [
             { label: "Overview", slug: "index" },
             { label: "Quickstart", slug: "quickstart" },
+            { label: "Why FlagLint", slug: "why-flaglint" },
             { label: "Enterprise Demo", slug: "enterprise-demo" },
+          ],
+        },
+        {
+          label: "Tutorials",
+          items: [
+            { label: "Migrate a Node Service", slug: "tutorials/migrate-a-node-service" },
+            { label: "Add OpenFeature Provider", slug: "tutorials/add-openfeature-provider" },
+            { label: "Enforce in GitHub Actions", slug: "tutorials/enforce-in-github-actions" },
+            { label: "Shared Client Architecture", slug: "tutorials/shared-client-architecture" },
+          ],
+        },
+        {
+          label: "Concepts",
+          items: [
+            { label: "How FlagLint Works", slug: "concepts/how-flaglint-works" },
+            { label: "Safety Model", slug: "concepts/safety-model" },
+            { label: "OpenFeature Boundary", slug: "concepts/openfeature-boundary" },
+            { label: "Source-Level Debt Signals", slug: "concepts/source-level-debt-signals" },
           ],
         },
         {
@@ -40,14 +59,29 @@ export default defineConfig({
             { label: "scan", slug: "cli/scan" },
             { label: "migrate", slug: "cli/migrate" },
             { label: "validate", slug: "cli/validate" },
+            { label: "Configuration", slug: "cli/configuration" },
+            { label: "Report Formats", slug: "cli/report-formats" },
+            { label: "Exit Codes", slug: "cli/exit-codes" },
+          ],
+        },
+        {
+          label: "Guides",
+          items: [
+            { label: "Express", slug: "guides/express" },
+            { label: "NestJS", slug: "guides/nestjs" },
+            { label: "Monorepos", slug: "guides/monorepos" },
+            { label: "Manual Review Patterns", slug: "guides/manual-review-patterns" },
+            { label: "Troubleshooting", slug: "guides/troubleshooting" },
           ],
         },
         {
           label: "Reference",
           items: [
             { label: "Supported Scope", slug: "reference/supported-scope" },
-            { label: "OpenFeature Provider Setup", slug: "integrations/openfeature-provider" },
-            { label: "Safety Model", slug: "concepts/safety-model" },
+            { label: "Limitations", slug: "reference/limitations" },
+            { label: "Security", slug: "reference/security" },
+            { label: "FAQ", slug: "reference/faq" },
+            { label: "Changelog", slug: "reference/changelog" },
           ],
         },
         {

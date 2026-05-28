@@ -1,0 +1,9 @@
+Generated with:
+
+node ./dist/bin/flaglint.js validate ./examples/enterprise-checkout-service/after-complete --config ./examples/enterprise-checkout-service/.flaglintrc --no-direct-launchdarkly
+
+Output:
+
+- Scanning ./examples/enterprise-checkout-service/after-complete...
+✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
+  Scanned 5 file(s).
