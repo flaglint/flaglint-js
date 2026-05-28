@@ -30,7 +30,7 @@ plans, and prevents new vendor-coupled flag access from entering your codebase.
 
 **LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your application code calls.**
 
-Docs: [Getting Started](https://flaglint.dev/docs/getting-started) · [Commands](https://flaglint.dev/docs/commands/scan) · [Supported Scope](https://flaglint.dev/docs/supported-scope) · [CI Integration](https://flaglint.dev/docs/ci-github-actions) · [Enterprise Demo](https://flaglint.dev/docs/demo)
+Docs: [Quickstart](https://flaglint.dev/docs/quickstart) · [CLI Reference](https://flaglint.dev/docs/cli/scan) · [Supported Scope](https://flaglint.dev/docs/reference/supported-scope) · [CI Integration](https://flaglint.dev/docs/integrations/github-actions) · [Enterprise Demo](https://flaglint.dev/docs/enterprise-demo)
 
 [View enterprise demo source ->](./examples/enterprise-checkout-service)
 
@@ -210,9 +210,10 @@ TypeScript and JavaScript. That narrow scope is intentional: FlagLint only rewri
 where the value type, static flag key, fallback, evaluation context, and OpenFeature client
 binding are explicit enough to preserve.
 
-Dynamic keys, detail evaluations, bulk flag-state calls, browser SDKs, React usage, and ambiguous
-patterns are reported for manual review. They are inventoried so teams can plan the migration,
-but they are not automatically transformed.
+Dynamic keys, detail evaluations, bulk flag-state calls, unknown fallback types, configured wrappers,
+and ambiguous OpenFeature client bindings are reported for manual review. Browser SDKs, React SDKs,
+non-Node SDKs, and non-LaunchDarkly providers are outside current detection coverage and do not
+appear in reports.
 
 ## Supported API matrix
 
@@ -420,9 +421,9 @@ jobs:
             --bootstrap-exclude "src/provider/setup.ts" \
             --format sarif \
             --output flaglint-validation.sarif
-        continue-on-error: true
 
       - name: Upload to GitHub Code Scanning
+        if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: flaglint-validation.sarif
