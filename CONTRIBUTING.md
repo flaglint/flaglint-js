@@ -4,8 +4,13 @@ Thank you for your interest in contributing.
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+ for CLI development and tests
 - npm 9+
+
+FlagLint CLI supports Node.js 20+. Building the documentation website requires
+Node.js 22.12+ because the docs site uses Astro Starlight. Use
+`npm run build:cli` for CLI-only development on Node.js 20 and `npm run build`
+with Node.js 22.12+ for the complete CLI + website build.
 
 ## Setup
 
