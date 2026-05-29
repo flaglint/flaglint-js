@@ -1,3 +1,26 @@
+<p align="center">
+  <img src="docs/assets/logo.png" alt="FlagLint" width="400" />
+</p>
+
+<p align="center">
+  <strong>Standardize LaunchDarkly usage on OpenFeature.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/flaglint/flaglint/actions/workflows/ci.yml">
+    <img src="https://github.com/flaglint/flaglint/actions/workflows/ci.yml/badge.svg" alt="CI" />
+  </a>
+  <a href="https://www.npmjs.com/package/flaglint">
+    <img src="https://img.shields.io/npm/v/flaglint.svg" alt="npm version" />
+  </a>
+  <a href="https://www.npmjs.com/package/flaglint">
+    <img src="https://img.shields.io/npm/dm/flaglint.svg" alt="downloads" />
+  </a>
+  <a href="https://opensource.org/licenses/MIT">
+    <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" />
+  </a>
+</p>
+
 # FlagLint
 
 **Standardize LaunchDarkly usage on OpenFeature.**
@@ -6,7 +29,7 @@ FlagLint inventories direct LaunchDarkly Node.js SDK calls, generates reviewable
 and prevents new vendor-coupled flag access from entering your codebase.
 LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your application code calls.
 
-**[Documentation](https://flaglint.dev/docs/quickstart)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Enterprise Demo](https://flaglint.dev/docs/enterprise-demo)** · **[npm](https://npmjs.com/package/flaglint)** · **[Issues](https://github.com/flaglint/flaglint/issues)**
+**[Documentation](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Enterprise Demo](https://flaglint.dev/docs/enterprise-demo)** · **[npm](https://npmjs.com/package/flaglint)** · **[Issues](https://github.com/flaglint/flaglint/issues)**
 
 ---
 
@@ -106,4 +129,4 @@ transmitted to any external service. No outbound network connections during scan
 
 ## Links
 
-[Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE) · [Full docs](https://flaglint.dev/docs/quickstart)
+[Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE) · [Full docs](https://flaglint.dev/docs)
