@@ -1,0 +1,9 @@
+# FlagLint Security Contact
+# https://flaglint.dev/.well-known/security.txt
+# RFC 9116 — https://securitytxt.org/
+
+Contact: https://github.com/flaglint/flaglint/security/advisories/new
+Expires: 2027-05-29T00:00:00.000Z
+Preferred-Languages: en
+Policy: https://github.com/flaglint/flaglint/blob/main/SECURITY.md
+Canonical: https://flaglint.dev/.well-known/security.txt

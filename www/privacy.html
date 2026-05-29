@@ -4,77 +4,200 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy — FlagLint</title>
-  <meta name="description" content="FlagLint website and CLI privacy summary.">
+  <meta name="description" content="FlagLint is a local CLI. This website does not collect source code or set cookies. Learn what the website and CLI do and do not collect.">
   <meta property="og:title" content="Privacy — FlagLint">
-  <meta property="og:description" content="FlagLint is a local static-analysis CLI. This website does not collect source code or flag data.">
+  <meta property="og:description" content="FlagLint is a local static-analysis CLI. This website does not collect source code, set cookies, or run analytics scripts.">
   <meta property="og:url" content="https://flaglint.dev/privacy">
   <meta property="og:site_name" content="FlagLint">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="https://flaglint.dev/og.svg">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="canonical" href="https://flaglint.dev/privacy">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/docs/docs.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --border: #222222;
+      --text-primary: #f0f0f0;
+      --text-secondary: #999999;
+      --accent: #00d97e;
+      --code-bg: #0d1117;
+      --radius: 8px;
+      --transition: 0.15s ease;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(10,10,10,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 900px; margin: 0 auto; padding: 0 24px;
+      height: 56px; display: flex; align-items: center; justify-content: space-between;
+    }
+    .logo { font-size: 18px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+    .logo span { color: var(--accent); }
+    .nav-links { display: flex; gap: 20px; align-items: center; }
+    .nav-links a { color: var(--text-secondary); font-size: 14px; font-weight: 500; }
+    .nav-links a:hover { color: var(--text-primary); text-decoration: none; }
+    .nav-links a.btn {
+      background: transparent; color: var(--text-secondary);
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 6px 12px; font-size: 13px;
+      transition: color var(--transition), border-color var(--transition);
+    }
+    .nav-links a.btn:hover { color: var(--text-primary); border-color: #444; }
+    main { max-width: 760px; margin: 0 auto; padding: 56px 24px 96px; }
+    .breadcrumb { font-size: 13px; color: var(--text-secondary); margin-bottom: 32px; }
+    .breadcrumb a { color: var(--text-secondary); }
+    .breadcrumb a:hover { color: var(--text-primary); }
+    .breadcrumb .sep { margin: 0 8px; color: #444; }
+    h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 700; line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 12px; }
+    .subtitle { font-size: 17px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 48px; }
+    .effective { font-size: 13px; color: #555; margin-top: 8px; }
+    h2 { font-size: 20px; font-weight: 700; margin: 36px 0 12px; color: var(--text-primary); }
+    p { color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px; }
+    p strong { color: var(--text-primary); }
+    ul { padding-left: 20px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 14px; }
+    li { margin-bottom: 6px; }
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
+      background: var(--code-bg); border: 1px solid #30363d; border-radius: 3px;
+      padding: 1px 5px; color: #a5d6ff;
+    }
+    .callout {
+      background: var(--surface); border: 1px solid var(--border);
+      border-left: 3px solid var(--accent); border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px; margin: 24px 0; font-size: 14px; color: var(--text-secondary);
+    }
+    .callout strong { color: var(--text-primary); }
+    footer {
+      border-top: 1px solid var(--border); padding: 28px 24px;
+      max-width: 900px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .footer-copy { font-size: 13px; color: #555; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: 13px; color: #666; transition: color var(--transition); }
+    .footer-links a:hover { color: var(--text-primary); text-decoration: none; }
+    @media (max-width: 480px) {
+      .nav-links .hide-sm { display: none; }
+    }
+  </style>
 </head>
 <body>
+
 <nav>
   <div class="nav-inner">
     <a href="/" class="logo">Flag<span>Lint</span></a>
-    <div class="nav-right">
-      <a href="/docs/getting-started" class="hide-mobile">Docs</a>
-      <a href="/trust.html" class="hide-mobile">Trust</a>
-      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
-        <button class="btn-outline">GitHub</button>
-      </a>
+    <div class="nav-links">
+      <a href="/docs/quickstart" class="hide-sm">Docs</a>
+      <a href="/trust" class="hide-sm">Trust</a>
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer" class="btn">GitHub</a>
     </div>
   </div>
 </nav>
 
-<main class="docs-main" style="max-width:860px;margin:0 auto">
+<main>
   <div class="breadcrumb">
     <a href="/">Home</a>
-    <span class="breadcrumb-sep">›</span>
-    <span class="current">Privacy</span>
+    <span class="sep">›</span>
+    <span>Privacy</span>
   </div>
 
   <h1>Privacy</h1>
-  <p class="page-subtitle">FlagLint is designed as a local static-analysis CLI.</p>
+  <p class="subtitle">What this website and the FlagLint CLI do and do not collect.</p>
+  <p class="effective">Effective date: 29 May 2026</p>
 
   <h2>CLI data handling</h2>
   <p>
-    The FlagLint CLI reads source files from paths you provide and writes reports
-    or transformed files locally. It does not send source code, flag keys, file
-    paths, LaunchDarkly SDK keys, or migration reports to FlagLint servers.
+    The FlagLint CLI (<code>flaglint scan</code>, <code>flaglint migrate</code>,
+    <code>flaglint validate</code>) reads source files from paths you specify on your
+    local machine. It performs static AST analysis in-process and writes reports or
+    transformed files to stdout or to a file path you provide.
+  </p>
+  <p>
+    <strong>The CLI does not transmit source code, flag keys, file paths, LaunchDarkly SDK
+    keys, migration reports, or any other data to FlagLint-owned or third-party infrastructure.</strong>
+    No outbound network connections are made during scan, migration, or validation.
   </p>
 
+  <div class="callout">
+    <strong>Reports are local.</strong> Scan reports, migration plans, and validation SARIF files
+    are treated as source-derived artifacts — they may contain file paths and flag keys from your
+    codebase. They are stored wherever you write them and are not uploaded by the CLI.
+  </div>
+
   <h2>Website data handling</h2>
+
+  <h3 style="font-size:17px;font-weight:600;color:var(--text-primary);margin:20px 0 10px">Analytics and tracking scripts</h3>
   <p>
-    The website provides static documentation and links to GitHub and npm. The
-    homepage does not include an email signup form or collect project source data.
-    External sites such as GitHub, npm, and Cloudflare may process requests under
-    their own policies when you visit or interact with them.
+    <strong>flaglint.dev does not load analytics or tracking scripts.</strong>
+    No JavaScript from Google Analytics, Plausible, Fathom, Mixpanel, Segment, or any
+    similar analytics service is present on this website.
+  </p>
+
+  <h3 style="font-size:17px;font-weight:600;color:var(--text-primary);margin:20px 0 10px">Cookies</h3>
+  <p>
+    <strong>flaglint.dev does not set cookies.</strong> The static pages served by this
+    domain do not use cookies for any purpose. Your browser's developer tools should
+    show zero cookies from flaglint.dev.
+  </p>
+
+  <h3 style="font-size:17px;font-weight:600;color:var(--text-primary);margin:20px 0 10px">Third-party services</h3>
+  <p>
+    This website is hosted on <strong>Cloudflare Pages</strong>. Cloudflare processes
+    network requests as part of hosting and CDN delivery and may collect access logs
+    under <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer">Cloudflare's privacy policy</a>.
+  </p>
+  <p>
+    Page fonts are loaded from <strong>Google Fonts</strong> (fonts.googleapis.com,
+    fonts.gstatic.com). Your browser sends a request to Google's servers to retrieve
+    font files; this request is subject to
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Google's privacy policy</a>.
+  </p>
+  <p>
+    Links on this site point to GitHub (github.com) and npm (npmjs.com). Visiting
+    those links is subject to their respective privacy policies. FlagLint does not
+    receive data about your interactions with those third-party sites.
   </p>
 
   <h2>Contact</h2>
   <p>
     For privacy or security questions, use
     <a href="https://github.com/flaglint/flaglint/security/advisories/new" target="_blank" rel="noopener noreferrer">GitHub Security Advisories</a>
-    for vulnerabilities or
+    for suspected vulnerabilities, or
     <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>
-    for general project questions.
+    for general questions.
   </p>
+
 </main>
 
 <footer>
-  <div class="footer-inner">
-    <span class="footer-copy">© 2026 FlagLint</span>
-    <div class="footer-links">
-      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
-      <a href="/trust.html">Security</a>
-      <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">Contact</a>
-    </div>
+  <span class="footer-copy">© 2026 FlagLint — MIT License</span>
+  <div class="footer-links">
+    <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="https://www.npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+    <a href="/trust">Security &amp; Trust</a>
+    <a href="/privacy">Privacy</a>
+    <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">Contact</a>
   </div>
 </footer>
+
 </body>
 </html>
