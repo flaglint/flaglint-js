@@ -1,0 +1,4 @@
+vhs_rc=1
+MISSING  flaglint-demo.gif 
+MISSING  docs/public/flaglint-demo.gif 
+EXISTS  flaglint-demo.tape 1909 bytes, 0.00 MB

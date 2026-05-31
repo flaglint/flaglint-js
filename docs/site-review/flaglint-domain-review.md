@@ -88,7 +88,7 @@ Technical Documentation.
 | Security contact | https://github.com/flaglint/flaglint/security/advisories/new |
 | security.txt | https://flaglint.dev/.well-known/security.txt |
 | Changelog | https://github.com/flaglint/flaglint/blob/main/CHANGELOG.md |
-| Current version | 0.5.3 (from `package.json` as of this document) |
+| Current version | 0.5.4 (from `package.json` as of this document) |
 | Runtime requirement | Node.js 20 or newer |
 | Deployment | Cloudflare Pages (static) |
 
