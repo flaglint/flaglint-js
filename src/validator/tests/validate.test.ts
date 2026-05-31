@@ -404,14 +404,13 @@ describe("formatValidationReport", () => {
     expect(report).toContain('"my-flag"');
   });
 
-  it("marks dynamic key violation with indicator", () => {
+  it("marks dynamic key violation with (dynamic key) label matching scan terminology", () => {
     const result = validateScanResult(
       makeScanResult([{ callType: "boolVariation", flagKey: "dyn", isDynamic: true }]),
       { noDirectLaunchDarkly: true }
     );
     const report = formatValidationReport(result, { noDirectLaunchDarkly: true });
-    expect(report).toContain("dynamic key");
-    expect(report).toContain("manual review");
+    expect(report).toContain('boolVariation("(dynamic key)")');
   });
 
   it("marks bulk inventory call with indicator", () => {
