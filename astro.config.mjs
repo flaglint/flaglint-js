@@ -1,5 +1,6 @@
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import starlightBlog from "starlight-blog";
 
 export default defineConfig({
   site: "https://flaglint.dev",
@@ -8,6 +9,13 @@ export default defineConfig({
   outDir: "./www/docs",
   integrations: [
     starlight({
+      plugins: [
+        starlightBlog({
+          title: "Blog",
+          prefix: "blog",
+          recentPostCount: 5,
+        }),
+      ],
       title: "FlagLint Docs",
       description:
         "Documentation for standardizing LaunchDarkly Node.js server SDK usage on OpenFeature with FlagLint.",
