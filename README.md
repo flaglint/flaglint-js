@@ -23,7 +23,8 @@
 
 # FlagLint
 
-**Standardize LaunchDarkly usage on OpenFeature.**
+**The argument-order difference between LaunchDarkly and OpenFeature 
+silently breaks flag evaluations in production. FlagLint catches it.**
 
 FlagLint inventories direct LaunchDarkly Node.js SDK calls, generates reviewable migration plans,
 and prevents new vendor-coupled flag access from entering your codebase.
