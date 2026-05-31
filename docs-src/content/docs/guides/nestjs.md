@@ -2,6 +2,7 @@
 title: NestJS Guide
 description: Use FlagLint with NestJS modules and services.
 lastUpdated: 2026-05-28
+tableOfContents: false
 ---
 
 NestJS projects usually place evaluation calls inside injectable services. FlagLint scans the TypeScript source directly; it does not need Nest runtime metadata.

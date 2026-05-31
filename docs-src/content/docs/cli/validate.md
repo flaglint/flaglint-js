@@ -33,7 +33,7 @@ Pass output from the completed demo state:
 
 ## SARIF
 
-```bash
+```bash frame="none"
 npx flaglint validate ./src \
   --no-direct-launchdarkly \
   --format sarif \
@@ -46,7 +46,7 @@ SARIF findings use rule id `flaglint.direct-launchdarkly`.
 
 Use `--bootstrap-exclude` for files that are allowed to wire the provider:
 
-```bash
+```bash frame="none"
 npx flaglint validate ./src \
   --no-direct-launchdarkly \
   --bootstrap-exclude "src/provider/setup.ts"

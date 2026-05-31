@@ -12,11 +12,11 @@ lastUpdated: 2026-05-28
 npx flaglint migrate ./src
 ```
 
-```bash
+```bash frame="none"
 npx flaglint migrate ./src --dry-run
 ```
 
-```bash
+```bash frame="none"
 npx flaglint migrate ./src --apply
 ```
 

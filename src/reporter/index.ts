@@ -72,8 +72,11 @@ function formatMarkdown(result: ScanResult, options: ReporterOptions): string {
   lines.push("|----------|--------|-------|------------|--------|");
   for (const [key, data] of sorted) {
     const status = data.isStale ? "⚠ Stale" : "✓ Active";
+    const displayKey = key === "*" || data.usages.some((u) => u.isDynamic && u.flagKey === key)
+      ? "(dynamic key)"
+      : key;
     lines.push(
-      `| ${key} | ${data.usages.length} | ${data.files.size} | ${[...data.callTypes].join(", ")} | ${status} |`
+      `| ${displayKey} | ${data.usages.length} | ${data.files.size} | ${[...data.callTypes].join(", ")} | ${status} |`
     );
   }
   lines.push("");

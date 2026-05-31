@@ -55,7 +55,7 @@ The Markdown report inventory includes the detected static and manual-review cal
 
 ## 2. Preview a Migration
 
-```bash
+```bash frame="none"
 npx flaglint migrate ./src --dry-run
 ```
 
@@ -115,7 +115,7 @@ Next: [add the LaunchDarkly OpenFeature provider](/docs/tutorials/add-openfeatur
 
 After migration, block new direct LaunchDarkly evaluation calls:
 
-```bash
+```bash frame="none"
 npx flaglint validate ./src --no-direct-launchdarkly
 ```
 
