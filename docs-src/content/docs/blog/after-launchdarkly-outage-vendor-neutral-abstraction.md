@@ -5,6 +5,7 @@ description: "The October 2025 AWS outage showed why vendor lock-in in feature f
 authors:
   - name: Krishan Sharma
     title: Author of FlagLint
+    url: https://www.linkedin.com/in/krishansha/
 tags: ["launchdarkly", "openfeature", "vendor-lock-in", "nodejs", "devops"]
 ---
 

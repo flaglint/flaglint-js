@@ -5,6 +5,7 @@ description: "The argument-order difference between LaunchDarkly and OpenFeature
 authors:
   - name: Krishan Sharma
     title: Author of FlagLint
+    url: https://www.linkedin.com/in/krishansha/
 tags: ["launchdarkly", "openfeature", "migration", "nodejs", "devops"]
 ---
 
