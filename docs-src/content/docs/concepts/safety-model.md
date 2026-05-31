@@ -8,12 +8,15 @@ FlagLint is conservative. It separates inventory, review, and source edits so te
 
 ## Safety Model Diagram
 
-```text
-Source files
-  -> local AST analysis
-  -> inventory / diff / SARIF
-  -> developer review
-```
+<pre class="mermaid">
+flowchart TD
+    A["📁 Source files"] --> B["🔍 Local AST analysis"]
+    B --> C["📋 Evaluation inventory"]
+    C --> D["📄 Migration diffs / SARIF"]
+    D --> E["👤 Developer review"]
+    E -->|"approve"| F["✅ migrate --apply"]
+    E -->|"reject"| D
+</pre>
 
 ## What `--apply` Requires
 

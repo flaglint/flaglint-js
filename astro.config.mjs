@@ -116,6 +116,24 @@ export default defineConfig({
             content: "FlagLint",
           },
         },
+        {
+          tag: "script",
+          attrs: { type: "module" },
+          content: `
+import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+function initMermaid() {
+  const isDark = document.documentElement.dataset.theme !== 'light';
+  mermaid.initialize({ startOnLoad: false, theme: isDark ? 'dark' : 'default' });
+  mermaid.run({ querySelector: 'pre.mermaid' });
+}
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initMermaid);
+} else {
+  initMermaid();
+}
+document.addEventListener('astro:after-swap', initMermaid);
+`,
+        },
       ],
     }),
   ],

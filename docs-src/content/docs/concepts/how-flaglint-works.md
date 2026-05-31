@@ -8,14 +8,14 @@ FlagLint performs local static analysis. It parses JavaScript and TypeScript sou
 
 ## Analysis Pipeline
 
-```text
-Source files
-  -> local AST analysis
-  -> LaunchDarkly client provenance
-  -> evaluation inventory
-  -> migration inventory
-  -> report / diff / SARIF
-```
+<pre class="mermaid">
+flowchart LR
+    A["Source files"] --> B["AST parse"]
+    B --> C["LD client\nprovenance"]
+    C --> D["Evaluation\ninventory"]
+    D --> E["Migration\ninventory"]
+    E --> F["Report /\ndiff / SARIF"]
+</pre>
 
 FlagLint does not execute application code and does not call LaunchDarkly APIs.
 
