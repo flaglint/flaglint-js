@@ -150,7 +150,7 @@ Runs locally, no SDK key needed, nothing changes. Shows you every
 direct LaunchDarkly SDK call in your codebase by file and line — 
 including dynamic keys, detail methods, and bulk state calls.
 
-```bash
+```bash frame="none"
 flaglint migrate ./src --dry-run
 ```
 

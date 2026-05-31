@@ -1,12 +1,13 @@
 ---
-title: FlagLint Documentation
+title: Overview
 description: Standardize LaunchDarkly Node.js server SDK evaluation calls on OpenFeature while keeping LaunchDarkly as the provider.
 lastUpdated: 2026-05-28
+tableOfContents: false
 ---
 
 FlagLint helps platform teams inventory direct LaunchDarkly Node.js server SDK usage, plan a guarded OpenFeature migration, and enforce the new boundary in CI.
 
-![FlagLint demo](/flaglint-demo.gif)
+![FlagLint demo](/docs/flaglint-demo.gif)
 
 ```bash
 npx flaglint scan ./src
@@ -22,18 +23,18 @@ npx flaglint scan ./src
 ## Choose Your Path
 
 <div class="path-grid">
-  <div class="path-card">
-    <strong>Trying FlagLint for the first time</strong>
+  <a href="/docs/quickstart/" class="path-card">
+    <strong>Trying FlagLint for the first time →</strong>
     Run a local scan, inspect the inventory output, and confirm what is inside the supported scope.
-  </div>
-  <div class="path-card">
-    <strong>Migrating an existing Node.js service</strong>
+  </a>
+  <a href="/docs/tutorials/migrate-a-node-service/" class="path-card">
+    <strong>Migrating an existing Node.js service →</strong>
     Configure your OpenFeature client binding, preview the migration plan, then apply only proven rewrites.
-  </div>
-  <div class="path-card">
-    <strong>Enforcing platform standards in CI</strong>
+  </a>
+  <a href="/docs/integrations/github-actions/" class="path-card">
+    <strong>Enforcing platform standards in CI →</strong>
     Use validation SARIF to annotate direct LaunchDarkly policy violations in pull requests.
-  </div>
+  </a>
 </div>
 
 ## Workflow

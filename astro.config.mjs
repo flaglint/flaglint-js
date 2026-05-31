@@ -36,6 +36,12 @@ export default defineConfig({
       credits: false,
       sidebar: [
         {
+          label: "Blog",
+          items: [
+            { label: "FlagLint Blog", link: "/docs/blog/" },
+          ],
+        },
+        {
           label: "Start Here",
           items: [
             { label: "Overview", slug: "index" },

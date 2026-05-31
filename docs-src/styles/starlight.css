@@ -69,6 +69,19 @@
   white-space: nowrap;
 }
 
+.sl-markdown-content a.path-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.sl-markdown-content a.path-card:hover {
+  border-color: var(--sl-color-accent);
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
 /* A1: Light mode — #00d97e is 1.87:1 on white (WCAG fail). Override with darker greens. */
 :root[data-theme="light"] {
   --sl-color-accent-low: #d4f5e6;

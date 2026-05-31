@@ -15,7 +15,7 @@ Browser SDKs, React SDKs, non-Node SDKs, and non-LaunchDarkly providers are outs
 
 ## 1. Scan Your Source
 
-![FlagLint demo](/flaglint-demo.gif)
+![FlagLint demo](/docs/flaglint-demo.gif)
 
 ```bash
 npx flaglint scan ./src

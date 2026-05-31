@@ -60,7 +60,7 @@ File, line, call type, flag key, whether it's safely automatable.
 
 Then:
 
-```bash
+```bash frame="none"
 flaglint migrate ./src --dry-run
 ```
 
@@ -69,7 +69,7 @@ Dynamic keys, detail methods, and bulk calls reported for manual review.
 
 Then:
 
-```bash
+```bash frame="none"
 flaglint validate ./src --no-direct-launchdarkly
 ```
 
