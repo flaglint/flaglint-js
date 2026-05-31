@@ -16,6 +16,7 @@ export default defineConfig({
           recentPostCount: 5,
         }),
       ],
+      favicon: "/favicon.svg",
       title: "FlagLint Docs",
       description:
         "Technical articles on LaunchDarkly → OpenFeature migrations, argument-order bugs, and safe codemod patterns for Node.js teams.",
