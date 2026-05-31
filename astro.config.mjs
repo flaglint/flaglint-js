@@ -16,6 +16,7 @@ export default defineConfig({
           recentPostCount: 5,
         }),
       ],
+      favicon: "/favicon.svg",
       title: "FlagLint Docs",
       description:
         "Documentation for standardizing LaunchDarkly Node.js server SDK usage on OpenFeature with FlagLint.",
