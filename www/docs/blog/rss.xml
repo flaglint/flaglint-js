@@ -21,6 +21,7 @@ and nearly break production at least once.&lt;/p&gt;
 &lt;li&gt;Phased migrations partially reverse when new engineers join&lt;/li&gt;
 &lt;li&gt;No CI enforcement to prevent new direct calls&lt;/li&gt;
 &lt;/ul&gt;
+&lt;p&gt;One of those reasons is an API difference that breaks even careful rewrites — &lt;a href=&quot;https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/&quot;&gt;the argument-order trap between LaunchDarkly and OpenFeature →&lt;/a&gt;&lt;/p&gt;
 &lt;div&gt;&lt;h2 id=&quot;what-flaglint-does&quot;&gt;What FlagLint Does&lt;/h2&gt;&lt;/div&gt;
 &lt;p&gt;Before you can migrate, you need to know what you’re migrating.&lt;/p&gt;
 &lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;span&gt;&lt;/span&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;npx&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;flaglint&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;scan&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;./src&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
@@ -42,7 +43,9 @@ OpenFeature API instead of the LaunchDarkly SDK directly.&lt;/p&gt;
 &lt;p&gt;The difference: if you need to switch providers, you change the provider
 configuration. Your application code doesn’t change.&lt;/p&gt;
 &lt;p&gt;→ &lt;a href=&quot;https://flaglint.dev/docs/quickstart&quot;&gt;Start with the scan&lt;/a&gt;&lt;br&gt;
-→ &lt;a href=&quot;https://github.com/flaglint/flaglint&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;</content:encoded><category>launchdarkly</category><category>openfeature</category><category>vendor-lock-in</category><category>nodejs</category><category>devops</category></item><item><title>Why LaunchDarkly → OpenFeature Migrations Break in Production</title><link>https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</link><guid isPermaLink="true">https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</guid><pubDate>Fri, 29 May 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Most LaunchDarkly → OpenFeature migrations fail the same way.
+→ &lt;a href=&quot;https://github.com/flaglint/flaglint&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Related:&lt;/strong&gt; &lt;a href=&quot;https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/&quot;&gt;Why LaunchDarkly → OpenFeature Migrations Break in Production →&lt;/a&gt;&lt;/p&gt;</content:encoded><category>launchdarkly</category><category>openfeature</category><category>vendor-lock-in</category><category>nodejs</category><category>devops</category></item><item><title>Why LaunchDarkly → OpenFeature Migrations Break in Production</title><link>https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</link><guid isPermaLink="true">https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</guid><pubDate>Fri, 29 May 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Most LaunchDarkly → OpenFeature migrations fail the same way.
 And nobody catches it until it’s in production.&lt;/p&gt;
 &lt;div&gt;&lt;h2 id=&quot;the-agreement-that-takes-30-minutes&quot;&gt;The Agreement That Takes 30 Minutes&lt;/h2&gt;&lt;/div&gt;
 &lt;p&gt;Teams agree on OpenFeature quickly. It makes sense — vendor-neutral,
@@ -130,4 +133,6 @@ Dynamic keys and detail methods are reported separately for manual review.&lt;/p
 &lt;p&gt;FlagLint is free, open source, MIT licensed.&lt;/p&gt;
 &lt;p&gt;→ &lt;a href=&quot;https://github.com/flaglint/flaglint&quot;&gt;GitHub&lt;/a&gt;&lt;br&gt;
 → &lt;a href=&quot;https://www.npmjs.com/package/flaglint&quot;&gt;npm&lt;/a&gt;&lt;br&gt;
-→ &lt;a href=&quot;https://flaglint.dev/docs/quickstart&quot;&gt;Quickstart&lt;/a&gt;&lt;/p&gt;</content:encoded><category>launchdarkly</category><category>openfeature</category><category>migration</category><category>nodejs</category><category>devops</category></item></channel></rss>
+→ &lt;a href=&quot;https://flaglint.dev/docs/quickstart&quot;&gt;Quickstart&lt;/a&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Related:&lt;/strong&gt; &lt;a href=&quot;https://flaglint.dev/docs/blog/after-launchdarkly-outage-vendor-neutral-abstraction/&quot;&gt;After the LaunchDarkly Outage: Adding a Vendor-Neutral Abstraction Without a Full Migration →&lt;/a&gt;&lt;/p&gt;</content:encoded><category>launchdarkly</category><category>openfeature</category><category>migration</category><category>nodejs</category><category>devops</category></item></channel></rss>
