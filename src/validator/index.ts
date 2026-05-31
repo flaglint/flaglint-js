@@ -131,7 +131,7 @@ export function validateScanResult(
 // ── Human-readable report ─────────────────────────────────────────────────────
 
 function violationLabel(v: ValidationViolation): string {
-  if (v.isDynamic) return `${v.callType}(dynamic key — manual review required)`;
+  if (v.isDynamic) return `${v.callType}("(dynamic key)")`;
   if (v.flagKey === "*") return `${v.callType}(bulk inventory)`;
   return `${v.callType}("${v.flagKey}")`;
 }
