@@ -68,3 +68,22 @@
 .workflow-step code {
   white-space: nowrap;
 }
+
+/* A1: Light mode — #00d97e is 1.87:1 on white (WCAG fail). Override with darker greens. */
+:root[data-theme="light"] {
+  --sl-color-accent-low: #d4f5e6;
+  --sl-color-accent: #007a49;
+  --sl-color-accent-high: #004d2e;
+  --sl-color-text-accent: #006040;
+}
+
+/* A2: Prevent code blocks and tables from overflowing on narrow viewports */
+.sl-markdown-content pre {
+  overflow-x: auto;
+}
+
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+}

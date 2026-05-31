@@ -2,6 +2,7 @@
 title: Express Guide
 description: Apply the standard FlagLint workflow to an Express-style Node.js service.
 lastUpdated: 2026-05-28
+tableOfContents: false
 ---
 
 Express services usually keep feature-flag checks inside route handlers or service modules. FlagLint does not require Express-specific integration; point it at the source directory.

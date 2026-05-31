@@ -2,6 +2,7 @@
 title: Changelog
 description: Where to find release notes.
 lastUpdated: 2026-05-28
+tableOfContents: false
 ---
 
 The canonical changelog lives in the repository:

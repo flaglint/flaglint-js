@@ -1,7 +1,7 @@
 {
   "name": "flaglint",
   "version": "0.5.4",
-  "description": "LaunchDarkly Node.js server SDK -> OpenFeature migration.",
+  "description": "Scan LaunchDarkly Node.js SDK usage, generate safe OpenFeature migration diffs, and enforce the vendor boundary in CI.",
   "type": "module",
   "bin": {
     "flaglint": "dist/bin/flaglint.js"
@@ -62,7 +62,6 @@
     "micromatch": "^4.0.8",
     "ora": "^8.1.0",
     "p-limit": "^7.3.0",
-    "starlight-blog": "^0.26.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {
@@ -76,6 +75,7 @@
     "tsup": "^8.2.4",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",
-    "vitest": "^4.1.6"
+    "vitest": "^4.1.6",
+    "starlight-blog": "^0.26.1"
   }
 }
