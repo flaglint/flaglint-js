@@ -31,6 +31,8 @@ LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your 
 
 **[Documentation](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Enterprise Demo](https://flaglint.dev/docs/enterprise-demo)** · **[npm](https://npmjs.com/package/flaglint)** · **[Issues](https://github.com/flaglint/flaglint/issues)**
 
+![FlagLint demo](./flaglint-demo.gif)
+
 ---
 
 ## Quick start

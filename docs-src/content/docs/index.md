@@ -6,6 +6,8 @@ lastUpdated: 2026-05-28
 
 FlagLint helps platform teams inventory direct LaunchDarkly Node.js server SDK usage, plan a guarded OpenFeature migration, and enforce the new boundary in CI.
 
+![FlagLint demo](/flaglint-demo.gif)
+
 ```bash
 npx flaglint scan ./src
 ```
