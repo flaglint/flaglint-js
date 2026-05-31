@@ -138,6 +138,11 @@ Existing Node.js service
   -> validate in CI
 ```
 
+## Further Reading
+
+- [Why LaunchDarkly → OpenFeature migrations break in production](/docs/blog/launchdarkly-openfeature-argument-order-bug/) — The argument-order difference that breaks naive codemods
+- [After the LaunchDarkly Outage: Vendor-neutral abstraction without a full migration](/docs/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
+
 ## Feedback
 
 - [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/quickstart.md)
