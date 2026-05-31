@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"><channel><title>FlagLint Docs | Blog</title><description>Documentation for standardizing LaunchDarkly Node.js server SDK usage on OpenFeature with FlagLint.</description><link>https://flaglint.dev/</link><language>en</language><item><title>After the LaunchDarkly Outage: Adding a Vendor-Neutral Abstraction Without a Full Migration</title><link>https://flaglint.dev/docs/blog/after-launchdarkly-outage-vendor-neutral-abstraction/</link><guid isPermaLink="true">https://flaglint.dev/docs/blog/after-launchdarkly-outage-vendor-neutral-abstraction/</guid><pubDate>Fri, 29 May 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;In October 2025, an AWS US-East-1 outage took LaunchDarkly offline.
+Teams couldn’t update or create feature flags. Rollbacks were delayed.&lt;/p&gt;
+&lt;p&gt;For teams with direct LaunchDarkly SDK calls throughout their codebase,
+there was no quick path to a fallback provider.&lt;/p&gt;
+&lt;p&gt;This doesn’t require abandoning LaunchDarkly. It requires one abstraction layer.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;the-vendor-lock-in-problem&quot;&gt;The Vendor Lock-In Problem&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;Direct SDK calls look like this:&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;import&lt;/span&gt;&lt;span&gt; LaunchDarkly &lt;/span&gt;&lt;span&gt;from&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;launchdarkly-node-server-sdk&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;const &lt;/span&gt;&lt;span&gt;ldClient&lt;/span&gt;&lt;span&gt; = &lt;/span&gt;&lt;span&gt;LaunchDarkly&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;init&lt;/span&gt;&lt;span&gt;(process&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;env&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;LD_SDK_KEY&lt;/span&gt;&lt;span&gt;);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;const &lt;/span&gt;&lt;span&gt;enabled&lt;/span&gt;&lt;span&gt; = await &lt;/span&gt;&lt;span&gt;ldClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;boolVariation&lt;/span&gt;&lt;span&gt;(&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;checkout-v2&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;, &lt;/span&gt;&lt;span&gt;ctx&lt;/span&gt;&lt;span&gt;, &lt;/span&gt;&lt;span&gt;false&lt;/span&gt;&lt;span&gt;);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;Your application code is coupled to LaunchDarkly’s API surface.
+Switching providers means rewriting every evaluation call.&lt;/p&gt;
+&lt;p&gt;OpenFeature decouples this. Your application calls the OpenFeature API.
+The provider (LaunchDarkly, or anything else) is a configuration detail.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;the-migration-that-stalls&quot;&gt;The Migration That Stalls&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;Most teams agree to add OpenFeature. Most migrations take 6+ weeks
+and nearly break production at least once.&lt;/p&gt;
+&lt;p&gt;The reasons:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;No inventory of where direct SDK calls live&lt;/li&gt;
+&lt;li&gt;Argument-order differences cause subtle production bugs&lt;/li&gt;
+&lt;li&gt;Phased migrations partially reverse when new engineers join&lt;/li&gt;
+&lt;li&gt;No CI enforcement to prevent new direct calls&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div&gt;&lt;h2 id=&quot;what-flaglint-does&quot;&gt;What FlagLint Does&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;Before you can migrate, you need to know what you’re migrating.&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;span&gt;&lt;/span&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;npx&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;flaglint&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;scan&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;./src&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;AST-based inventory of every direct LaunchDarkly SDK call.
+File, line, call type, flag key, whether it’s safely automatable.&lt;/p&gt;
+&lt;p&gt;Then:&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;span&gt;&lt;/span&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;flaglint&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;migrate&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;./src&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;--dry-run&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;Reviewable diffs for safe call sites. Argument order corrected.
+Dynamic keys, detail methods, and bulk calls reported for manual review.&lt;/p&gt;
+&lt;p&gt;Then:&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;span&gt;&lt;/span&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;flaglint&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;validate&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;./src&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;--no-direct-launchdarkly&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;CI gate. Fails the build if any new direct LD call appears.
+The migration doesn’t rot.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;launchdarkly-stays-as-your-provider&quot;&gt;LaunchDarkly Stays As Your Provider&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;This is not a migration away from LaunchDarkly.&lt;/p&gt;
+&lt;p&gt;LaunchDarkly offers an official OpenFeature provider. After the migration,
+LaunchDarkly still evaluates your flags — you’re just calling the
+OpenFeature API instead of the LaunchDarkly SDK directly.&lt;/p&gt;
+&lt;p&gt;The difference: if you need to switch providers, you change the provider
+configuration. Your application code doesn’t change.&lt;/p&gt;
+&lt;p&gt;→ &lt;a href=&quot;https://flaglint.dev/docs/quickstart&quot;&gt;Start with the scan&lt;/a&gt;&lt;br&gt;
+→ &lt;a href=&quot;https://github.com/flaglint/flaglint&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;</content:encoded><category>launchdarkly</category><category>openfeature</category><category>vendor-lock-in</category><category>nodejs</category><category>devops</category></item><item><title>Why LaunchDarkly → OpenFeature Migrations Break in Production</title><link>https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</link><guid isPermaLink="true">https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</guid><pubDate>Fri, 29 May 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Most LaunchDarkly → OpenFeature migrations fail the same way.
+And nobody catches it until it’s in production.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;the-agreement-that-takes-30-minutes&quot;&gt;The Agreement That Takes 30 Minutes&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;Teams agree on OpenFeature quickly. It makes sense — vendor-neutral,
+CNCF-backed, clean abstraction. The decision is easy.&lt;/p&gt;
+&lt;p&gt;The migration is not.&lt;/p&gt;
+&lt;p&gt;Halfway through, most teams hit a bug that looks like this in production:
+a subset of users sees the wrong feature state. The flag evaluation
+is returning unexpected values. Everything looked correct in code review.&lt;/p&gt;
+&lt;p&gt;The cause is almost always the same thing.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;the-argument-order-trap&quot;&gt;The Argument-Order Trap&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;LaunchDarkly and OpenFeature share method names but differ in argument order:&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;// LaunchDarkly&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;ldClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;boolVariation&lt;/span&gt;&lt;span&gt;(flagKey, context, fallback)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;
+&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;// OpenFeature&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;openFeatureClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;getBooleanValue&lt;/span&gt;&lt;span&gt;(flagKey, fallback, context)&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code dir=&quot;auto&quot;&gt;context&lt;/code&gt; and &lt;code dir=&quot;auto&quot;&gt;fallback&lt;/code&gt; are swapped.&lt;/p&gt;
+&lt;p&gt;A search-and-replace migration silently puts &lt;code dir=&quot;auto&quot;&gt;context&lt;/code&gt; where &lt;code dir=&quot;auto&quot;&gt;fallback&lt;/code&gt;
+should be, and &lt;code dir=&quot;auto&quot;&gt;fallback&lt;/code&gt; where &lt;code dir=&quot;auto&quot;&gt;context&lt;/code&gt; should be — across every call
+site in your codebase.&lt;/p&gt;
+&lt;p&gt;In production: users in your evaluation context see the fallback value.
+In code review: the signature looks correct because the argument count matches.
+In the post-mortem: nobody can identify when it was introduced.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;why-grep-misses-it&quot;&gt;Why Grep Misses It&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;The typical manual approach:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Search for &lt;code dir=&quot;auto&quot;&gt;launchdarkly-node-server-sdk&lt;/code&gt; imports&lt;/li&gt;
+&lt;li&gt;Find all &lt;code dir=&quot;auto&quot;&gt;ldClient&lt;/code&gt; references&lt;/li&gt;
+&lt;li&gt;Search-and-replace method names&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;This finds the calls. It does not understand argument semantics.&lt;/p&gt;
+&lt;p&gt;A grep-based migration will correctly rename &lt;code dir=&quot;auto&quot;&gt;boolVariation&lt;/code&gt; to
+&lt;code dir=&quot;auto&quot;&gt;getBooleanValue&lt;/code&gt; and miss the argument order entirely. The test suite
+often misses it too because the values are both valid types — &lt;code dir=&quot;auto&quot;&gt;context&lt;/code&gt;
+and &lt;code dir=&quot;auto&quot;&gt;fallback&lt;/code&gt; are both objects.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;what-ast-analysis-catches&quot;&gt;What AST Analysis Catches&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;Abstract Syntax Tree (AST) analysis parses your code the same way a
+compiler does. It doesn’t match text — it understands structure.&lt;/p&gt;
+&lt;p&gt;For a call like:&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;const &lt;/span&gt;&lt;span&gt;result&lt;/span&gt;&lt;span&gt; = await &lt;/span&gt;&lt;span&gt;ldClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;boolVariation&lt;/span&gt;&lt;span&gt;(&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;checkout-v2&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;, &lt;/span&gt;&lt;span&gt;ctx&lt;/span&gt;&lt;span&gt;, &lt;/span&gt;&lt;span&gt;false&lt;/span&gt;&lt;span&gt;);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;AST analysis identifies:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;The import binding (&lt;code dir=&quot;auto&quot;&gt;ldClient&lt;/code&gt; → &lt;code dir=&quot;auto&quot;&gt;launchdarkly-node-server-sdk&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;The method name (&lt;code dir=&quot;auto&quot;&gt;boolVariation&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;The argument at position 0: flag key (&lt;code dir=&quot;auto&quot;&gt;&apos;checkout-v2&apos;&lt;/code&gt; — string literal)&lt;/li&gt;
+&lt;li&gt;The argument at position 1: context (&lt;code dir=&quot;auto&quot;&gt;ctx&lt;/code&gt; — object reference)&lt;/li&gt;
+&lt;li&gt;The argument at position 2: fallback (&lt;code dir=&quot;auto&quot;&gt;false&lt;/code&gt; — boolean literal)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;When generating the OpenFeature equivalent, it knows to produce:&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;const &lt;/span&gt;&lt;span&gt;result&lt;/span&gt;&lt;span&gt; = await &lt;/span&gt;&lt;span&gt;openFeatureClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;getBooleanValue&lt;/span&gt;&lt;span&gt;(&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;checkout-v2&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;, &lt;/span&gt;&lt;span&gt;false&lt;/span&gt;&lt;span&gt;, &lt;/span&gt;&lt;span&gt;ctx);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;Argument 2 goes to position 1. Argument 1 goes to position 2.
+Argument order corrected. Type preserved. Await preserved.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;when-ast-analysis-refuses-to-rewrite&quot;&gt;When AST Analysis Refuses to Rewrite&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;Not every call can be safely automated. FlagLint identifies these
+and routes them to manual review instead of silently rewriting them:&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Dynamic flag keys:&lt;/strong&gt;&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;const &lt;/span&gt;&lt;span&gt;flagKey&lt;/span&gt;&lt;span&gt; = &lt;/span&gt;&lt;span&gt;`&lt;/span&gt;&lt;span&gt;feature-&lt;/span&gt;&lt;span&gt;${&lt;/span&gt;&lt;span&gt;featureName&lt;/span&gt;&lt;span&gt;}&lt;/span&gt;&lt;span&gt;`&lt;/span&gt;&lt;span&gt;;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;await&lt;/span&gt;&lt;span&gt; ldClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;boolVariation&lt;/span&gt;&lt;span&gt;(flagKey, ctx, &lt;/span&gt;&lt;span&gt;false&lt;/span&gt;&lt;span&gt;);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;The key is not statically knowable. Automated rewrite could produce
+incorrect OpenFeature client binding.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Detail methods:&lt;/strong&gt;&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;await&lt;/span&gt;&lt;span&gt; ldClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;boolVariationDetail&lt;/span&gt;&lt;span&gt;(&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;checkout-v2&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;, ctx, &lt;/span&gt;&lt;span&gt;false&lt;/span&gt;&lt;span&gt;);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;&lt;code dir=&quot;auto&quot;&gt;boolVariationDetail&lt;/code&gt; returns metadata not directly equivalent in
+OpenFeature. Requires a different migration pattern.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bulk state calls:&lt;/strong&gt;&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;await&lt;/span&gt;&lt;span&gt; ldClient&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;allFlagsState&lt;/span&gt;&lt;span&gt;(ctx);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;No direct OpenFeature equivalent. Architecture decision required.&lt;/p&gt;
+&lt;p&gt;For all of these, FlagLint reports the location and reason —
+it never silently rewrites them.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;the-ci-gate&quot;&gt;The CI Gate&lt;/h2&gt;&lt;/div&gt;
+&lt;p&gt;Generating diffs is only half the problem. Migration rot is the other half.&lt;/p&gt;
+&lt;p&gt;After a phased migration, new engineers joining the codebase don’t
+know the rule. They reach for &lt;code dir=&quot;auto&quot;&gt;ldClient&lt;/code&gt; because that’s what they know.
+Six months later, you have new direct LD calls and the migration has
+partially reversed.&lt;/p&gt;
+&lt;p&gt;&lt;code dir=&quot;auto&quot;&gt;flaglint validate --no-direct-launchdarkly&lt;/code&gt; exits 1 if any direct
+LaunchDarkly evaluation call appears outside the bootstrap file.&lt;/p&gt;
+&lt;p&gt;Add it to your GitHub Actions workflow:&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;- &lt;/span&gt;&lt;span&gt;name&lt;/span&gt;&lt;span&gt;: &lt;/span&gt;&lt;span&gt;Enforce OpenFeature boundary&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;  &lt;/span&gt;&lt;span&gt;run&lt;/span&gt;&lt;span&gt;: &lt;/span&gt;&lt;span&gt;flaglint validate ./src --no-direct-launchdarkly&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;  &lt;/span&gt;&lt;span&gt;if&lt;/span&gt;&lt;span&gt;: &lt;/span&gt;&lt;span&gt;always()&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;Any new &lt;code dir=&quot;auto&quot;&gt;ldClient.boolVariation()&lt;/code&gt; call fails the build. The boundary holds.&lt;/p&gt;
+&lt;div&gt;&lt;h2 id=&quot;try-it-now&quot;&gt;Try It Now&lt;/h2&gt;&lt;/div&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;span&gt;&lt;/span&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;npx&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;flaglint&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;scan&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;./src&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;Runs locally, no SDK key needed, nothing changes. Shows you every
+direct LaunchDarkly SDK call in your codebase by file and line —
+including dynamic keys, detail methods, and bulk state calls.&lt;/p&gt;
+&lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;span&gt;&lt;/span&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;flaglint&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;migrate&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;./src&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;--dry-run&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;&lt;/div&gt;
+&lt;p&gt;Shows the before/after diff for every safely automatable call site.
+Dynamic keys and detail methods are reported separately for manual review.&lt;/p&gt;
+&lt;p&gt;FlagLint is free, open source, MIT licensed.&lt;/p&gt;
+&lt;p&gt;→ &lt;a href=&quot;https://github.com/flaglint/flaglint&quot;&gt;GitHub&lt;/a&gt;&lt;br&gt;
+→ &lt;a href=&quot;https://www.npmjs.com/package/flaglint&quot;&gt;npm&lt;/a&gt;&lt;br&gt;
+→ &lt;a href=&quot;https://flaglint.dev/docs/quickstart&quot;&gt;Quickstart&lt;/a&gt;&lt;/p&gt;</content:encoded><category>launchdarkly</category><category>openfeature</category><category>migration</category><category>nodejs</category><category>devops</category></item></channel></rss>
