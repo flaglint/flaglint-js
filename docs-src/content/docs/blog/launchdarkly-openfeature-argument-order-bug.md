@@ -162,3 +162,6 @@ FlagLint is free, open source, MIT licensed.
 → [GitHub](https://github.com/flaglint/flaglint)  
 → [npm](https://www.npmjs.com/package/flaglint)  
 → [Quickstart](/docs/quickstart)
+
+---
+**Related:** [After the LaunchDarkly Outage: Adding a Vendor-Neutral Abstraction Without a Full Migration →](/docs/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)

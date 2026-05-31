@@ -11,14 +11,14 @@ export default defineConfig({
     starlight({
       plugins: [
         starlightBlog({
-          title: "Blog",
+          title: "FlagLint Blog",
           prefix: "blog",
           recentPostCount: 5,
         }),
       ],
       title: "FlagLint Docs",
       description:
-        "Documentation for standardizing LaunchDarkly Node.js server SDK usage on OpenFeature with FlagLint.",
+        "Technical articles on LaunchDarkly → OpenFeature migrations, argument-order bugs, and safe codemod patterns for Node.js teams.",
       social: [
         {
           icon: "github",
