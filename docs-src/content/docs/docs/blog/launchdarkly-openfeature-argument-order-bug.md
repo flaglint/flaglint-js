@@ -12,6 +12,8 @@ tags: ["launchdarkly", "openfeature", "migration", "nodejs", "devops"]
 Most LaunchDarkly → OpenFeature migrations fail the same way.
 And nobody catches it until it's in production.
 
+<!-- excerpt -->
+
 ## The Agreement That Takes 30 Minutes
 
 Teams agree on OpenFeature quickly. It makes sense — vendor-neutral, 

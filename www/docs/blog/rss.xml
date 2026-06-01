@@ -3,6 +3,7 @@ Teams couldn’t update or create feature flags. Rollbacks were delayed.&lt;/p&g
 &lt;p&gt;For teams with direct LaunchDarkly SDK calls throughout their codebase,
 there was no quick path to a fallback provider.&lt;/p&gt;
 &lt;p&gt;This doesn’t require abandoning LaunchDarkly. It requires one abstraction layer.&lt;/p&gt;
+
 &lt;div&gt;&lt;h2 id=&quot;the-vendor-lock-in-problem&quot;&gt;The Vendor Lock-In Problem&lt;/h2&gt;&lt;/div&gt;
 &lt;p&gt;Direct SDK calls look like this:&lt;/p&gt;
 &lt;div&gt;&lt;figure&gt;&lt;figcaption&gt;&lt;/figcaption&gt;&lt;pre&gt;&lt;code&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;import&lt;/span&gt;&lt;span&gt; LaunchDarkly &lt;/span&gt;&lt;span&gt;from&lt;/span&gt;&lt;span&gt; &lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;launchdarkly-node-server-sdk&lt;/span&gt;&lt;span&gt;&apos;&lt;/span&gt;&lt;span&gt;;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;span&gt;const &lt;/span&gt;&lt;span&gt;ldClient&lt;/span&gt;&lt;span&gt; = &lt;/span&gt;&lt;span&gt;LaunchDarkly&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;init&lt;/span&gt;&lt;span&gt;(process&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;env&lt;/span&gt;&lt;span&gt;.&lt;/span&gt;&lt;span&gt;LD_SDK_KEY&lt;/span&gt;&lt;span&gt;);&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;
@@ -47,6 +48,7 @@ configuration. Your application code doesn’t change.&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;&lt;strong&gt;Related:&lt;/strong&gt; &lt;a href=&quot;https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/&quot;&gt;Why LaunchDarkly → OpenFeature Migrations Break in Production →&lt;/a&gt;&lt;/p&gt;</content:encoded><category>launchdarkly</category><category>openfeature</category><category>vendor-lock-in</category><category>nodejs</category><category>devops</category></item><item><title>Why LaunchDarkly → OpenFeature Migrations Break in Production</title><link>https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</link><guid isPermaLink="true">https://flaglint.dev/docs/blog/launchdarkly-openfeature-argument-order-bug/</guid><pubDate>Fri, 29 May 2026 00:00:00 GMT</pubDate><content:encoded>&lt;p&gt;Most LaunchDarkly → OpenFeature migrations fail the same way.
 And nobody catches it until it’s in production.&lt;/p&gt;
+
 &lt;div&gt;&lt;h2 id=&quot;the-agreement-that-takes-30-minutes&quot;&gt;The Agreement That Takes 30 Minutes&lt;/h2&gt;&lt;/div&gt;
 &lt;p&gt;Teams agree on OpenFeature quickly. It makes sense — vendor-neutral,
 CNCF-backed, clean abstraction. The decision is easy.&lt;/p&gt;

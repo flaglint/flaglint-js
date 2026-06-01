@@ -17,6 +17,8 @@ there was no quick path to a fallback provider.
 
 This doesn't require abandoning LaunchDarkly. It requires one abstraction layer.
 
+<!-- excerpt -->
+
 ## The Vendor Lock-In Problem
 
 Direct SDK calls look like this:
