@@ -432,15 +432,125 @@
     @media (max-width: 680px) {
       section { padding: 64px 18px; }
       .hero { padding: 68px 18px 56px; }
-      .nav-links a:not(.github-btn) { display: none; }
+      .nav-links a:not(.github-btn):not(.nav-search) { display: none; }
       .nav-inner { padding: 0 18px; }
       .cta-row .btn { width: 100%; }
       .grid-2, .diagram { grid-template-columns: 1fr; }
       .terminal-body { padding: 14px; }
       .terminal-body pre { font-size: 12px; min-width: 480px; }
       .command-card { width: 100%; }
+      .search-label, .nav-search kbd { display: none; }
+    }
+
+    /* ── Light mode ─────────────────────────────────────────────────── */
+    [data-theme="light"] {
+      --bg: #f8fafb;
+      --surface: #ffffff;
+      --surface-raised: #f0f4f7;
+      --surface-soft: #eef2f5;
+      --border: #d1dbe3;
+      --border-strong: #b0c0cc;
+      --text: #0f1a14;
+      --muted: #3d5a4a;
+      --subtle: #6b8a7a;
+      --accent: #007a49;
+      --accent-soft: rgba(0, 122, 73, 0.10);
+      --shadow: 0 24px 80px rgba(0,0,0,0.10);
+    }
+    [data-theme="light"] body {
+      background: linear-gradient(180deg, #f0fdf6 0%, #f8fafb 30%, #f8fafb 100%);
+    }
+    [data-theme="light"] body::before {
+      background-image:
+        linear-gradient(rgba(0,0,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,0.04) 1px, transparent 1px);
+    }
+    [data-theme="light"] nav {
+      background: rgba(248,250,251,0.92);
+      border-bottom-color: rgba(0,0,0,0.08);
+    }
+    [data-theme="light"] .github-btn {
+      color: var(--text);
+    }
+    [data-theme="light"] .proof-shell {
+      background: linear-gradient(180deg, #fff, #f8fafb);
+    }
+    [data-theme="light"] .terminal-body {
+      background: #1a1f2e;
+    }
+
+    /* ── Theme toggle ───────────────────────────────────────────────── */
+    .theme-toggle {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      flex-shrink: 0;
+    }
+    .theme-btn {
+      background: none;
+      border: none;
+      border-radius: 4px;
+      padding: 4px 8px;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 12px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      transition: background 0.1s, color 0.1s;
+      line-height: 1;
+    }
+    .theme-btn.active,
+    .theme-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    [data-theme="light"] .theme-btn.active,
+    [data-theme="light"] .theme-btn:hover {
+      color: #fff;
+    }
+
+    /* ── Search button ──────────────────────────────────────────────── */
+    .nav-search {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--surface-raised);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 13px;
+      color: var(--muted);
+      text-decoration: none;
+      transition: border-color 0.15s, color 0.15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .nav-search:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .nav-search kbd {
+      font-size: 11px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-family: inherit;
+      line-height: 1.4;
     }
   </style>
+  <script>
+    (function(){
+      var s=localStorage.getItem('flaglint-theme')||'dark';
+      var r=s==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;
+      document.documentElement.setAttribute('data-theme',r);
+    })();
+  </script>
   <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -477,6 +587,20 @@
         <a href="/docs/integrations/github-actions">CI</a>
         <a href="/docs/reference/supported-scope">Scope</a>
         <a href="/docs/blog/">Blog</a>
+        <a href="/docs/" class="nav-search" id="nav-search-btn" title="Search docs (⌘K)" aria-label="Search documentation">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <span class="search-label">Search</span>
+          <kbd>⌘K</kbd>
+        </a>
+        <div class="theme-toggle" role="group" aria-label="Select theme">
+          <button class="theme-btn" data-theme-value="light" title="Light mode" aria-label="Light mode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7zm0-2a1 1 0 0 0 1-1V2a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1zm0 14a1 1 0 0 0-1 1v2a1 1 0 0 0 2 0v-2a1 1 0 0 0-1-1zm9-8h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 0-2zM5 12a1 1 0 0 0-1-1H2a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1z"/></svg>
+          </button>
+          <button class="theme-btn" data-theme-value="dark" title="Dark mode" aria-label="Dark mode">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+          </button>
+          <button class="theme-btn" data-theme-value="auto" title="Auto (system)" aria-label="Auto theme">Auto</button>
+        </div>
         <a class="github-btn" href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
     </div>
@@ -810,5 +934,56 @@ jobs:
       </div>
     </div>
   </footer>
+
+  <script>
+  (function() {
+    var STORAGE_KEY = 'flaglint-theme';
+
+    function getSystemTheme() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+
+    function applyTheme(preference) {
+      var resolved = preference === 'auto' ? getSystemTheme() : preference;
+      document.documentElement.setAttribute('data-theme', resolved);
+      localStorage.setItem(STORAGE_KEY, preference);
+      document.querySelectorAll('.theme-btn').forEach(function(btn) {
+        btn.classList.toggle('active', btn.dataset.themeValue === preference);
+      });
+    }
+
+    // Wire buttons after DOM ready
+    document.addEventListener('DOMContentLoaded', function() {
+      var saved = localStorage.getItem(STORAGE_KEY) || 'dark';
+      applyTheme(saved);
+
+      document.querySelectorAll('.theme-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() { applyTheme(btn.dataset.themeValue); });
+      });
+
+      // Follow system changes when preference is auto
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+        if (localStorage.getItem(STORAGE_KEY) === 'auto') applyTheme('auto');
+      });
+
+      // Search button — navigate to docs
+      var searchBtn = document.getElementById('nav-search-btn');
+      if (searchBtn) {
+        searchBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.location.href = '/docs/';
+        });
+      }
+
+      // ⌘K / Ctrl+K from homepage opens docs search
+      document.addEventListener('keydown', function(e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          window.location.href = '/docs/';
+        }
+      });
+    });
+  })();
+  </script>
 </body>
 </html>
