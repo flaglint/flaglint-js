@@ -7,7 +7,7 @@ type PackageJson = {
   };
 };
 
-const WWW_PATH = "www/index.html";
+const WWW_PATH = "docs-src/pages/index.astro";
 const TYPES_PATH = "src/types.ts";
 const PACKAGE_PATH = "package.json";
 
