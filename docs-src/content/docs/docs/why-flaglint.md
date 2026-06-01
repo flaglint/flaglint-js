@@ -40,6 +40,8 @@ Application code
 
 LaunchDarkly remains the provider. OpenFeature becomes the application-facing evaluation API.
 
+Ready to try it? Run your first scan in 2 minutes → [Quickstart](/docs/quickstart/)
+
 ## Feedback
 
 - [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/why-flaglint.md)
