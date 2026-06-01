@@ -4,15 +4,15 @@ import starlightBlog from "starlight-blog";
 
 export default defineConfig({
   site: "https://flaglint.dev",
-  base: "/docs",
+  // No base — docs content nested at docs-src/content/docs/docs/ generates /docs/* routes naturally.
   srcDir: "./docs-src",
-  outDir: "./www/docs",
+  outDir: "./www",
   integrations: [
     starlight({
       plugins: [
         starlightBlog({
           title: "FlagLint Blog",
-          prefix: "blog",
+          prefix: "docs/blog",
           recentPostCount: 5,
         }),
       ],
@@ -44,73 +44,73 @@ export default defineConfig({
         {
           label: "Start Here",
           items: [
-            { label: "Overview", slug: "index" },
-            { label: "Quickstart", slug: "quickstart" },
-            { label: "Why FlagLint", slug: "why-flaglint" },
-            { label: "Enterprise Demo", slug: "enterprise-demo" },
+            { label: "Overview", slug: "docs" },
+            { label: "Quickstart", slug: "docs/quickstart" },
+            { label: "Why FlagLint", slug: "docs/why-flaglint" },
+            { label: "Enterprise Demo", slug: "docs/enterprise-demo" },
           ],
         },
         {
           label: "Tutorials",
           items: [
-            { label: "Migrate a Node Service", slug: "tutorials/migrate-a-node-service" },
-            { label: "Add OpenFeature Provider", slug: "tutorials/add-openfeature-provider" },
-            { label: "Enforce in GitHub Actions", slug: "tutorials/enforce-in-github-actions" },
-            { label: "Shared Client Architecture", slug: "tutorials/shared-client-architecture" },
+            { label: "Migrate a Node Service", slug: "docs/tutorials/migrate-a-node-service" },
+            { label: "Add OpenFeature Provider", slug: "docs/tutorials/add-openfeature-provider" },
+            { label: "Enforce in GitHub Actions", slug: "docs/tutorials/enforce-in-github-actions" },
+            { label: "Shared Client Architecture", slug: "docs/tutorials/shared-client-architecture" },
           ],
         },
         {
           label: "Concepts",
           items: [
-            { label: "How FlagLint Works", slug: "concepts/how-flaglint-works" },
-            { label: "Safety Model", slug: "concepts/safety-model" },
-            { label: "OpenFeature Boundary", slug: "concepts/openfeature-boundary" },
-            { label: "Source-Level Debt Signals", slug: "concepts/source-level-debt-signals" },
+            { label: "How FlagLint Works", slug: "docs/concepts/how-flaglint-works" },
+            { label: "Safety Model", slug: "docs/concepts/safety-model" },
+            { label: "OpenFeature Boundary", slug: "docs/concepts/openfeature-boundary" },
+            { label: "Source-Level Debt Signals", slug: "docs/concepts/source-level-debt-signals" },
           ],
         },
         {
           label: "CLI",
           items: [
-            { label: "scan", slug: "cli/scan" },
-            { label: "migrate", slug: "cli/migrate" },
-            { label: "validate", slug: "cli/validate" },
-            { label: "Configuration", slug: "cli/configuration" },
-            { label: "Report Formats", slug: "cli/report-formats" },
-            { label: "Exit Codes", slug: "cli/exit-codes" },
+            { label: "scan", slug: "docs/cli/scan" },
+            { label: "migrate", slug: "docs/cli/migrate" },
+            { label: "validate", slug: "docs/cli/validate" },
+            { label: "Configuration", slug: "docs/cli/configuration" },
+            { label: "Report Formats", slug: "docs/cli/report-formats" },
+            { label: "Exit Codes", slug: "docs/cli/exit-codes" },
           ],
         },
         {
           label: "Guides",
           items: [
-            { label: "Express", slug: "guides/express" },
-            { label: "NestJS", slug: "guides/nestjs" },
-            { label: "Monorepos", slug: "guides/monorepos" },
-            { label: "Manual Review Patterns", slug: "guides/manual-review-patterns" },
-            { label: "Troubleshooting", slug: "guides/troubleshooting" },
+            { label: "Express", slug: "docs/guides/express" },
+            { label: "NestJS", slug: "docs/guides/nestjs" },
+            { label: "Monorepos", slug: "docs/guides/monorepos" },
+            { label: "Manual Review Patterns", slug: "docs/guides/manual-review-patterns" },
+            { label: "Troubleshooting", slug: "docs/guides/troubleshooting" },
           ],
         },
         {
           label: "Reference",
           items: [
-            { label: "Supported Scope", slug: "reference/supported-scope" },
-            { label: "Limitations", slug: "reference/limitations" },
-            { label: "Security", slug: "reference/security" },
-            { label: "FAQ", slug: "reference/faq" },
-            { label: "Changelog", slug: "reference/changelog" },
+            { label: "Supported Scope", slug: "docs/reference/supported-scope" },
+            { label: "Limitations", slug: "docs/reference/limitations" },
+            { label: "Security", slug: "docs/reference/security" },
+            { label: "FAQ", slug: "docs/reference/faq" },
+            { label: "Changelog", slug: "docs/reference/changelog" },
           ],
         },
         {
           label: "Integrations",
           items: [
-            { label: "GitHub Actions", slug: "integrations/github-actions" },
-            { label: "OpenTelemetry", slug: "integrations/opentelemetry" },
+            { label: "GitHub Actions", slug: "docs/integrations/github-actions" },
+            { label: "OpenTelemetry", slug: "docs/integrations/opentelemetry" },
           ],
         },
         {
           label: "Trust",
           items: [
-            { label: "Security", slug: "trust/security" },
-            { label: "Privacy", slug: "trust/privacy" },
+            { label: "Security", slug: "docs/trust/security" },
+            { label: "Privacy", slug: "docs/trust/privacy" },
           ],
         },
       ],
