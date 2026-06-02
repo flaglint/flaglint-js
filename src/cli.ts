@@ -2,6 +2,7 @@ import { Command } from "commander";
 import { registerScanCommand } from "./commands/scan.js";
 import { registerMigrateCommand } from "./commands/migrate.js";
 import { registerValidateCommand } from "./commands/validate.js";
+import { registerAuditCommand } from "./commands/audit.js";
 
 declare const __PKG_VERSION__: string;
 declare const __PKG_DESCRIPTION__: string;
@@ -23,12 +24,16 @@ Examples:
   $ flaglint scan --output report.md save to file
   $ flaglint migrate                 generate migration plan
   $ flaglint migrate --dry-run       preview without writing
-  $ flaglint validate --no-direct-launchdarkly  enforce OF migration in CI`
+  $ flaglint validate --no-direct-launchdarkly  enforce OF migration in CI
+  $ flaglint audit                   generate flag debt audit report
+  $ flaglint audit --format html     shareable HTML report
+  $ flaglint audit --output audit.md save to file`
     );
 
   registerScanCommand(program);
   registerMigrateCommand(program);
   registerValidateCommand(program);
+  registerAuditCommand(program);
 
   return program;
 }

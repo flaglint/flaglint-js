@@ -384,6 +384,45 @@ ldClient.variation('show-banner', ctx, false);`;
   });
 });
 
+describe("scanner — migrationInventory coverage", () => {
+  it("isFeatureEnabled appears in migrationInventory", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-is-feature-enabled.ts"));
+    expect(result.migrationInventory).toBeDefined();
+    expect(result.migrationInventory!.length).toBeGreaterThan(0);
+  });
+
+  it("useFlags hook appears in migrationInventory", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-react.tsx"));
+    const item = result.migrationInventory?.find(
+      (i) => i.launchDarklyMethod === "hook-useFlags"
+    );
+    expect(item).toBeDefined();
+    expect(item?.safelyAutomatable).toBe(false);
+    expect(item?.manualReviewReason).toBe("dynamic-key");
+  });
+
+  it("useLDClient hook appears in migrationInventory", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-react.tsx"));
+    const item = result.migrationInventory?.find(
+      (i) => i.launchDarklyMethod === "hook-useLDClient"
+    );
+    expect(item).toBeDefined();
+    expect(item?.safelyAutomatable).toBe(false);
+    expect(item?.manualReviewReason).toBe("dynamic-key");
+  });
+
+  it("configured wrapper appears in migrationInventory", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts"],
+      exclude: [],
+      wrappers: ["flagPredicate"],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.migrationInventory).toBeDefined();
+    expect(result.migrationInventory!.length).toBeGreaterThan(0);
+  });
+});
+
 describe("scanner — path-traversal protection", () => {
   it("throws on include pattern starting with '..'", async () => {
     const config = FlagLintConfigSchema.parse({ include: ["../../../etc/**"], exclude: [] });

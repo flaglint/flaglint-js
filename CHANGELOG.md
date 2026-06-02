@@ -5,6 +5,72 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-06-02
+
+### Added
+
+- add flaglint audit command with risk-scored flag debt report
+- migrate homepage into Astro, unify site into single build
+- add dark/light/auto theme toggle + search to homepage
+- add Mermaid diagrams to Safety Model and How FlagLint Works
+- add Mermaid diagrams to Safety Model and How FlagLint Works
+- complete favicon stack for Google Search and mobile
+- replace plain-text architecture diagram with styled HTML flow
+- add JSON-LD SoftwareApplication structured data to homepage
+- align trust and privacy page nav with homepage nav
+- add Further Reading section to quickstart linking to blog posts
+- add cross-links between blog posts
+- rename blog to FlagLint Blog and set focused description
+- add Docs and Blog links to homepage nav and footer
+- add Blog link to marketing homepage nav
+- add blog to flaglint.dev using starlight-blog
+- add terminal demo GIF (scan, migrate --dry-run, validate CI gate)
+
+### Fixed
+
+- docs UX series P1-P9 (GIF, TOC, title, sidebar, cards, blog frames)
+- UX and codebase series (A1–A5, B1–B5)
+- sync package-lock.json after rebase (add png-to-ico)
+- UX and codebase series (A1–A5, B1–B5)
+- align dynamic key label with scan reporter terminology
+- restore branded README header and correct docs links
+
+### Changed
+
+- trigger cloudflare rebuild
+- untrack www/ build output + fix GIF paths + add Why FlagLint CTA
+- add excerpt markers to both blog posts for blog index truncation
+- rebuild after rebase onto main (PR #83 docs UX changes)
+- rebuild docs after rebase onto main (A1-A5/B1-B5 + favicon state)
+- rebuild docs after rebase onto main (favicon + blog state)
+- rebuild docs site with blog and demo GIF
+- add LinkedIn URL to blog post authors
+- remove debug artifacts from demo fixture folder
+- update version references to 0.5.4
+
+### Other
+
+- Merge feat/audit-command: add flaglint audit command
+- Merge pull request #86 from flaglint/feat/docs-ux-fixes
+- Merge pull request #85 from flaglint/fix/blog-excerpt-markers
+- Merge pull request #84 from flaglint/feat/homepage-theme-search
+- Merge pull request #83 from flaglint/fix/complete-series-p1-p12
+- Merge pull request #82 from flaglint/feat/favicon-stack
+- Merge pull request #80 from flaglint/fix/validate-dynamic-key-label
+- Merge pull request #78 from flaglint/feat/architecture-diagram
+- Merge pull request #77 from flaglint/feat/structured-data-jsonld
+- Merge pull request #76 from flaglint/feat/consistent-nav
+- Merge pull request #75 from flaglint/feat/quickstart-further-reading
+- Merge branch 'main' into feat/quickstart-further-reading
+- Merge pull request #74 from flaglint/feat/blog-cross-links
+- Merge pull request #73 from flaglint/feat/blog-title-description
+- Merge pull request #72 from flaglint/feat/nav-footer-blog-docs
+- Merge pull request #71 from flaglint/chore/bump-version-0.5.4
+- Update README.md
+- Merge pull request #70 from flaglint/chore/bump-version-0.5.4
+- Merge pull request #69 from flaglint/chore/bump-version-0.5.4
+- chore/bump-version-0.5.4
+
 ## Unreleased
 
 ### Fixed

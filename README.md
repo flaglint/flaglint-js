@@ -70,6 +70,20 @@ npx flaglint migrate ./src --dry-run
 
 ---
 
+### `flaglint audit [dir]`
+
+Generates a local flag debt audit report. No API keys or credentials needed.
+
+```bash
+flaglint audit ./src
+flaglint audit ./src --format html --output audit.html
+flaglint audit ./src --format json
+```
+
+Produces a risk-scored inventory of every LaunchDarkly flag in your codebase — sorted by risk level (high / medium / low) with the reasons for each rating. Useful for planning migration scope before running `migrate --dry-run`.
+
+---
+
 ## Before → After (real output from enterprise demo)
 
 ```diff

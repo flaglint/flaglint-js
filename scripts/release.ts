@@ -229,7 +229,7 @@ console.log('Tests passed.\n');
   await run('npm run sync:www');
 
   // Commit and tag
-  await run('git add package.json package-lock.json CHANGELOG.md www/index.html');
+  await run('git add package.json package-lock.json CHANGELOG.md docs-src/pages/index.astro');
   await run(`git commit -m "chore: release ${tagName}"`);
   await run(`git tag -a ${tagName} -m "Release ${tagName}"`);
 
