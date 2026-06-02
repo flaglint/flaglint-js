@@ -14,6 +14,9 @@ export const FlagLintConfigSchema = z.object({
       "**/coverage/**",
       "**/*.d.ts",
     ]),
+  // Governs which vendor SDK the scanner targets.
+  // Currently only "launchdarkly" is wired in the scanner.
+  // Other values are accepted for forward compatibility (v0.7+).
   provider: z
     .enum(["launchdarkly", "unleash", "growthbook", "custom"])
     .default("launchdarkly"),
@@ -34,7 +37,9 @@ export type FlagLintConfig = z.infer<typeof FlagLintConfigSchema>;
 // Scan-relevant config only — the subset scan() needs. CLI output fields
 // (reportTitle, outputDir) are stripped so the Cloud can pass its own config
 // without dummy values for fields that have no meaning outside the CLI.
-export type ScanConfig = Pick<FlagLintConfig, "include" | "exclude" | "provider" | "minFileCount" | "wrappers">;
+// provider is intentionally excluded: the scanner only targets launchdarkly;
+// multi-vendor support is planned for v0.7 and will be wired then.
+export type ScanConfig = Pick<FlagLintConfig, "include" | "exclude" | "minFileCount" | "wrappers" | "openFeatureClientBindings">;
 
 const SEARCH_PATHS = [".flaglintrc", ".flaglintrc.json", "flaglint.config.json"];
 

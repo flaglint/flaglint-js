@@ -413,6 +413,9 @@ function detectUsages(
             callType: "isFeatureEnabled",
             stalenessSignals: sig ? [sig] : [],
           });
+          migrationInventory.push(
+            buildMigrationInventoryItem(code, filePath, loc, call, "isFeatureEnabled", call.arguments, flagKey, isDynamic)
+          );
           return;
         }
 
@@ -427,6 +430,25 @@ function detectUsages(
             column: loc.column,
             callType: name === "useFlags" ? "hook-useFlags" : "hook-useLDClient",
             stalenessSignals: sig ? [sig] : [],
+          });
+          const hookCallRange = expressionRange(call);
+          migrationInventory.push({
+            file: filePath,
+            line: loc.line,
+            column: loc.column,
+            launchDarklyMethod: (name === "useFlags" ? "hook-useFlags" : "hook-useLDClient") as CallType,
+            callExpression: expressionText(code, call),
+            rangeStart: hookCallRange?.[0],
+            rangeEnd: hookCallRange?.[1],
+            isAwaited: false,
+            flagKeyExpression: undefined,
+            staticFlagKey: undefined,
+            isDynamic: false,
+            valueType: "unknown",
+            fallbackExpression: undefined,
+            evaluationContextExpression: undefined,
+            safelyAutomatable: false,
+            manualReviewReason: "dynamic-key",
           });
           return;
         }
@@ -450,6 +472,9 @@ function detectUsages(
           callType: "variation",
           stalenessSignals: sig ? [sig] : [],
         });
+        migrationInventory.push(
+          buildMigrationInventoryItem(code, filePath, loc, call, "variation", call.arguments, flagKey, isDynamic)
+        );
         return;
       }
 
