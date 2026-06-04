@@ -689,6 +689,62 @@
       </div>
     </section>
 
+  <section style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--surface) 0%,transparent 100%);">
+    <div class="section-inner">
+      <div class="section-kicker">Know your switching cost</div>
+      <h2 class="section-heading">What would you pay after migration?</h2>
+      <p class="section-copy" style="margin-bottom:28px;">FlagLint estimates your annual LaunchDarkly cost based on your service count and flag usage — and compares it to OpenFeature-native alternatives.</p>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="font-size:30px;font-weight:700;color:var(--danger);margin-bottom:6px;">$72K</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Today: LaunchDarkly</div>
+          <div style="font-size:13px;color:var(--muted);">Median annual contract. MAU-based pricing scales with your product growth.</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="font-size:30px;font-weight:700;color:var(--warning);margin-bottom:6px;">$2,400</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Option: Flagsmith Cloud</div>
+          <div style="font-size:13px;color:var(--muted);">Flat pricing. OpenFeature-native. No MAU charges.</div>
+        </div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
+          <div style="font-size:30px;font-weight:700;color:var(--accent);margin-bottom:6px;">$0</div>
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Option: flagd / GrowthBook</div>
+          <div style="font-size:13px;color:var(--muted);">Self-hosted. OpenFeature-native. No vendor dependency.</div>
+        </div>
+      </div>
+
+      <div style="background:var(--surface-soft);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <code style="font-family:monospace;font-size:13px;color:var(--accent);">npx flaglint audit ./src --cost-estimate</code>
+        <span style="font-size:12px;color:var(--subtle);">Coming in v0.7 — <a href="#cloud-waitlist" style="color:var(--accent);text-decoration:underline;">join the waitlist</a></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="cloud-waitlist" style="padding:36px 24px;border-bottom:1px solid var(--border);">
+    <div style="max-width:640px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">Get notified when v0.7 ships</div>
+        <div style="font-size:12px;color:var(--muted);">No spam. Unsubscribe any time.</div>
+      </div>
+      <form
+        action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0"
+        method="POST"
+        style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;"
+      >
+        <input
+          type="email"
+          name="email"
+          placeholder="your@email.com"
+          required
+          style="height:40px;padding:0 12px;background:var(--surface);border:1px solid var(--border-strong);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:200px;"
+        />
+        <button type="submit" class="btn btn-primary" style="height:40px;padding:0 18px;white-space:nowrap;font-size:13px;">
+          Notify me
+        </button>
+      </form>
+    </div>
+  </section>
+
     <section>
       <div class="section-inner">
         <div class="section-kicker">Workflow</div>
