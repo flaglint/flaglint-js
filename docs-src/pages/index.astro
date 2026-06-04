@@ -5,10 +5,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlagLint — Find every direct LaunchDarkly SDK call. Migrate safely.</title>
-  <meta name="description" content="FlagLint inventories direct LaunchDarkly Node.js SDK calls, previews guarded OpenFeature migrations, and blocks new vendor-coupled flag access in CI.">
-  <meta property="og:title" content="FlagLint — Find every direct LaunchDarkly SDK call. Migrate safely.">
-  <meta property="og:description" content="Inventory direct LaunchDarkly Node.js SDK calls, preview guarded OpenFeature migrations, and enforce OpenFeature in CI.">
+  <title>FlagLint — Audit LaunchDarkly flag debt. Migrate to OpenFeature safely.</title>
+  <meta name="description" content="Audit every direct LaunchDarkly SDK call by risk level. Preview safe OpenFeature rewrites. Lock the migration boundary in CI. No API key. No credentials. One command.">
+  <meta property="og:title" content="FlagLint — Audit LaunchDarkly flag debt. Migrate to OpenFeature safely.">
+  <meta property="og:description" content="Audit every direct LaunchDarkly SDK call by risk level. Preview safe OpenFeature rewrites. Lock the migration boundary in CI. No API key. No credentials.">
   <meta property="og:url" content="https://flaglint.dev">
   <meta property="og:site_name" content="FlagLint">
   <meta property="og:type" content="website">
@@ -616,22 +616,25 @@
       <div class="hero-grid">
         <div>
           <div class="section-kicker">LaunchDarkly Node.js SDK to OpenFeature</div>
-          <h1>Find out how deep you are in LaunchDarkly.<br>One command.</h1>
-          <p class="hero-sub">Audit every direct LaunchDarkly SDK call by risk level, preview safe OpenFeature rewrites, and lock the boundary in CI. No API key. No credentials. Local source analysis only.</p>
+          <h1>Your LaunchDarkly contract<br>renews soon.</h1>
+          <p style="font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--muted); line-height: 1.2; margin-bottom: 18px; letter-spacing: -0.01em;">Do you know how hard it is to leave?</p>
+          <p class="hero-sub">FlagLint audits every direct LaunchDarkly SDK call in your Node.js codebase, classifies it by migration risk, and generates safe OpenFeature rewrites. No API key. No credentials. No source upload.</p>
           <div class="command-card" aria-label="Primary command">
             <span class="muted">$</span>
             <code>npx flaglint audit ./src</code>
           </div>
-          <div style="display:flex;gap:14px;flex-wrap:wrap;
-                      margin-bottom:16px;font-size:12px;
-                      font-weight:500;color:var(--subtle);">
-            <span>MIT licensed</span>
+          <!-- Social proof: update these numbers monthly -->
+          <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:16px;font-size:13px;color:var(--subtle);">
+            <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:5px;background:var(--surface-raised);border:1px solid var(--border);border-radius:5px;padding:3px 10px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:500;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+              ★ 5 stars
+            </a>
             <span style="color:var(--border-strong)">·</span>
-            <span>Node.js 20+</span>
+            <a href="https://www.npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer" style="display:inline-flex;align-items:center;gap:5px;background:var(--surface-raised);border:1px solid var(--border);border-radius:5px;padding:3px 10px;color:var(--muted);text-decoration:none;font-size:12px;font-weight:500;">
+              750+ downloads/week
+            </a>
             <span style="color:var(--border-strong)">·</span>
-            <span>No source upload</span>
-            <span style="color:var(--border-strong)">·</span>
-            <span>No API key needed</span>
+            <span style="display:inline-flex;align-items:center;background:var(--surface-raised);border:1px solid var(--border);border-radius:5px;padding:3px 10px;color:var(--muted);font-size:12px;font-weight:500;">MIT · Node 20+</span>
           </div>
           <div class="cta-row">
             <a class="btn btn-primary" href="/docs/quickstart">Try it now</a>
@@ -640,7 +643,7 @@
           </div>
         </div>
 
-        <div class="proof-shell" aria-label="Dry-run migration proof from enterprise demo">
+        <div class="proof-shell" aria-label="Audit output from enterprise checkout demo">
           <div class="terminal-header">
             <div class="dots" aria-hidden="true">
               <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
@@ -648,19 +651,22 @@
             <span class="term-version">flaglint v0.6.0</span>
           </div>
           <div class="terminal-body">
-<pre><span class="muted">$</span> npx flaglint migrate ./src --dry-run
-<span class="muted">- Scanning ./examples/enterprise-checkout-service/src...</span>
-LaunchDarkly usages found: 19
-Safely automatable: 10 · Manual review: 9
+<pre><span class="muted">$</span> npx flaglint audit ./src
+<span class="muted">- Auditing ./examples/enterprise-checkout-service/src...</span>
 
-<span class="muted">diff --git a/checkout.ts b/checkout.ts</span>
-<span class="red">-  return ldClient.boolVariation("checkout-v2", ctx, false);</span>
-<span class="green">+  return openFeatureClient.getBooleanValue("checkout-v2", false, ctx);</span>
+<span class="green">✓ Audit complete: 13 flags — 3 high risk, 10 medium, 0 low</span>
 
-<span class="muted">Skipped usages:</span>
-<span class="amber">- variationDetail: manual review</span>
-<span class="amber">- allFlagsState: bulk inventory call</span>
-<span class="amber">- dynamic flag key: manual review</span></pre>
+<span class="muted">Flag Key               Risk       Usages  Reasons</span>
+<span class="muted">─────────────────────────────────────────────────────────────</span>
+<span class="red">dynamic                🔴 High    7       dynamic key</span>
+<span class="red">checkout-experiment    🔴 High    1       detail evaluation</span>
+<span class="red">*                      🔴 High    1       bulk call</span>
+<span class="amber">checkout-v2            🟡 Medium  1       safely automatable</span>
+<span class="amber">payment-provider       🟡 Medium  1       safely automatable</span>
+<span class="amber">discount-config        🟡 Medium  1       json variation</span>
+<span class="muted">notifications-enabled  🟡 Medium  1       safely automatable</span>
+
+<span class="muted">→ run</span> <span class="green">flaglint migrate ./src --dry-run</span> <span class="muted">to preview safe rewrites</span></pre>
           </div>
         </div>
       </div>
@@ -668,20 +674,20 @@ Safely automatable: 10 · Manual review: 9
 
     <section>
       <div class="section-inner">
-        <div class="section-kicker">Problem</div>
-        <h2 class="section-heading">Direct SDK migrations fail when teams cannot see the real call sites.</h2>
+        <div class="section-kicker">What this actually costs you</div>
+        <h2 class="section-heading">LaunchDarkly charges by MAU. OpenFeature doesn't.</h2>
         <div class="grid-3">
           <div class="card">
-            <h3>Direct SDK coupling is hard to inventory</h3>
-            <p>LaunchDarkly evaluation calls hide across services, wrappers, and old modules. You need file, line, flag key, method, and manual-review context before changing code.</p>
+            <h3 style="font-size:22px;color:var(--accent);">$72,000/year median</h3>
+            <p>Vendr data shows median LaunchDarkly annual contracts at $72K, ranging from $19,500 to $165,700. Every direct SDK call in your codebase is debt that makes leaving harder. FlagLint tells you exactly how deep you are.</p>
           </div>
           <div class="card">
-            <h3>Unsafe codemods risk behavior changes</h3>
-            <p>OpenFeature and LaunchDarkly use different method names and argument order. A rewrite must preserve flag key, fallback, context, value type, and existing await behavior.</p>
+            <h3>Argument order breaks production</h3>
+            <p>LaunchDarkly is <code style="font-family:monospace;font-size:12px">(key, context, fallback)</code>. OpenFeature is <code style="font-family:monospace;font-size:12px">(key, fallback, context)</code>. A find-and-replace migration swaps them silently. FlagLint uses AST analysis — it gets the order right.</p>
           </div>
           <div class="card">
-            <h3>Migrations regress without CI policy</h3>
-            <p>After the first migration, new direct SDK calls can return unless CI blocks them and annotates the exact source line.</p>
+            <h3>Migrations regress without CI</h3>
+            <p>After migration, new engineers reach for <code style="font-family:monospace;font-size:12px">ldClient</code> because that's what they know. Without a CI gate, migrations reverse quietly over months. <code style="font-family:monospace;font-size:12px">flaglint validate</code> prevents this.</p>
           </div>
         </div>
       </div>
@@ -690,8 +696,8 @@ Safely automatable: 10 · Manual review: 9
     <section>
       <div class="section-inner">
         <div class="section-kicker">Workflow</div>
-        <h2 class="section-heading">Scan, migrate, enforce.</h2>
-        <p class="section-copy">FlagLint keeps inventory, migration, and policy enforcement separate so each step is reviewable.</p>
+        <h2 class="section-heading">Audit, migrate, enforce.</h2>
+        <p class="section-copy">FlagLint keeps audit, migration, and policy enforcement separate so each step is reviewable and nothing is changed without your explicit review.</p>
         <div class="workflow" style="grid-template-columns: repeat(4, 1fr);">
           <div class="workflow-step">
             <span class="step-num" style="background:rgba(0,217,126,0.2);color:var(--accent);">0</span>
@@ -911,27 +917,31 @@ jobs:
     <section class="docs-cta">
       <div class="section-inner">
         <div class="section-kicker">Documentation</div>
-        <h2 class="section-heading">Start with the path that matches your migration stage.</h2>
+        <h2 class="section-heading">Start here.</h2>
         <div class="grid-2">
+          <a class="card" href="/docs/cli/audit">
+            <h3>Flag Debt Audit</h3>
+            <p>Classify every LaunchDarkly flag call by risk level. No API key. One command. Start here.</p>
+          </a>
           <a class="card" href="/docs/quickstart">
             <h3>Quickstart</h3>
             <p>Run your first scan, preview a migration, and understand manual-review output.</p>
           </a>
           <a class="card" href="/docs/tutorials/migrate-a-node-service">
             <h3>Migration Tutorial</h3>
-            <p>Walk through the enterprise checkout-service migration flow.</p>
+            <p>Walk through the enterprise checkout-service migration flow end to end.</p>
           </a>
-          <a class="card" href="/docs/reference/supported-scope">
-            <h3>Supported Scope</h3>
-            <p>See what is auto-migrated, detected for review, and outside coverage.</p>
+          <a class="card" href="/docs/integrations/github-actions">
+            <h3>CI Enforcement</h3>
+            <p>Block new direct LaunchDarkly calls in pull requests using SARIF and GitHub Code Scanning.</p>
           </a>
           <a class="card" href="/docs/concepts/safety-model">
             <h3>Safety Model</h3>
             <p>Understand guarded apply, clean-tree protection, and manual review boundaries.</p>
           </a>
-          <a class="card" href="/docs/cli/audit">
-            <h3>Flag Debt Audit</h3>
-            <p>Classify every LaunchDarkly flag call by risk level. No API key. One command.</p>
+          <a class="card" href="/docs/reference/supported-scope">
+            <h3>Supported Scope</h3>
+            <p>See what is auto-migrated, detected for review, and outside current coverage.</p>
           </a>
         </div>
       </div>
