@@ -74,6 +74,7 @@ export default defineConfig({
             { label: "scan", slug: "docs/cli/scan" },
             { label: "migrate", slug: "docs/cli/migrate" },
             { label: "validate", slug: "docs/cli/validate" },
+            { label: "audit", slug: "docs/cli/audit" },
             { label: "Configuration", slug: "docs/cli/configuration" },
             { label: "Report Formats", slug: "docs/cli/report-formats" },
             { label: "Exit Codes", slug: "docs/cli/exit-codes" },

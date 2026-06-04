@@ -23,6 +23,10 @@ npx flaglint scan ./src
 ## Choose Your Path
 
 <div class="path-grid">
+  <a href="/docs/cli/audit/" class="path-card">
+    <strong>Understanding your flag debt →</strong>
+    Run a single command to see every LaunchDarkly flag call in your codebase, classified by risk level. No API key needed.
+  </a>
   <a href="/docs/quickstart/" class="path-card">
     <strong>Trying FlagLint for the first time →</strong>
     Run a local scan, inspect the inventory output, and confirm what is inside the supported scope.
@@ -40,6 +44,10 @@ npx flaglint scan ./src
 ## Workflow
 
 <div class="workflow-grid">
+  <div class="workflow-step">
+    <strong>0. Audit</strong>
+    <code>flaglint audit ./src</code>
+  </div>
   <div class="workflow-step">
     <strong>1. Scan</strong>
     <code>flaglint scan ./src</code>

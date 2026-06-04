@@ -555,7 +555,7 @@
   "description": "Open-source CLI that inventories direct LaunchDarkly Node.js SDK calls, generates safe OpenFeature migration diffs, and enforces the OpenFeature boundary in CI.",
   "url": "https://flaglint.dev",
   "downloadUrl": "https://www.npmjs.com/package/flaglint",
-  "softwareVersion": "0.5.4",
+  "softwareVersion": "0.6.0",
   "operatingSystem": "Node.js 20+",
   "applicationCategory": "DeveloperApplication",
   "offers": {
@@ -578,6 +578,7 @@
     <div class="nav-inner">
       <a class="logo" href="/">Flag<span>Lint</span></a>
       <div class="nav-links" aria-label="Primary navigation">
+        <a href="/docs/cli/audit">Audit</a>
         <a href="/docs/quickstart">Quickstart</a>
         <a href="/docs/tutorials/migrate-a-node-service">Migration</a>
         <a href="/docs/integrations/github-actions">CI</a>
@@ -616,10 +617,10 @@
         <div>
           <div class="section-kicker">LaunchDarkly Node.js SDK to OpenFeature</div>
           <h1>Migrate LaunchDarkly usage to OpenFeature safely.</h1>
-          <p class="hero-sub">Inventory direct LaunchDarkly Node.js SDK calls, preview guarded OpenFeature migrations, and block new vendor-coupled flag access in CI.</p>
+          <p class="hero-sub">Audit flag debt, inventory direct LaunchDarkly Node.js SDK calls, preview guarded OpenFeature migrations, and block new vendor-coupled flag access in CI.</p>
           <div class="command-card" aria-label="Primary command">
             <span class="muted">$</span>
-            <code>npx flaglint scan ./src</code>
+            <code>npx flaglint audit ./src</code>
           </div>
           <div class="cta-row">
             <a class="btn btn-primary" href="/docs/quickstart">Try it now</a>
@@ -680,7 +681,13 @@ Safely automatable: 10 · Manual review: 9
         <div class="section-kicker">Workflow</div>
         <h2 class="section-heading">Scan, migrate, enforce.</h2>
         <p class="section-copy">FlagLint keeps inventory, migration, and policy enforcement separate so each step is reviewable.</p>
-        <div class="workflow">
+        <div class="workflow" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="workflow-step">
+            <span class="step-num" style="background:rgba(0,217,126,0.2);color:var(--accent);">0</span>
+            <h3>Audit</h3>
+            <p>Understand your flag debt before touching any code. No API key needed.</p>
+            <code class="mini-code">npx flaglint audit ./src</code>
+          </div>
           <div class="workflow-step">
             <span class="step-num">1</span>
             <h3>Scan</h3>
@@ -911,9 +918,55 @@ jobs:
             <h3>Safety Model</h3>
             <p>Understand guarded apply, clean-tree protection, and manual review boundaries.</p>
           </a>
+          <a class="card" href="/docs/cli/audit">
+            <h3>Flag Debt Audit</h3>
+            <p>Classify every LaunchDarkly flag call by risk level. No API key. One command.</p>
+          </a>
         </div>
       </div>
     </section>
+  <section style="padding: 56px 24px; border-top: 1px solid var(--border);">
+    <div style="max-width: 560px; margin: 0 auto; text-align: center;">
+      <div class="section-kicker">FlagLint Cloud</div>
+      <h2 style="font-size: clamp(24px, 3vw, 36px); line-height: 1.15; margin-bottom: 14px;">Get notified when FlagLint Cloud launches.</h2>
+      <p style="color: var(--muted); font-size: 16px; margin-bottom: 28px;">Team dashboards, persistent audit history, Slack alerts, and Jira integration — coming soon.</p>
+      <form
+        action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0"
+        method="POST"
+        style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;"
+      >
+        <input
+          type="email"
+          name="email"
+          placeholder="your@email.com"
+          required
+          style="
+            flex: 1;
+            min-width: 220px;
+            max-width: 320px;
+            height: 44px;
+            padding: 0 14px;
+            background: var(--surface);
+            border: 1px solid var(--border-strong);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+          "
+        />
+        <button
+          type="submit"
+          class="btn btn-primary"
+          style="height: 44px; padding: 0 20px; white-space: nowrap;"
+        >
+          Notify me
+        </button>
+      </form>
+      <p style="margin-top: 12px; font-size: 12px; color: var(--subtle);">No spam. Unsubscribe any time.</p>
+    </div>
+  </section>
+
   </main>
 
   <footer>
