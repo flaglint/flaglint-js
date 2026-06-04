@@ -6,9 +6,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FlagLint — Audit LaunchDarkly flag debt. Migrate to OpenFeature safely.</title>
-  <meta name="description" content="Audit every direct LaunchDarkly SDK call by risk level. Preview safe OpenFeature rewrites. Lock the migration boundary in CI. No API key. No credentials. One command.">
+  <meta name="description" content="Audit every direct LaunchDarkly SDK call by risk level. OpenFeature rewrites only where safety can be proven. Lock the boundary in CI. No API key. No source upload.">
   <meta property="og:title" content="FlagLint — Audit LaunchDarkly flag debt. Migrate to OpenFeature safely.">
-  <meta property="og:description" content="Audit every direct LaunchDarkly SDK call by risk level. Preview safe OpenFeature rewrites. Lock the migration boundary in CI. No API key. No credentials.">
+  <meta property="og:description" content="Audit every direct LaunchDarkly SDK call by risk level. OpenFeature rewrites only where safety can be proven. No API key. No source upload.">
   <meta property="og:url" content="https://flaglint.dev">
   <meta property="og:site_name" content="FlagLint">
   <meta property="og:type" content="website">
@@ -144,15 +144,15 @@
       max-width: 1180px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: minmax(0, 0.88fr) minmax(440px, 1.12fr);
-      gap: 48px;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 56px;
       align-items: center;
     }
     .hero h1 {
-      font-size: clamp(42px, 6vw, 72px);
-      line-height: 1.02;
-      letter-spacing: 0;
-      margin-bottom: 22px;
+      font-size: clamp(38px, 4.8vw, 64px);
+      line-height: 1.06;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
     }
     .hero-sub {
       color: var(--muted);
@@ -617,27 +617,25 @@
         <div>
           <div class="section-kicker">LaunchDarkly Node.js SDK to OpenFeature</div>
           <h1>Your LaunchDarkly contract<br>renews soon.</h1>
-          <p style="font-size: clamp(22px, 3vw, 32px); font-weight: 700; color: var(--muted); line-height: 1.2; margin-bottom: 18px; letter-spacing: -0.01em;">Do you know how hard it is to leave?</p>
-          <p class="hero-sub">FlagLint audits every direct LaunchDarkly SDK call in your Node.js codebase, classifies it by migration risk, and generates safe OpenFeature rewrites. No API key. No credentials. No source upload.</p>
-          <div class="command-card" aria-label="Primary command">
-            <span class="muted">$</span>
-            <code>npx flaglint audit ./src</code>
-          </div>
-          <div style="display:flex;gap:14px;flex-wrap:wrap;
-                      margin-bottom:16px;font-size:12px;
-                      font-weight:500;color:var(--subtle);">
+          <p style="font-size:clamp(18px,2.4vw,26px);font-weight:700;color:var(--muted);line-height:1.25;margin:-10px 0 20px;letter-spacing:-0.01em;">Do you know how hard it is to leave?</p>
+          <p class="hero-sub">FlagLint audits every direct LaunchDarkly SDK call in your Node.js codebase, classifies migration risk, and generates OpenFeature rewrites only where safety can be proven.</p>
+          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:4px;font-size:12px;font-weight:500;color:var(--subtle);">
             <span>MIT licensed</span>
             <span style="color:var(--border-strong)">·</span>
             <span>Node.js 20+</span>
             <span style="color:var(--border-strong)">·</span>
-            <span>No source upload</span>
+            <span>Runs locally</span>
             <span style="color:var(--border-strong)">·</span>
-            <span>No API key needed</span>
+            <span>No telemetry</span>
+          </div>
+          <div class="command-card" aria-label="Primary command">
+            <span class="muted">$</span>
+            <code>npx flaglint audit ./src</code>
           </div>
           <div class="cta-row">
-            <a class="btn btn-primary" href="/docs/quickstart">Try it now</a>
+            <a class="btn btn-primary" href="/docs/cli/audit">Run your first audit</a>
             <a class="btn btn-secondary" href="/docs/tutorials/migrate-a-node-service">View a real migration</a>
-            <a class="btn btn-secondary" href="/docs/integrations/github-actions">GitHub Actions setup</a>
+            <a class="btn btn-secondary" href="/docs/integrations/github-actions" style="font-size:13px;">Add it to CI →</a>
           </div>
         </div>
 
@@ -650,12 +648,12 @@
           </div>
           <div class="terminal-body">
 <pre><span class="muted">$</span> npx flaglint audit ./src
-<span class="muted">- Auditing ./examples/enterprise-checkout-service/src...</span>
+<span class="muted">- Auditing ./src...</span>
 
 <span class="green">✓ Audit complete: 13 flags — 3 high risk, 10 medium, 0 low</span>
 
 <span class="muted">Flag Key               Risk       Usages  Reasons</span>
-<span class="muted">─────────────────────────────────────────────────────────────</span>
+<span class="muted">──────────────────────────────────────────────────────</span>
 <span class="red">dynamic                🔴 High    7       dynamic key</span>
 <span class="red">checkout-experiment    🔴 High    1       detail evaluation</span>
 <span class="red">*                      🔴 High    1       bulk call</span>
@@ -664,7 +662,7 @@
 <span class="amber">discount-config        🟡 Medium  1       json variation</span>
 <span class="muted">notifications-enabled  🟡 Medium  1       safely automatable</span>
 
-<span class="muted">→ run</span> <span class="green">flaglint migrate ./src --dry-run</span> <span class="muted">to preview safe rewrites</span></pre>
+<span class="muted">→ next:</span> <span class="green">flaglint migrate ./src --dry-run</span></pre>
           </div>
         </div>
       </div>
@@ -673,19 +671,19 @@
     <section>
       <div class="section-inner">
         <div class="section-kicker">What this actually costs you</div>
-        <h2 class="section-heading">LaunchDarkly charges by MAU. OpenFeature doesn't.</h2>
+        <h2 class="section-heading">LaunchDarkly charges by MAU.<br>OpenFeature doesn't.</h2>
         <div class="grid-3">
           <div class="card">
-            <h3 style="font-size:22px;color:var(--accent);">$72,000/year median</h3>
-            <p>Vendr data shows median LaunchDarkly annual contracts at $72K, ranging from $19,500 to $165,700. Every direct SDK call in your codebase is debt that makes leaving harder. FlagLint tells you exactly how deep you are.</p>
+            <h3 style="font-size:22px;color:var(--accent);margin-bottom:10px;">$72,000/year median</h3>
+            <p>Vendr data shows median LaunchDarkly annual contracts at $72K, ranging from $19,500 to $165,700. Every direct SDK call in your codebase is debt that makes leaving harder and more expensive.</p>
           </div>
           <div class="card">
             <h3>Argument order breaks production</h3>
-            <p>LaunchDarkly is <code style="font-family:monospace;font-size:12px">(key, context, fallback)</code>. OpenFeature is <code style="font-family:monospace;font-size:12px">(key, fallback, context)</code>. A find-and-replace migration swaps them silently. FlagLint uses AST analysis — it gets the order right.</p>
+            <p>LaunchDarkly is <code style="font-family:monospace;font-size:12px">(key, context, fallback)</code>. OpenFeature is <code style="font-family:monospace;font-size:12px">(key, fallback, context)</code>. A find-and-replace migration swaps them silently. FlagLint uses AST analysis to get it right.</p>
           </div>
           <div class="card">
             <h3>Migrations regress without CI</h3>
-            <p>After migration, new engineers reach for <code style="font-family:monospace;font-size:12px">ldClient</code> because that's what they know. Without a CI gate, migrations reverse quietly over months. <code style="font-family:monospace;font-size:12px">flaglint validate</code> prevents this.</p>
+            <p>After migration, new engineers reach for <code style="font-family:monospace;font-size:12px">ldClient</code> because that's what they know. Without a CI gate, migrations reverse quietly over months.</p>
           </div>
         </div>
       </div>
@@ -695,7 +693,7 @@
       <div class="section-inner">
         <div class="section-kicker">Workflow</div>
         <h2 class="section-heading">Audit, migrate, enforce.</h2>
-        <p class="section-copy">FlagLint keeps audit, migration, and policy enforcement separate so each step is reviewable and nothing is changed without your explicit review.</p>
+        <p class="section-copy">FlagLint keeps audit, migration, and policy enforcement separate — each step is reviewable and nothing is changed without your explicit review.</p>
         <div class="workflow" style="grid-template-columns: repeat(4, 1fr);">
           <div class="workflow-step">
             <span class="step-num" style="background:rgba(0,217,126,0.2);color:var(--accent);">0</span>
@@ -931,7 +929,7 @@ jobs:
           </a>
           <a class="card" href="/docs/integrations/github-actions">
             <h3>CI Enforcement</h3>
-            <p>Block new direct LaunchDarkly calls in pull requests using SARIF and GitHub Code Scanning.</p>
+            <p>Block new direct LaunchDarkly calls in pull requests with SARIF and GitHub Code Scanning.</p>
           </a>
           <a class="card" href="/docs/concepts/safety-model">
             <h3>Safety Model</h3>
