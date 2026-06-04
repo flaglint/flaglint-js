@@ -5,9 +5,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlagLint — Migrate LaunchDarkly usage to OpenFeature safely</title>
+  <title>FlagLint — Find every direct LaunchDarkly SDK call. Migrate safely.</title>
   <meta name="description" content="FlagLint inventories direct LaunchDarkly Node.js SDK calls, previews guarded OpenFeature migrations, and blocks new vendor-coupled flag access in CI.">
-  <meta property="og:title" content="FlagLint — Migrate LaunchDarkly usage to OpenFeature safely">
+  <meta property="og:title" content="FlagLint — Find every direct LaunchDarkly SDK call. Migrate safely.">
   <meta property="og:description" content="Inventory direct LaunchDarkly Node.js SDK calls, preview guarded OpenFeature migrations, and enforce OpenFeature in CI.">
   <meta property="og:url" content="https://flaglint.dev">
   <meta property="og:site_name" content="FlagLint">
@@ -583,7 +583,7 @@
         <a href="/docs/tutorials/migrate-a-node-service">Migration</a>
         <a href="/docs/integrations/github-actions">CI</a>
         <a href="/docs/reference/supported-scope">Scope</a>
-        <a href="/docs/blog/">Blog</a>
+        <a href="/blog/">Blog</a>
         <a href="/docs/" class="nav-search" id="nav-search-btn" title="Search docs (⌘K)" aria-label="Search documentation">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <span class="search-label">Search</span>
@@ -616,11 +616,35 @@
       <div class="hero-grid">
         <div>
           <div class="section-kicker">LaunchDarkly Node.js SDK to OpenFeature</div>
-          <h1>Migrate LaunchDarkly usage to OpenFeature safely.</h1>
-          <p class="hero-sub">Audit flag debt, inventory direct LaunchDarkly Node.js SDK calls, preview guarded OpenFeature migrations, and block new vendor-coupled flag access in CI.</p>
+          <h1>Find out how deep you are in LaunchDarkly.<br>One command.</h1>
+          <p class="hero-sub">Audit every direct LaunchDarkly SDK call by risk level, preview safe OpenFeature rewrites, and lock the boundary in CI. No API key. No credentials. Local source analysis only.</p>
           <div class="command-card" aria-label="Primary command">
             <span class="muted">$</span>
             <code>npx flaglint audit ./src</code>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px;">
+            <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">
+              <img
+                src="https://img.shields.io/github/stars/flaglint/flaglint?style=flat-square&logo=github&labelColor=0d1117&color=00d97e&label=stars"
+                alt="GitHub stars"
+                height="20"
+                loading="lazy"
+              />
+            </a>
+            <a href="https://www.npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">
+              <img
+                src="https://img.shields.io/npm/dw/flaglint?style=flat-square&logo=npm&labelColor=0d1117&color=00d97e&label=weekly+downloads"
+                alt="npm weekly downloads"
+                height="20"
+                loading="lazy"
+              />
+            </a>
+            <img
+              src="https://img.shields.io/badge/node-%3E%3D20-flat-square?style=flat-square&labelColor=0d1117&color=00d97e"
+              alt="Node.js 20+"
+              height="20"
+              loading="lazy"
+            />
           </div>
           <div class="cta-row">
             <a class="btn btn-primary" href="/docs/quickstart">Try it now</a>
@@ -974,7 +998,7 @@ jobs:
       <span>© 2026 FlagLint</span>
       <div class="footer-links">
         <a href="/docs/quickstart">Docs</a>
-        <a href="/docs/blog/">Blog</a>
+        <a href="/blog/">Blog</a>
         <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://www.npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
         <a href="/trust">Security &amp; Trust</a>

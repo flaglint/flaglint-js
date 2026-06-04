@@ -12,7 +12,7 @@ export default defineConfig({
       plugins: [
         starlightBlog({
           title: "FlagLint Blog",
-          prefix: "docs/blog",
+          prefix: "blog",
           recentPostCount: 5,
         }),
       ],
@@ -38,7 +38,7 @@ export default defineConfig({
         {
           label: "Blog",
           items: [
-            { label: "FlagLint Blog", link: "/docs/blog/" },
+            { label: "FlagLint Blog", link: "/blog/" },
           ],
         },
         {
