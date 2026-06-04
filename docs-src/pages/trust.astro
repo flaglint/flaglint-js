@@ -301,15 +301,15 @@
   <ul class="statement-list">
     <li><span class="check">✓</span> <span><strong>MIT-licensed developer CLI</strong> — FlagLint is an open-source command-line tool distributed under the MIT license.</span></li>
     <li><span class="check">✓</span> <span><strong>Local static analysis</strong> — FlagLint reads JavaScript and TypeScript source files from a directory you specify and performs AST-based analysis entirely on your machine, in-process.</span></li>
-    <li><span class="check">✓</span> <span><strong>Migration planning and CI enforcement</strong> — FlagLint is designed to help teams migrate LaunchDarkly Node.js server SDK evaluation calls to the OpenFeature standard API and enforce that migration in CI using <code>flaglint validate --no-direct-launchdarkly</code>.</span></li>
+    <li><span class="check">✓</span> <span><strong>Flag debt audit, migration planning, and CI enforcement</strong> — FlagLint audits direct LaunchDarkly SDK usage in your codebase, classifies every call by migration risk, helps teams migrate to the OpenFeature standard API, and enforces that migration in CI using <code>flaglint validate --no-direct-launchdarkly</code>.</span></li>
     <li><span class="check">✓</span> <span><strong>LaunchDarkly remains the provider</strong> — FlagLint migrates application <em>call-site API</em> from the LaunchDarkly SDK to OpenFeature. It does not replace LaunchDarkly as the feature flag backend or modify your LaunchDarkly configuration in any way.</span></li>
   </ul>
 
   <h2>Data handling</h2>
   <ul class="statement-list">
-    <li><span class="check">✓</span> <span><strong>No source code is uploaded</strong> — During local CLI operation (<code>flaglint scan</code>, <code>flaglint migrate</code>, <code>flaglint validate</code>), no source code, flag keys, file paths, or migration reports are transmitted to any external service. FlagLint makes no outbound network connections during analysis.</span></li>
-    <li><span class="check">✓</span> <span><strong>No SDK key required</strong> — <code>flaglint scan</code> and <code>flaglint migrate</code> operate entirely on source text. They do not call the LaunchDarkly REST API, do not evaluate flags at runtime, and do not require a LaunchDarkly SDK key or any credentials.</span></li>
-    <li><span class="check">✓</span> <span><strong>Reports stay local</strong> — Scan, migration, and validation reports are written to stdout or to a file path you specify. No report data leaves your machine unless you share it manually.</span></li>
+    <li><span class="check">✓</span> <span><strong>No source code is uploaded</strong> — During local CLI operation (<code>flaglint audit</code>, <code>flaglint scan</code>, <code>flaglint migrate</code>, <code>flaglint validate</code>), no source code, flag keys, file paths, audit reports, or migration reports are transmitted to any external service. FlagLint makes no outbound network connections during analysis.</span></li>
+    <li><span class="check">✓</span> <span><strong>No SDK key required</strong> — <code>flaglint audit</code>, <code>flaglint scan</code>, and <code>flaglint migrate</code> operate entirely on source text. They do not call the LaunchDarkly REST API, do not evaluate flags at runtime, and do not require a LaunchDarkly SDK key or any credentials.</span></li>
+    <li><span class="check">✓</span> <span><strong>Reports stay local</strong> — Audit, scan, migration, and validation reports are written to stdout or to a file path you specify. No report data leaves your machine unless you share it manually.</span></li>
   </ul>
 
   <h2>Verification</h2>

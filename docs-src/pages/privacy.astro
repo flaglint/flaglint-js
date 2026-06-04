@@ -274,7 +274,7 @@
 
   <h2>CLI data handling</h2>
   <p>
-    The FlagLint CLI (<code>flaglint scan</code>, <code>flaglint migrate</code>,
+    The FlagLint CLI (<code>flaglint audit</code>, <code>flaglint scan</code>, <code>flaglint migrate</code>,
     <code>flaglint validate</code>) reads source files from paths you specify on your
     local machine. It performs static AST analysis in-process and writes reports or
     transformed files to stdout or to a file path you provide.
@@ -286,7 +286,7 @@
   </p>
 
   <div class="callout">
-    <strong>Reports are local.</strong> Scan reports, migration plans, and validation SARIF files
+    <strong>Reports are local.</strong> Audit reports, scan reports, migration plans, and validation SARIF files
     are treated as source-derived artifacts — they may contain file paths and flag keys from your
     codebase. They are stored wherever you write them and are not uploaded by the CLI.
   </div>
