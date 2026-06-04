@@ -140,8 +140,8 @@ Existing Node.js service
 
 ## Further Reading
 
-- [Why LaunchDarkly → OpenFeature migrations break in production](/docs/blog/launchdarkly-openfeature-argument-order-bug/) — The argument-order difference that breaks naive codemods
-- [After the LaunchDarkly Outage: Vendor-neutral abstraction without a full migration](/docs/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
+- [Why LaunchDarkly → OpenFeature migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) — The argument-order difference that breaks naive codemods
+- [After the LaunchDarkly Outage: Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
 
 ## Feedback
 

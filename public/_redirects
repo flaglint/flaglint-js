@@ -8,3 +8,6 @@
 /docs/safety-model /docs/concepts/safety-model 301
 /docs/ci-github-actions /docs/integrations/github-actions 301
 /docs/opentelemetry /docs/integrations/opentelemetry 301
+/docs/blog/launchdarkly-openfeature-argument-order-bug/ /blog/launchdarkly-openfeature-argument-order-bug/ 301
+/docs/blog/after-launchdarkly-outage-vendor-neutral-abstraction/ /blog/after-launchdarkly-outage-vendor-neutral-abstraction/ 301
+/docs/blog/ /blog/ 301

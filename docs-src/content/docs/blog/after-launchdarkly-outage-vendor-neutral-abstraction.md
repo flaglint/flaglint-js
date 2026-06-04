@@ -47,7 +47,7 @@ The reasons:
 - Phased migrations partially reverse when new engineers join
 - No CI enforcement to prevent new direct calls
 
-One of those reasons is an API difference that breaks even careful rewrites — [the argument-order trap between LaunchDarkly and OpenFeature →](/docs/blog/launchdarkly-openfeature-argument-order-bug/)
+One of those reasons is an API difference that breaks even careful rewrites — [the argument-order trap between LaunchDarkly and OpenFeature →](/blog/launchdarkly-openfeature-argument-order-bug/)
 
 ## What FlagLint Does
 
@@ -93,4 +93,4 @@ configuration. Your application code doesn't change.
 → [GitHub](https://github.com/flaglint/flaglint)
 
 ---
-**Related:** [Why LaunchDarkly → OpenFeature Migrations Break in Production →](/docs/blog/launchdarkly-openfeature-argument-order-bug/)
+**Related:** [Why LaunchDarkly → OpenFeature Migrations Break in Production →](/blog/launchdarkly-openfeature-argument-order-bug/)
