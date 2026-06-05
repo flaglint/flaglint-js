@@ -43,7 +43,6 @@ Label the issue `false-positive` or `unsupported-pattern`.
 
 FlagLint is a local static-analysis CLI. It reads source files from the directory
 you point it at and writes reports or transformed files to disk.
-It makes no outbound network connections during a flag scan or migration.
-No source code is transmitted to any external service.
+No source code is transmitted to FlagLint-owned infrastructure.
 
 See [docs/trust.md](docs/trust.md) for a full trust and provenance statement.

@@ -39,15 +39,13 @@ LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your 
 ## Quick start
 
 ```bash
-npx flaglint scan ./src
+npx flaglint audit ./src
 ```
 
 ```
-✔ Scanning 5 files...
-✔ Found 20 direct LaunchDarkly Node SDK calls across 11 unique flags
-⚡ 6 dynamic flag keys — manual review required
-↳ 2 detail method calls — manual review required
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 
+→ Run flaglint scan ./src for detailed file-level inventory
 → Run flaglint migrate --dry-run for a reviewable migration diff
 ```
 
@@ -63,10 +61,11 @@ npx flaglint migrate ./src --dry-run
 
 | Step | Command | What happens |
 |------|---------|-------------|
-| 1 | `flaglint scan ./src` | AST inventory of every direct LD Node server SDK call |
-| 2 | `flaglint migrate --dry-run` | Reviewable before/after diffs; inline provider setup guidance |
-| 3 | `flaglint migrate --apply` | Rewrites only guarded, provably automatable call-sites |
-| 4 | `flaglint validate --no-direct-launchdarkly` | CI gate: exit 1 if direct LD evaluation calls remain |
+| 1 | `flaglint audit ./src` | Risk-ranked overview of direct LD Node server SDK usage |
+| 2 | `flaglint scan ./src` | Detailed file-level inventory for automation |
+| 3 | `flaglint migrate --dry-run` | Reviewable before/after diffs; inline provider setup guidance |
+| 4 | `flaglint migrate --apply` | Rewrites only guarded, provably automatable call-sites |
+| 5 | `flaglint validate --no-direct-launchdarkly` | CI gate: exit 1 if direct LD evaluation calls remain |
 
 ---
 
@@ -133,14 +132,14 @@ Key points:
 
 ## Requirements
 
-Node.js 20 or newer. No LaunchDarkly SDK key or credentials required for scan or migrate.
+Node.js 20 or newer. No LaunchDarkly SDK key or credentials required for audit, scan, migrate, or validate.
 
 ---
 
 ## Local analysis
 
 FlagLint runs entirely on your machine. No source code, flag keys, or file paths are
-transmitted to any external service. No outbound network connections during scan or migration.
+transmitted to FlagLint-owned infrastructure.
 
 ---
 

@@ -10,7 +10,7 @@ FlagLint helps platform teams inventory direct LaunchDarkly Node.js server SDK u
 ![FlagLint demo](/flaglint-demo.gif)
 
 ```bash
-npx flaglint scan ./src
+npx flaglint audit ./src
 ```
 
 <div class="button-grid">
@@ -29,7 +29,7 @@ npx flaglint scan ./src
   </a>
   <a href="/docs/quickstart/" class="path-card">
     <strong>Trying FlagLint for the first time →</strong>
-    Run a local scan, inspect the inventory output, and confirm what is inside the supported scope.
+    Run a local audit, inspect detailed inventory with scan if needed, and preview a safe migration.
   </a>
   <a href="/docs/tutorials/migrate-a-node-service/" class="path-card">
     <strong>Migrating an existing Node.js service →</strong>
@@ -45,23 +45,23 @@ npx flaglint scan ./src
 
 <div class="workflow-grid">
   <div class="workflow-step">
-    <strong>0. Audit</strong>
+    <strong>1. Audit</strong>
     <code>flaglint audit ./src</code>
   </div>
   <div class="workflow-step">
-    <strong>1. Scan</strong>
+    <strong>2. Scan</strong>
     <code>flaglint scan ./src</code>
   </div>
   <div class="workflow-step">
-    <strong>2. Migration plan</strong>
+    <strong>3. Migration plan</strong>
     <code>flaglint migrate ./src --dry-run</code>
   </div>
   <div class="workflow-step">
-    <strong>3. Guarded apply</strong>
+    <strong>4. Guarded apply</strong>
     <code>flaglint migrate ./src --apply</code>
   </div>
   <div class="workflow-step">
-    <strong>4. CI validation</strong>
+    <strong>5. CI validation</strong>
     <code>flaglint validate ./src --no-direct-launchdarkly</code>
   </div>
 </div>

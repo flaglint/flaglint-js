@@ -258,7 +258,7 @@
 
 <nav>
   <div class="nav-inner">
-    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <a href="/" class="logo" aria-label="FlagLint">Flag<span>Lint</span></a>
     <div class="nav-links" aria-label="Primary navigation">
       <a href="/docs/quickstart">Quickstart</a>
       <a href="/docs/tutorials/migrate-a-node-service">Migration</a>
@@ -301,23 +301,24 @@
   <ul class="statement-list">
     <li><span class="check">✓</span> <span><strong>MIT-licensed developer CLI</strong> — FlagLint is an open-source command-line tool distributed under the MIT license.</span></li>
     <li><span class="check">✓</span> <span><strong>Local static analysis</strong> — FlagLint reads JavaScript and TypeScript source files from a directory you specify and performs AST-based analysis entirely on your machine, in-process.</span></li>
-    <li><span class="check">✓</span> <span><strong>Flag debt audit, migration planning, and CI enforcement</strong> — FlagLint audits direct LaunchDarkly SDK usage in your codebase, classifies every call by migration risk, helps teams migrate to the OpenFeature standard API, and enforces that migration in CI using <code>flaglint validate --no-direct-launchdarkly</code>.</span></li>
+    <li><span class="check">✓</span> <span><strong>Flag debt audit, inventory, migration planning, and CI enforcement</strong> — FlagLint audits direct LaunchDarkly SDK usage with <code>flaglint audit</code>, emits structured inventory with <code>flaglint scan</code>, previews or applies guarded OpenFeature rewrites with <code>flaglint migrate</code>, and enforces the boundary in CI with <code>flaglint validate</code>.</span></li>
     <li><span class="check">✓</span> <span><strong>LaunchDarkly remains the provider</strong> — FlagLint migrates application <em>call-site API</em> from the LaunchDarkly SDK to OpenFeature. It does not replace LaunchDarkly as the feature flag backend or modify your LaunchDarkly configuration in any way.</span></li>
   </ul>
 
   <h2>Data handling</h2>
   <ul class="statement-list">
-    <li><span class="check">✓</span> <span><strong>No source code is uploaded</strong> — During local CLI operation (<code>flaglint audit</code>, <code>flaglint scan</code>, <code>flaglint migrate</code>, <code>flaglint validate</code>), no source code, flag keys, file paths, audit reports, or migration reports are transmitted to any external service. FlagLint makes no outbound network connections during analysis.</span></li>
-    <li><span class="check">✓</span> <span><strong>No SDK key required</strong> — <code>flaglint audit</code>, <code>flaglint scan</code>, and <code>flaglint migrate</code> operate entirely on source text. They do not call the LaunchDarkly REST API, do not evaluate flags at runtime, and do not require a LaunchDarkly SDK key or any credentials.</span></li>
+    <li><span class="check">✓</span> <span><strong>No source code is uploaded by the CLI</strong> — During local CLI operation (<code>flaglint audit</code>, <code>flaglint scan</code>, <code>flaglint migrate</code>, <code>flaglint validate</code>), source code, flag keys, file paths, audit reports, and migration reports remain local unless you explicitly upload or share them elsewhere.</span></li>
+    <li><span class="check">✓</span> <span><strong>Read-only commands are read-only</strong> — <code>flaglint audit</code>, <code>flaglint scan</code>, and <code>flaglint validate</code> do not modify source files. <code>flaglint migrate --dry-run</code> also does not modify files.</span></li>
+    <li><span class="check">✓</span> <span><strong>Source edits require explicit apply</strong> — <code>flaglint migrate --apply</code> is the only source-modifying command path, and it is intended for use on a reviewable branch.</span></li>
+    <li><span class="check">✓</span> <span><strong>No LaunchDarkly key required</strong> — <code>flaglint audit</code>, <code>flaglint scan</code>, <code>flaglint migrate</code>, and <code>flaglint validate</code> operate on source text. They do not require a LaunchDarkly API key, SDK key, or credentials.</span></li>
     <li><span class="check">✓</span> <span><strong>Reports stay local</strong> — Audit, scan, migration, and validation reports are written to stdout or to a file path you specify. No report data leaves your machine unless you share it manually.</span></li>
   </ul>
 
   <h2>Verification</h2>
   <p>
-    The <code>src/</code> directory contains no HTTP client imports (<code>fetch</code>, <code>http</code>, <code>https</code>,
-    <code>axios</code>, <code>got</code>, or equivalent). URL strings in source files are documentation
-    hyperlinks embedded in generated SARIF output — not outbound requests from the CLI.
-    Source: <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">github.com/flaglint/flaglint</a>
+    The read-only and source-editing behavior above is grounded in the current command
+    implementations and tests. Source:
+    <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">github.com/flaglint/flaglint</a>
   </p>
 
   <h2>Release and CI</h2>

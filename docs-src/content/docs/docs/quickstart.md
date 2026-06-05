@@ -1,6 +1,6 @@
 ---
 title: Quickstart
-description: Run FlagLint in two minutes, read the output, and choose the next safe step.
+description: Run your first FlagLint audit, inspect inventory, preview migration, and enforce the boundary in CI.
 lastUpdated: 2026-05-28
 ---
 
@@ -13,12 +13,19 @@ lastUpdated: 2026-05-28
 
 Browser SDKs, React SDKs, non-Node SDKs, and non-LaunchDarkly providers are outside current detection coverage and do not appear in reports.
 
-## 1. Scan Your Source
+## Command Distinction
+
+- `audit`: risk-ranked human-readable overview for engineers.
+- `scan`: detailed file-level structured inventory for automation.
+- `migrate`: guarded OpenFeature rewrites where behavior can be proven.
+- `validate`: CI policy enforcement for the LaunchDarkly SDK boundary.
+
+## 1. Run an Audit
 
 ![FlagLint demo](/flaglint-demo.gif)
 
 ```bash
-npx flaglint scan ./src
+npx flaglint audit ./src
 ```
 
 The enterprise checkout demo in this repository contains this real TypeScript call site:
@@ -38,6 +45,31 @@ export async function isCheckoutV2Enabled(user: User): Promise<boolean> {
 Generated from `examples/enterprise-checkout-service/src`:
 
 ```text
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+```
+
+The audit gives engineers a risk-ranked overview before any migration work:
+
+```text
+| Flag Key              | Risk      | Usages | Reasons                            |
+|-----------------------|-----------|--------|------------------------------------|
+| <dynamic key>         | High      | 7      | key cannot be resolved statically  |
+| checkout-experiment   | High      | 1      | detail evaluation                  |
+| *                     | High      | 1      | bulk call                          |
+| checkout-v2           | Medium    | 1      | safely automatable                 |
+```
+
+## 2. Inspect Detailed Inventory With Scan
+
+Use `scan` when you need file-level structured inventory for automation or deeper review:
+
+```bash
+npx flaglint scan ./src
+```
+
+Generated from the same demo:
+
+```text
 - Scanning ./examples/enterprise-checkout-service/src...
 ✓ 20 flag usages found across 11 unique flags (90ms)
 ℹ  1 dynamic flag key(s) require manual review
@@ -53,7 +85,7 @@ The Markdown report inventory includes the detected static and manual-review cal
 | * | 1 | 1 | allFlagsState | ✓ Active |
 ```
 
-## 2. Preview a Migration
+## 3. Preview Migration
 
 ```bash frame="none"
 npx flaglint migrate ./src --dry-run
@@ -93,7 +125,7 @@ Actual diff excerpt:
 
 FlagLint preserves the flag key, fallback value, evaluation context, inferred value type, and existing `await` behavior. It changes the call-site evaluation API from the LaunchDarkly SDK method to the matching OpenFeature value method only when the required inputs and an OpenFeature client binding are proven.
 
-## 3. Understand Manual Review
+## 4. Review Manual Cases
 
 The same dry run reports skipped usages:
 
@@ -105,13 +137,21 @@ The same dry run reports skipped usages:
 
 Dynamic keys, detail evaluations, bulk calls, unknown fallback types, configured wrappers, and ambiguous OpenFeature client bindings are reported for review and are not automatically rewritten.
 
-## 4. Add Provider Setup
+## 5. Configure OpenFeature Provider
 
 FlagLint does not generate provider/bootstrap files. LaunchDarkly remains the provider; OpenFeature becomes the application-facing evaluation API.
 
 Next: [add the LaunchDarkly OpenFeature provider](/docs/tutorials/add-openfeature-provider/).
 
-## 5. Enforce in CI
+## 6. Apply Migration on a Branch
+
+After provider setup and review, apply proven rewrites on a branch:
+
+```bash frame="none"
+npx flaglint migrate ./src --apply
+```
+
+## 7. Enforce in CI
 
 After migration, block new direct LaunchDarkly evaluation calls:
 
@@ -131,10 +171,13 @@ Completed-state demo output:
 
 ```text
 Existing Node.js service
+  -> flaglint audit
+  -> risk-ranked overview
   -> flaglint scan
-  -> migration inventory
+  -> file-level structured inventory
   -> migrate --dry-run
   -> reviewed OpenFeature diff
+  -> migrate --apply on a branch
   -> validate in CI
 ```
 
