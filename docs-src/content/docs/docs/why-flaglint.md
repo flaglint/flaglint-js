@@ -40,7 +40,7 @@ Application code
 
 LaunchDarkly remains the provider. OpenFeature becomes the application-facing evaluation API.
 
-Ready to try it? Run your first scan in 2 minutes → [Quickstart](/docs/quickstart/)
+Ready to try it? Run your first audit in 2 minutes → [Quickstart](/docs/quickstart/)
 
 ## Feedback
 

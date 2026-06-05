@@ -35,7 +35,7 @@ export const FlagLintConfigSchema = z.object({
 export type FlagLintConfig = z.infer<typeof FlagLintConfigSchema>;
 
 // Scan-relevant config only — the subset scan() needs. CLI output fields
-// (reportTitle, outputDir) are stripped so the Cloud can pass its own config
+// (reportTitle, outputDir) are stripped so callers can pass scan-only config
 // without dummy values for fields that have no meaning outside the CLI.
 // provider is intentionally excluded: the scanner only targets launchdarkly;
 // multi-vendor support is planned for v0.7 and will be wired then.

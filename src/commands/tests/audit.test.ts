@@ -77,11 +77,25 @@ describe("audit command — output formats", () => {
     expect(r.stdout).toContain("FlagLint Audit Report");
   });
 
+  it("--format markdown omits unused low-risk presentation and labels dynamic keys", () => {
+    const r = cli("audit", "--format", "markdown", ENTERPRISE_SRC);
+    expect(r.status).toBe(0);
+    expect(r.stdout).not.toContain("Low Risk");
+    expect(r.stdout).toContain("`<dynamic key>`");
+  });
+
   it("--format html produces output containing '<html' and 'FlagLint'", () => {
     const r = cli("audit", "--format", "html", ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("<html");
     expect(r.stdout).toContain("FlagLint");
+  });
+
+  it("--format html omits unused low-risk card and escapes dynamic key labels", () => {
+    const r = cli("audit", "--format", "html", ENTERPRISE_SRC);
+    expect(r.status).toBe(0);
+    expect(r.stdout).not.toContain("Low Risk");
+    expect(r.stdout).toContain("&lt;dynamic key&gt;");
   });
 });
 
@@ -103,5 +117,6 @@ describe("audit command — stderr summary", () => {
     expect(r.stderr).toContain("Audit complete");
     expect(r.stderr).toContain("flags");
     expect(r.stderr).toContain("high risk");
+    expect(r.stderr).not.toContain("0 low risk");
   });
 });
