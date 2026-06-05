@@ -43,7 +43,13 @@
   border-color: var(--sl-color-accent);
 }
 
-.path-grid,
+.path-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
 .workflow-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
@@ -88,6 +94,13 @@
   --sl-color-accent: #007a49;
   --sl-color-accent-high: #004d2e;
   --sl-color-text-accent: #006040;
+}
+
+/* A2a: Remove excess gap above block-level images (e.g. the overview GIF).
+   Starlight's default block spacing stacks up to ~400px on overview pages.
+   Paragraphs whose only child is an img get normal 1rem spacing instead. */
+.sl-markdown-content p:has(> img:only-child) {
+  margin-block-start: 1rem;
 }
 
 /* A2: Prevent code blocks and tables from overflowing on narrow viewports */

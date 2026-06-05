@@ -41,31 +41,6 @@ npx flaglint audit ./src
   </a>
 </div>
 
-## Workflow
-
-<div class="workflow-grid">
-  <div class="workflow-step">
-    <strong>1. Audit</strong>
-    <code>flaglint audit ./src</code>
-  </div>
-  <div class="workflow-step">
-    <strong>2. Scan</strong>
-    <code>flaglint scan ./src</code>
-  </div>
-  <div class="workflow-step">
-    <strong>3. Migration plan</strong>
-    <code>flaglint migrate ./src --dry-run</code>
-  </div>
-  <div class="workflow-step">
-    <strong>4. Guarded apply</strong>
-    <code>flaglint migrate ./src --apply</code>
-  </div>
-  <div class="workflow-step">
-    <strong>5. CI validation</strong>
-    <code>flaglint validate ./src --no-direct-launchdarkly</code>
-  </div>
-</div>
-
 ## What FlagLint Does
 
 - Performs local AST-based source analysis.
