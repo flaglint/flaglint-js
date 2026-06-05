@@ -6,9 +6,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FlagLint — Audit LaunchDarkly flag debt. Migrate to OpenFeature safely.</title>
-  <meta name="description" content="Audit every direct LaunchDarkly SDK call by risk level. OpenFeature rewrites only where safety can be proven. Lock the boundary in CI. No API key. No source upload.">
+  <meta name="description" content="FlagLint is a free, open-source CLI that audits LaunchDarkly Node.js SDK usage, previews safe OpenFeature migrations, and enforces the boundary in CI.">
   <meta property="og:title" content="FlagLint — Audit LaunchDarkly flag debt. Migrate to OpenFeature safely.">
-  <meta property="og:description" content="Audit every direct LaunchDarkly SDK call by risk level. OpenFeature rewrites only where safety can be proven. No API key. No source upload.">
+  <meta property="og:description" content="Free, open-source CLI for auditing LaunchDarkly Node.js SDK usage, previewing safe OpenFeature migrations, and enforcing the boundary in CI.">
   <meta property="og:url" content="https://flaglint.dev">
   <meta property="og:site_name" content="FlagLint">
   <meta property="og:type" content="website">
@@ -147,6 +147,12 @@
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
       gap: 56px;
       align-items: center;
+    }
+    .hero-grid > *,
+    .proof-grid > *,
+    .ci-example > *,
+    [aria-label="Before and after FlagLint architecture"] > * {
+      min-width: 0;
     }
     .hero h1 {
       font-size: clamp(38px, 4.8vw, 64px);
@@ -368,26 +374,6 @@
       text-transform: uppercase;
       margin-bottom: 12px;
     }
-    .diagram {
-      margin-top: 28px;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-      align-items: stretch;
-    }
-    .diagram-node {
-      border: 1px solid var(--border);
-      background: var(--surface);
-      border-radius: 8px;
-      padding: 18px;
-      text-align: center;
-      color: var(--text);
-      font-weight: 700;
-      min-height: 90px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
     .ci-example {
       margin-top: 30px;
       display: grid;
@@ -429,7 +415,7 @@
       .grid-3, .scope-table, .workflow { grid-template-columns: 1fr; }
       .workflow-step { border-right: none; border-bottom: 1px solid var(--border); }
       .workflow-step:last-child { border-bottom: none; }
-      .diagram { grid-template-columns: 1fr 1fr; }
+      .nav-links a:not(.github-btn):not(.nav-search) { display: none; }
     }
     @media (max-width: 680px) {
       section { padding: 64px 18px; }
@@ -437,7 +423,7 @@
       .nav-links a:not(.github-btn):not(.nav-search) { display: none; }
       .nav-inner { padding: 0 18px; }
       .cta-row .btn { width: 100%; }
-      .grid-2, .diagram { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
       .terminal-body { padding: 14px; }
       .terminal-body pre { font-size: 12px; min-width: 480px; }
       .command-card { width: 100%; }
@@ -604,14 +590,6 @@
   </nav>
 
   <main>
-    <div hidden aria-hidden="true">
-      <span class="stat-num">CI</span>
-          <span class="stat-label">verified</span>
-      <div class="feature-title">Four report formats</div>
-          <p class="feature-body">JSON for pipelines. Markdown for PRs. HTML for sharing. SARIF via <code style="font-family:monospace;font-size:12px">validate --format sarif</code> for GitHub Code Scanning policy enforcement.</p>
-      <p>Supports Node.js 20+.</p>
-    </div>
-
     <section class="hero">
       <div class="hero-grid">
         <div>
@@ -625,9 +603,8 @@
             <span>Node.js 20+</span>
             <span style="color:var(--border-strong)">·</span>
             <span>Runs locally</span>
-            <span style="color:var(--border-strong)">·</span>
-            <span>No telemetry</span>
           </div>
+          <p style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:4px;">No API key. No credentials. No source upload.</p>
           <div class="command-card" aria-label="Primary command">
             <span class="muted">$</span>
             <code>npx flaglint audit ./src</code>
@@ -670,107 +647,76 @@
 
     <section>
       <div class="section-inner">
-        <div class="section-kicker">What this actually costs you</div>
-        <h2 class="section-heading">LaunchDarkly charges by MAU.<br>OpenFeature doesn't.</h2>
-        <div class="grid-3">
-          <div class="card">
-            <h3 style="font-size:22px;color:var(--accent);margin-bottom:10px;">$72,000/year median</h3>
-            <p>Vendr data shows median LaunchDarkly annual contracts at $72K, ranging from $19,500 to $165,700. Every direct SDK call in your codebase is debt that makes leaving harder and more expensive.</p>
+        <div class="section-kicker">Architecture</div>
+        <h2 class="section-heading">OpenFeature becomes the application-facing API. LaunchDarkly remains the provider.</h2>
+        <div style="display:grid;grid-template-columns:1fr 48px 1fr;gap:20px;align-items:start;margin-top:40px;" aria-label="Before and after FlagLint architecture">
+
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--danger);margin-bottom:12px;">Before</div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+              <div style="padding:8px 14px;background:rgba(0,0,0,.25);border-bottom:1px solid var(--border);font-size:11px;color:var(--subtle);font-family:monospace;">checkout.ts</div>
+              <pre style="margin:0;padding:14px 16px;font-size:12px;line-height:1.75;color:#d8e2dd;overflow-x:auto;background:var(--surface-soft);"><span style="color:var(--danger)">import * as ld from 'launchdarkly-node-server-sdk'</span>
+const client = <span style="color:var(--danger)">ld.init</span>(sdkKey)
+
+const on = await <span style="color:var(--danger)">client.boolVariation</span>(
+  'checkout-v2',
+  ctx,        <span style="color:var(--subtle)">// ← context (arg 2)</span>
+  false       <span style="color:var(--subtle)">// ← fallback (arg 3)</span>
+)</pre>
+            </div>
+            <p style="margin-top:9px;font-size:12px;color:var(--subtle);line-height:1.5;">Vendor SDK. Argument order: key → context → fallback.</p>
           </div>
-          <div class="card">
-            <h3>Argument order breaks production</h3>
-            <p>LaunchDarkly is <code style="font-family:monospace;font-size:12px">(key, context, fallback)</code>. OpenFeature is <code style="font-family:monospace;font-size:12px">(key, fallback, context)</code>. A find-and-replace migration swaps them silently. FlagLint uses AST analysis to get it right.</p>
+
+          <div style="display:flex;align-items:center;justify-content:center;padding-top:72px;">
+            <span style="font-size:26px;color:var(--accent);line-height:1;">→</span>
           </div>
-          <div class="card">
-            <h3>Migrations regress without CI</h3>
-            <p>After migration, new engineers reach for <code style="font-family:monospace;font-size:12px">ldClient</code> because that's what they know. Without a CI gate, migrations reverse quietly over months.</p>
+
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:12px;">After FlagLint</div>
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+              <div style="padding:8px 14px;background:rgba(0,0,0,.25);border-bottom:1px solid var(--border);font-size:11px;color:var(--subtle);font-family:monospace;">checkout.ts</div>
+              <pre style="margin:0;padding:14px 16px;font-size:12px;line-height:1.75;color:#d8e2dd;overflow-x:auto;background:var(--surface-soft);"><span style="color:var(--accent)">import {'{'}OpenFeature{'}'} from '@openfeature/server-sdk'</span>
+const client = <span style="color:var(--accent)">OpenFeature.getClient</span>()
+
+const on = await <span style="color:var(--accent)">client.getBooleanValue</span>(
+  'checkout-v2',
+  false,      <span style="color:var(--subtle)">// ← fallback (arg 2)</span>
+  ctx         <span style="color:var(--subtle)">// ← context (arg 3)</span>
+)</pre>
+            </div>
+            <p style="margin-top:9px;font-size:12px;color:var(--subtle);line-height:1.5;">OpenFeature API. Argument order corrected by AST analysis. LaunchDarkly stays as the provider below.</p>
+            <div style="margin-top:8px;background:var(--surface-raised);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.5;">
+              <strong style="color:var(--text);">LaunchDarkly remains your provider.</strong> FlagLint only migrates the call-site API — not your flag configuration or backend.
+            </div>
           </div>
+
         </div>
+
+        <style>
+          @media (max-width: 980px) {
+            [aria-label="Before and after FlagLint architecture"] {
+              grid-template-columns: 1fr !important;
+            }
+            [aria-label="Before and after FlagLint architecture"] > div:nth-child(2) {
+              display: none !important;
+            }
+          }
+        </style>
       </div>
     </section>
-
-  <section style="border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:linear-gradient(180deg,var(--surface) 0%,transparent 100%);">
-    <div class="section-inner">
-      <div class="section-kicker">Know your switching cost</div>
-      <h2 class="section-heading">What would you pay after migration?</h2>
-      <p class="section-copy" style="margin-bottom:28px;">FlagLint estimates your annual LaunchDarkly cost based on your service count and flag usage — and compares it to OpenFeature-native alternatives.</p>
-
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;">
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="font-size:30px;font-weight:700;color:var(--danger);margin-bottom:6px;">$72K</div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Today: LaunchDarkly</div>
-          <div style="font-size:13px;color:var(--muted);">Median annual contract. MAU-based pricing scales with your product growth.</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="font-size:30px;font-weight:700;color:var(--warning);margin-bottom:6px;">$2,400</div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Option: Flagsmith Cloud</div>
-          <div style="font-size:13px;color:var(--muted);">Flat pricing. OpenFeature-native. No MAU charges.</div>
-        </div>
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;">
-          <div style="font-size:30px;font-weight:700;color:var(--accent);margin-bottom:6px;">$0</div>
-          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">Option: flagd / GrowthBook</div>
-          <div style="font-size:13px;color:var(--muted);">Self-hosted. OpenFeature-native. No vendor dependency.</div>
-        </div>
-      </div>
-
-      <div style="background:var(--surface-soft);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-        <code style="font-family:monospace;font-size:13px;color:var(--accent);">npx flaglint audit ./src --cost-estimate</code>
-        <span style="font-size:12px;color:var(--subtle);">Coming in v0.7 — <a href="#cloud-waitlist" style="color:var(--accent);text-decoration:underline;">join the waitlist</a></span>
-      </div>
-    </div>
-  </section>
-
-  <section id="cloud-waitlist" style="padding:36px 24px;border-bottom:1px solid var(--border);">
-    <div style="max-width:640px;margin:0 auto;display:flex;align-items:center;gap:24px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:180px;">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;">Get notified when v0.7 ships</div>
-        <div style="font-size:12px;color:var(--muted);">No spam. Unsubscribe any time.</div>
-      </div>
-      <form
-        action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0"
-        method="POST"
-        style="display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0;"
-      >
-        <input
-          type="email"
-          name="email"
-          placeholder="your@email.com"
-          required
-          style="height:40px;padding:0 12px;background:var(--surface);border:1px solid var(--border-strong);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:200px;"
-        />
-        <button type="submit" class="btn btn-primary" style="height:40px;padding:0 18px;white-space:nowrap;font-size:13px;">
-          Notify me
-        </button>
-      </form>
-    </div>
-  </section>
 
     <section>
       <div class="section-inner">
         <div class="section-kicker">Workflow</div>
         <h2 class="section-heading">Audit, migrate, enforce.</h2>
         <p class="section-copy">FlagLint keeps audit, migration, and policy enforcement separate — each step is reviewable and nothing is changed without your explicit review.</p>
-        <div class="workflow" style="grid-template-columns: repeat(4, 1fr);">
-          <div class="workflow-step">
-            <span class="step-num" style="background:rgba(0,217,126,0.2);color:var(--accent);">0</span>
-            <h3>Audit</h3>
-            <p>Understand your flag debt before touching any code. No API key needed.</p>
-            <code class="mini-code">npx flaglint audit ./src</code>
-          </div>
+        <div class="workflow">
           <div class="workflow-step">
             <span class="step-num">1</span>
-            <h3>Scan</h3>
-            <p>Generate inventory in JSON, Markdown, HTML, or SARIF.</p>
-            <div hidden>
-              <div class="format-badges">
-            <span class="badge-pill">JSON</span>
-            <span class="badge-pill">Markdown</span>
-            <span class="badge-pill">HTML</span>
-            <span class="badge-pill">SARIF</span>
-          </div>
-          <p class="step-body">Generates an inventory report in JSON, Markdown, HTML, or SARIF. Know exactly what LaunchDarkly Node.js SDK calls exist, where they are, and which require manual review. Use <code style="font-family:monospace;font-size:12px">validate --format sarif</code> to emit policy-violation findings for GitHub Code Scanning.</p>
-            </div>
-            <code class="mini-code">npx flaglint scan ./src</code>
+            <h3>Audit</h3>
+            <p>Get a risk-ranked overview for engineers before touching code. Use <code style="font-family:monospace;font-size:12px">scan</code> when automation needs file-level structured inventory.</p>
+            <code class="mini-code">npx flaglint audit ./src</code>
+            <code class="mini-code">npx flaglint scan ./src --format json</code>
           </div>
           <div class="workflow-step">
             <span class="step-num">2</span>
@@ -881,66 +827,6 @@ Skipped usages: 9
 
     <section>
       <div class="section-inner">
-        <div class="section-kicker">Architecture</div>
-        <h2 class="section-heading">OpenFeature becomes the application-facing API. LaunchDarkly remains the provider.</h2>
-        <div style="display:grid;grid-template-columns:1fr 48px 1fr;gap:20px;align-items:start;margin-top:40px;" aria-label="Before and after FlagLint architecture">
-
-          <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--danger);margin-bottom:12px;">Before</div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
-              <div style="padding:8px 14px;background:rgba(0,0,0,.25);border-bottom:1px solid var(--border);font-size:11px;color:var(--subtle);font-family:monospace;">checkout.ts</div>
-              <pre style="margin:0;padding:14px 16px;font-size:12px;line-height:1.75;color:#d8e2dd;overflow-x:auto;background:var(--surface-soft);"><span style="color:var(--danger)">import * as ld from 'launchdarkly-node-server-sdk'</span>
-const client = <span style="color:var(--danger)">ld.init</span>(sdkKey)
-
-const on = await <span style="color:var(--danger)">client.boolVariation</span>(
-  'checkout-v2',
-  ctx,        <span style="color:var(--subtle)">// ← context (arg 2)</span>
-  false       <span style="color:var(--subtle)">// ← fallback (arg 3)</span>
-)</pre>
-            </div>
-            <p style="margin-top:9px;font-size:12px;color:var(--subtle);line-height:1.5;">Vendor SDK. Argument order: key → context → fallback. Vendor-locked.</p>
-          </div>
-
-          <div style="display:flex;align-items:center;justify-content:center;padding-top:72px;">
-            <span style="font-size:26px;color:var(--accent);line-height:1;">→</span>
-          </div>
-
-          <div>
-            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:12px;">After FlagLint</div>
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;">
-              <div style="padding:8px 14px;background:rgba(0,0,0,.25);border-bottom:1px solid var(--border);font-size:11px;color:var(--subtle);font-family:monospace;">checkout.ts</div>
-              <pre style="margin:0;padding:14px 16px;font-size:12px;line-height:1.75;color:#d8e2dd;overflow-x:auto;background:var(--surface-soft);"><span style="color:var(--accent)">import {'{'}OpenFeature{'}'} from '@openfeature/server-sdk'</span>
-const client = <span style="color:var(--accent)">OpenFeature.getClient</span>()
-
-const on = await <span style="color:var(--accent)">client.getBooleanValue</span>(
-  'checkout-v2',
-  false,      <span style="color:var(--subtle)">// ← fallback (arg 2)</span>
-  ctx         <span style="color:var(--subtle)">// ← context (arg 3)</span>
-)</pre>
-            </div>
-            <p style="margin-top:9px;font-size:12px;color:var(--subtle);line-height:1.5;">OpenFeature API. Argument order corrected by AST analysis. LaunchDarkly stays as the provider below.</p>
-            <div style="margin-top:8px;background:var(--surface-raised);border:1px solid var(--border);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--muted);line-height:1.5;">
-              <strong style="color:var(--text);">LaunchDarkly remains your provider.</strong> FlagLint only migrates the call-site API — not your flag configuration or backend.
-            </div>
-          </div>
-
-        </div>
-
-        <style>
-          @media (max-width: 680px) {
-            [aria-label="Before and after FlagLint architecture"] {
-              grid-template-columns: 1fr !important;
-            }
-            [aria-label="Before and after FlagLint architecture"] > div:nth-child(2) {
-              display: none !important;
-            }
-          }
-        </style>
-      </div>
-    </section>
-
-    <section>
-      <div class="section-inner">
         <div class="section-kicker">Safety</div>
         <h2 class="section-heading">Local source analysis with guarded rewrites.</h2>
         <div class="grid-3">
@@ -950,7 +836,7 @@ const on = await <span style="color:var(--accent)">client.getBooleanValue</span>
           </div>
           <div class="card">
             <h3>No LaunchDarkly SDK key needed</h3>
-            <p>Scan, migrate, and validate operate on source code. They do not need a LaunchDarkly API key or SDK key.</p>
+            <p>Audit, scan, migrate, and validate operate on source code. They do not need a LaunchDarkly API key or SDK key.</p>
           </div>
           <div class="card">
             <h3>No source upload</h3>
@@ -1033,48 +919,6 @@ jobs:
         </div>
       </div>
     </section>
-  <section style="padding: 56px 24px; border-top: 1px solid var(--border);">
-    <div style="max-width: 560px; margin: 0 auto; text-align: center;">
-      <div class="section-kicker">FlagLint Cloud</div>
-      <h2 style="font-size: clamp(24px, 3vw, 36px); line-height: 1.15; margin-bottom: 14px;">Get notified when FlagLint Cloud launches.</h2>
-      <p style="color: var(--muted); font-size: 16px; margin-bottom: 28px;">Team dashboards, persistent audit history, Slack alerts, and Jira integration — coming soon.</p>
-      <form
-        action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0"
-        method="POST"
-        style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;"
-      >
-        <input
-          type="email"
-          name="email"
-          placeholder="your@email.com"
-          required
-          style="
-            flex: 1;
-            min-width: 220px;
-            max-width: 320px;
-            height: 44px;
-            padding: 0 14px;
-            background: var(--surface);
-            border: 1px solid var(--border-strong);
-            border-radius: 6px;
-            color: var(--text);
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-          "
-        />
-        <button
-          type="submit"
-          class="btn btn-primary"
-          style="height: 44px; padding: 0 20px; white-space: nowrap;"
-        >
-          Notify me
-        </button>
-      </form>
-      <p style="margin-top: 12px; font-size: 12px; color: var(--subtle);">No spam. Unsubscribe any time.</p>
-    </div>
-  </section>
-
   </main>
 
   <footer>
