@@ -155,7 +155,7 @@
       min-width: 0;
     }
     .hero h1 {
-      font-size: clamp(38px, 4.8vw, 64px);
+      font-size: clamp(38px, 4.2vw, 58px);
       line-height: 1.06;
       letter-spacing: -0.02em;
       margin-bottom: 10px;
@@ -597,22 +597,25 @@
           <h1>Your LaunchDarkly contract<br>renews soon.</h1>
           <p style="font-size:clamp(18px,2.4vw,26px);font-weight:700;color:var(--muted);line-height:1.25;margin:-10px 0 20px;letter-spacing:-0.01em;">Do you know how hard it is to leave?</p>
           <p class="hero-sub">FlagLint audits every direct LaunchDarkly SDK call in your Node.js codebase, classifies migration risk, and generates OpenFeature rewrites only where safety can be proven.</p>
-          <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:4px;font-size:12px;font-weight:500;color:var(--subtle);">
+          <div class="command-card" aria-label="Primary command" style="margin-top:20px;margin-bottom:16px;">
+            <span class="muted">$</span>
+            <code>npx flaglint audit ./src</code>
+          </div>
+          <div class="cta-row" style="margin-bottom:20px;">
+            <a class="btn btn-primary" href="/docs/cli/audit">Run your first audit</a>
+            <a href="/docs/tutorials/migrate-a-node-service" style="font-size:14px;font-weight:600;color:var(--muted);padding:10px 4px;">View a real migration</a>
+            <a href="/docs/integrations/github-actions" style="font-size:13px;font-weight:600;color:var(--muted);padding:10px 4px;">Add it to CI →</a>
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;font-weight:500;color:var(--subtle);">
             <span>MIT licensed</span>
             <span style="color:var(--border-strong)">·</span>
             <span>Node.js 20+</span>
             <span style="color:var(--border-strong)">·</span>
             <span>Runs locally</span>
-          </div>
-          <p style="font-size:14px;font-weight:700;color:var(--muted);margin-bottom:4px;">No API key. No credentials. No source upload.</p>
-          <div class="command-card" aria-label="Primary command">
-            <span class="muted">$</span>
-            <code>npx flaglint audit ./src</code>
-          </div>
-          <div class="cta-row">
-            <a class="btn btn-primary" href="/docs/cli/audit">Run your first audit</a>
-            <a class="btn btn-secondary" href="/docs/tutorials/migrate-a-node-service">View a real migration</a>
-            <a class="btn btn-secondary" href="/docs/integrations/github-actions" style="font-size:13px;">Add it to CI →</a>
+            <span style="color:var(--border-strong)">·</span>
+            <span>No API key</span>
+            <span style="color:var(--border-strong)">·</span>
+            <span>No source upload</span>
           </div>
         </div>
 
