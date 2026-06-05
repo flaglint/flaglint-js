@@ -100,3 +100,21 @@
   overflow-x: auto;
   max-width: 100%;
 }
+
+/* A3: Narrow right TOC column — Starlight default grows to ~490px at wide viewports.
+   Target: 200-220px. Override the `width` formula from TwoColumnContent.astro and
+   give reclaimed space back to the main content area. These rules are unlayered and
+   therefore beat @layer starlight.core without needing !important. */
+:root {
+  --sl-content-width: 52rem;
+}
+
+@media (min-width: 72rem) {
+  .right-sidebar-container {
+    width: 13rem;
+  }
+
+  [data-has-sidebar][data-has-toc] .main-pane {
+    width: calc(100% - 13rem);
+  }
+}
