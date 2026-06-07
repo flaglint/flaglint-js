@@ -9,6 +9,14 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), "../..");
 const DEMO = join(ROOT, "examples/enterprise-checkout-service");
 const ENTRY = join(ROOT, "dist/bin/flaglint.js");
 
+
+
+const NPM_COMMAND =
+  process.platform === "win32"
+    ? "npm.cmd"
+    : "npm";
+
+
 const tmpDirs: string[] = [];
 
 afterEach(() => {
@@ -41,19 +49,32 @@ describe("enterprise checkout service demo", () => {
   it("verifies the README walkthrough commands against a clean copy", () => {
     const demo = makeDemoCopy();
 
-    const install = run(demo, "npm", ["install", "--ignore-scripts"]);
-    expect(install.status).toBe(0);
+const install = spawnSync(
+  NPM_COMMAND,
+  ["install", "--ignore-scripts"],
+  {
+    cwd: demo,
+    encoding: "utf8",
+    timeout: 30_000,
+    maxBuffer: 1024 * 1024,
+    shell: process.platform === "win32",
+  }
+);
 
-    const scan = run(demo, process.execPath, [
-      ENTRY,
-      "scan",
-      "./src",
-      "--format",
-      "html",
-      "--output",
-      "report.html",
-    ]);
-    expect(scan.status).toBe(0);
+
+expect(install.status).toBe(0);
+const scan = run(demo, process.execPath, [
+  ENTRY,
+  "scan",
+  "./src",
+  "--format",
+  "html",
+  "--output",
+  "report.html",
+]);
+
+
+expect(scan.status).toBe(0);
 
     const dryRun = run(demo, process.execPath, [ENTRY, "migrate", "./src", "--dry-run"]);
     expect(dryRun.status).toBe(0);
