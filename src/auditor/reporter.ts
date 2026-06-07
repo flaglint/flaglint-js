@@ -1,5 +1,10 @@
 import type { AuditReport, FlagRiskLevel } from "./index.js";
 import { renderReadinessBar } from "../readiness/readiness-bar.js";
+import type { MigrationEstimate } from "../estimate/estimate.js";
+
+export interface AuditRenderOptions {
+  estimate?: MigrationEstimate | null;
+}
 
 declare const __PKG_VERSION__: string;
 
@@ -15,12 +20,16 @@ function displayFlagKey(flag: { flagKey: string; isDynamic: boolean }): string {
   return flag.isDynamic ? "<dynamic key>" : flag.flagKey;
 }
 
-export function formatAuditJson(report: AuditReport): string {
+export function formatAuditJson(report: AuditReport, options?: AuditRenderOptions): string {
   const { summary, flags, readiness } = report;
-  return JSON.stringify({ summary, flags, readiness }, null, 2);
+  const obj: Record<string, unknown> = { summary, flags, readiness };
+  if (options !== undefined) {
+    obj["estimate"] = options.estimate ?? null;
+  }
+  return JSON.stringify(obj, null, 2);
 }
 
-export function formatAuditMarkdown(report: AuditReport): string {
+export function formatAuditMarkdown(report: AuditReport, options?: AuditRenderOptions): string {
   const { summary, flags, readiness } = report;
   const lines: string[] = [];
 
@@ -74,6 +83,33 @@ export function formatAuditMarkdown(report: AuditReport): string {
   }
   lines.push("");
 
+  if (options?.estimate !== undefined) {
+    const est = options.estimate;
+    lines.push("## Estimated Migration Effort");
+    lines.push("");
+    if (est === null) {
+      lines.push("N/A — no direct LaunchDarkly calls detected.");
+    } else {
+      lines.push("| | Low | High |");
+      lines.push("|---|---|---|");
+      for (const item of est.breakdown) {
+        const callsLabel = item.calls > 0 ? ` (${item.calls} calls)` : "";
+        lines.push(`| ${item.label}${callsLabel} | ${item.hoursLow}h | ${item.hoursHigh}h |`);
+      }
+      lines.push(`| **Total** | **${est.hoursLow}h** | **${est.hoursHigh}h** |`);
+      lines.push("");
+      if (est.costLow !== undefined && est.costHigh !== undefined) {
+        const fmt = (n: number) => "$" + n.toLocaleString("en-US");
+        lines.push(`Estimated cost: **${fmt(est.costLow)} – ${fmt(est.costHigh)}** (at $${est.hourlyRate}/hr)`);
+        lines.push("");
+      }
+      lines.push(`> ${est.disclaimer}`);
+      lines.push("");
+      lines.push("_Assumptions: configurable planning heuristics, not observed industry benchmarks._");
+    }
+    lines.push("");
+  }
+
   lines.push("## Flag Debt Inventory");
   lines.push("");
   lines.push("| Flag Key | Risk | Usages | Files | Call Types | Reasons |");
@@ -110,7 +146,7 @@ export function formatAuditMarkdown(report: AuditReport): string {
   return lines.join("\n");
 }
 
-export function formatAuditHtml(report: AuditReport): string {
+export function formatAuditHtml(report: AuditReport, options?: AuditRenderOptions): string {
   const { summary, flags, readiness } = report;
   const version =
     typeof __PKG_VERSION__ !== "undefined" ? __PKG_VERSION__ : "0.1.0";
@@ -142,6 +178,53 @@ export function formatAuditHtml(report: AuditReport): string {
   const readinessScore = readiness.score ?? 0;
   const readinessColor = readiness.grade === "not-applicable" ? "#6c757d" : readinessScore >= 80 ? "#16a34a" : readinessScore >= 50 ? "#d97706" : "#dc2626";
   const readinessFillPct = readinessScore;
+
+  let estimateSection = "";
+  if (options?.estimate !== undefined) {
+    const est = options.estimate;
+    if (est === null) {
+      estimateSection = `
+  <h2>Estimated Migration Effort</h2>
+  <div class="estimate-block"><p style="color:var(--muted)">N/A — no direct LaunchDarkly calls detected.</p></div>`;
+    } else {
+      const fmtCost = (n: number) => "$" + n.toLocaleString("en-US");
+      const costLine = est.costLow !== undefined && est.costHigh !== undefined
+        ? `<div class="estimate-cost">${fmtCost(est.costLow)} – ${fmtCost(est.costHigh)} <span style="font-weight:400;font-size:.8em">at $${est.hourlyRate}/hr</span></div>`
+        : "";
+      const bRows = est.breakdown.map(item => {
+        const callsLabel = item.calls > 0 ? ` <span style="color:var(--muted);font-size:.85em">(${item.calls} calls)</span>` : "";
+        return `<tr><td>${esc(item.label)}${callsLabel}</td><td>${item.hoursLow}h</td><td>${item.hoursHigh}h</td><td style="color:var(--muted);font-size:.8em">${esc(item.basis)}</td></tr>`;
+      }).join("\n        ");
+      const { assumptions } = est;
+      estimateSection = `
+  <h2>Estimated Migration Effort</h2>
+  <div class="estimate-block">
+    <div class="estimate-total">${est.hoursLow}h – ${est.hoursHigh}h</div>
+    ${costLine}
+    <table style="margin-top:.75rem">
+      <thead><tr><th>Work Item</th><th>Low</th><th>High</th><th>Basis</th></tr></thead>
+      <tbody>
+        ${bRows}
+      </tbody>
+    </table>
+    <details style="margin-top:.75rem;font-size:.8125rem">
+      <summary style="cursor:pointer;color:var(--muted);user-select:none">Estimation assumptions</summary>
+      <table style="margin-top:.5rem">
+        <thead><tr><th>Parameter</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td>Automatable call</td><td>${assumptions.automationHoursPerCall}h</td></tr>
+          <tr><td>Manual-review call</td><td>${assumptions.manualReviewHoursPerCall}h</td></tr>
+          <tr><td>Validation</td><td>${assumptions.validationMultiplier * 100}% of migration work</td></tr>
+          <tr><td>Minimum estimate</td><td>${assumptions.minimumHours}h</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:.5rem;color:var(--muted)">These are configurable planning heuristics, not observed industry benchmarks.</p>
+    </details>
+    <p class="estimate-disclaimer">${esc(est.disclaimer)}</p>
+  </div>`;
+    }
+  }
+
   const breakdownRows = readiness.manualReviewBreakdown
     .map(
       (d) =>
@@ -194,6 +277,10 @@ export function formatAuditHtml(report: AuditReport): string {
       .badge-medium{background:#78350f;color:#fcd34d}
       .badge-low{background:#14532d;color:#86efac}
     }
+    .estimate-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem}
+    .estimate-total{font-size:1.5rem;font-weight:700;margin-bottom:.75rem}
+    .estimate-cost{font-size:1rem;font-weight:600;margin:.75rem 0;color:#3b82f6}
+    .estimate-disclaimer{margin-top:.75rem;font-size:.75rem;color:var(--muted);font-style:italic}
     .steps{margin:.75rem 0 1rem 1.25rem;line-height:2}
     footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);color:var(--muted);font-size:.75rem;text-align:center}
     footer a{color:var(--muted)}
@@ -240,6 +327,7 @@ export function formatAuditHtml(report: AuditReport): string {
       </tbody>
     </table>` : ""}`}
   </div>
+  ${estimateSection}
 
   <h2>Flag Debt Inventory</h2>
   <table>
