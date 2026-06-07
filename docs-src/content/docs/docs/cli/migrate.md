@@ -60,6 +60,10 @@ or imported through configured `openFeatureClientBindings`.
 
 Provider/bootstrap setup is never inserted automatically.
 
+## Further Reading
+
+- [LaunchDarkly-to-OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) — see which LaunchDarkly calls require manual review and how proven rewrites are applied
+
 ## Feedback
 
 - [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/migrate.md)

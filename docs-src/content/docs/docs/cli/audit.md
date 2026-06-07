@@ -152,6 +152,10 @@ npx flaglint migrate ./src --apply
 npx flaglint validate ./src --no-direct-launchdarkly
 ```
 
+## Further Reading
+
+- [LaunchDarkly-to-OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) — complete safe migration workflow including audit, migrate, and enforce
+
 ## Feedback
 
 - [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/audit.md)

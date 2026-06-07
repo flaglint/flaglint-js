@@ -52,6 +52,10 @@ npx flaglint validate ./src \
   --bootstrap-exclude "src/provider/setup.ts"
 ```
 
+## Further Reading
+
+- [LaunchDarkly-to-OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) — see how to enforce the OpenFeature boundary after a full migration
+
 ## Feedback
 
 - [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/validate.md)

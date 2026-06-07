@@ -2,6 +2,7 @@
 const pathname = Astro.url.pathname;
 const isDocs = pathname.startsWith("/docs");
 const isBlog = pathname.startsWith("/blog");
+const isGuides = pathname.startsWith("/guides");
 ---
 
 <div class="flaglint-titlebar sl-flex">
@@ -11,6 +12,7 @@ const isBlog = pathname.startsWith("/blog");
   <nav class="product-nav" aria-label="Primary sections">
     <a href="/docs/" class:list={["nav-link", { active: isDocs }]}>Docs</a>
     <a href="/blog/" class:list={["nav-link", { active: isBlog }]}>Blog</a>
+    <a href="/guides/" class:list={["nav-link", { active: isGuides }]}>Guides</a>
   </nav>
 </div>
 

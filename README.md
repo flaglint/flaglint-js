@@ -58,6 +58,8 @@ For the full report see `--format html`. [Documentation](https://flaglint.dev/do
 
 No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
 
+Migrating an existing Node.js service? Read the [complete LaunchDarkly-to-OpenFeature migration guide](https://flaglint.dev/guides/launchdarkly-to-openfeature-nodejs/).
+
 ---
 
 ## The problem FlagLint solves

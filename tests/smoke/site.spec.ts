@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const CRITICAL_ROUTES = ['/', '/docs/', '/docs/quickstart/', '/blog/'];
+const CRITICAL_ROUTES = ['/', '/docs/', '/docs/quickstart/', '/blog/', '/guides/', '/guides/launchdarkly-to-openfeature-nodejs/'];
 
 for (const route of CRITICAL_ROUTES) {
   test(`${route} loads without error`, async ({ page }) => {
@@ -35,4 +35,32 @@ test('theme selector is present on /docs/', async ({ page }) => {
     )
     .first();
   await expect(themeControl).toBeVisible();
+});
+
+test('migration guide has correct canonical URL', async ({ page }) => {
+  await page.goto('/guides/launchdarkly-to-openfeature-nodejs/');
+  const canonical = page.locator('link[rel="canonical"]');
+  await expect(canonical).toHaveAttribute('href', 'https://flaglint.dev/guides/launchdarkly-to-openfeature-nodejs/');
+});
+
+test('migration guide has exactly one H1', async ({ page }) => {
+  await page.goto('/guides/launchdarkly-to-openfeature-nodejs/');
+  const h1s = page.locator('h1');
+  await expect(h1s).toHaveCount(1);
+});
+
+test('migration guide has meta description', async ({ page }) => {
+  await page.goto('/guides/launchdarkly-to-openfeature-nodejs/');
+  const meta = page.locator('meta[name="description"]');
+  await expect(meta).toHaveAttribute('content', /OpenFeature/);
+});
+
+test('migration guide audit command is visible', async ({ page }) => {
+  await page.goto('/guides/launchdarkly-to-openfeature-nodejs/');
+  await expect(page.getByText('npx flaglint@latest audit ./src').first()).toBeVisible();
+});
+
+test('guides index has guide card link', async ({ page }) => {
+  await page.goto('/guides/');
+  await expect(page.locator('a[href="/guides/launchdarkly-to-openfeature-nodejs/"]').first()).toBeVisible();
 });

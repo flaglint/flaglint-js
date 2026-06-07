@@ -1,0 +1,1318 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Migrating LaunchDarkly Node.js to OpenFeature Safely | FlagLint</title>
+  <meta name="description" content="A practical guide to migrating direct LaunchDarkly Node.js SDK calls to OpenFeature without swapping fallback and context arguments. Audit, preview, migrate, and enforce safely with FlagLint.">
+  <meta property="og:title" content="Migrating LaunchDarkly Node.js to OpenFeature Safely | FlagLint">
+  <meta property="og:description" content="A practical guide to migrating direct LaunchDarkly Node.js SDK calls to OpenFeature without swapping fallback and context arguments. Audit, preview, migrate, and enforce safely with FlagLint.">
+  <meta property="og:url" content="https://flaglint.dev/guides/launchdarkly-to-openfeature-nodejs/">
+  <meta property="og:site_name" content="FlagLint">
+  <meta property="og:type" content="article">
+  <meta property="og:image" content="https://flaglint.dev/og-guide-ld-of.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://flaglint.dev/guides/launchdarkly-to-openfeature-nodejs/">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Migrating LaunchDarkly Node.js SDK Usage to OpenFeature: A Safe, Practical Guide",
+    "description": "A practical guide to migrating direct LaunchDarkly Node.js SDK calls to OpenFeature without swapping fallback and context arguments. Audit, preview, migrate, and enforce safely with FlagLint.",
+    "url": "https://flaglint.dev/guides/launchdarkly-to-openfeature-nodejs/",
+    "datePublished": "2026-06-07",
+    "dateModified": "2026-06-07",
+    "author": {"@type": "Person", "name": "Krishan Sharma", "url": "https://www.linkedin.com/in/krishansha/"},
+    "publisher": {"@type": "Organization", "name": "FlagLint", "url": "https://flaglint.dev"}
+  }
+  </script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {"@type": "ListItem", "position": 1, "name": "FlagLint", "item": "https://flaglint.dev"},
+      {"@type": "ListItem", "position": 2, "name": "Guides", "item": "https://flaglint.dev/guides/"},
+      {"@type": "ListItem", "position": 3, "name": "LaunchDarkly to OpenFeature Node.js", "item": "https://flaglint.dev/guides/launchdarkly-to-openfeature-nodejs/"}
+    ]
+  }
+  </script>
+  <style is:global>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a;
+      --surface: #111111;
+      --surface-raised: #1a1a1a;
+      --surface-soft: #0d1117;
+      --border: #222222;
+      --border-strong: #333333;
+      --text: #f0f0f0;
+      --text-primary: #f0f0f0;
+      --text-secondary: #999999;
+      --muted: #999999;
+      --subtle: #666666;
+      --accent: #00d97e;
+      --accent-soft: rgba(0, 217, 126, 0.10);
+      --code-bg: #0d1117;
+      --radius: 8px;
+      --transition: 0.15s ease;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    a:focus-visible, button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10,10,10,0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 0 24px;
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .logo { font-size: 18px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
+    .nav-links {
+      display: flex;
+      gap: 22px;
+      align-items: center;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .nav-links a { color: var(--muted); }
+    .nav-links a:hover { color: var(--text-primary); text-decoration: none; }
+    .github-btn {
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text-primary);
+      background: rgba(255,255,255,0.03);
+    }
+    .breadcrumb { font-size: 13px; color: var(--text-secondary); margin-bottom: 32px; }
+    .breadcrumb a { color: var(--text-secondary); }
+    .breadcrumb a:hover { color: var(--text-primary); }
+    .breadcrumb .sep { margin: 0 8px; color: #444; }
+
+    /* Two-column layout */
+    .page-wrap {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 48px 24px 96px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .toc-col {
+      position: sticky;
+      top: 80px;
+    }
+    .toc-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--subtle);
+      margin-bottom: 12px;
+    }
+    .toc-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-left: 1px solid var(--border);
+    }
+    .toc-list li { margin-bottom: 2px; }
+    .toc-list a {
+      display: block;
+      padding: 5px 0 5px 14px;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+      border-left: 2px solid transparent;
+      margin-left: -1px;
+    }
+    .toc-list a:hover {
+      color: var(--text-primary);
+      border-left-color: var(--accent);
+      text-decoration: none;
+    }
+    .toc-list a.active {
+      color: var(--accent);
+      border-left-color: var(--accent);
+    }
+    .article-col { max-width: 720px; }
+
+    /* Article typography */
+    h1 { font-size: clamp(26px, 3.5vw, 38px); font-weight: 700; line-height: 1.15; letter-spacing: -0.5px; margin-bottom: 16px; }
+    .article-meta { font-size: 13px; color: var(--subtle); margin-bottom: 40px; display: flex; gap: 20px; flex-wrap: wrap; }
+    h2 {
+      font-size: 22px; font-weight: 700; margin: 52px 0 14px;
+      color: var(--text-primary); scroll-margin-top: 88px;
+      padding-top: 4px;
+    }
+    h2:first-of-type { margin-top: 0; }
+    h3 { font-size: 17px; font-weight: 700; margin: 28px 0 10px; color: var(--text-primary); }
+    p { color: var(--text-secondary); line-height: 1.75; margin-bottom: 16px; }
+    p strong { color: var(--text-primary); }
+    ul, ol { padding-left: 22px; color: var(--text-secondary); line-height: 1.75; margin-bottom: 16px; }
+    li { margin-bottom: 6px; }
+    li strong { color: var(--text-primary); }
+    code {
+      font-family: 'SF Mono', 'Fira Code', monospace; font-size: 13px;
+      background: var(--code-bg); border: 1px solid #30363d; border-radius: 3px;
+      padding: 1px 5px; color: #a5d6ff;
+    }
+
+    /* Code blocks */
+    .code-block {
+      position: relative;
+      background: var(--code-bg);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      margin: 20px 0;
+    }
+    .code-block-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--subtle);
+    }
+    .code-block pre {
+      margin: 0;
+      padding: 16px;
+      overflow-x: auto;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #e6edf3;
+    }
+    .copy-btn {
+      background: transparent;
+      border: 1px solid var(--border-strong);
+      border-radius: 4px;
+      padding: 3px 9px;
+      font-size: 11px;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+    .copy-btn.copied { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+
+    /* Diff coloring */
+    .diff-add { color: #7ee787; }
+    .diff-remove { color: #f85149; }
+    .diff-meta { color: var(--subtle); }
+    .diff-comment { color: #8b949e; font-style: italic; }
+
+    /* Callout */
+    .callout {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      padding: 16px 20px;
+      margin: 24px 0;
+      font-size: 14.5px;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    .callout strong { color: var(--text-primary); }
+    .callout.warn { border-left-color: #f0a500; }
+    .callout.warn strong { color: #f0c040; }
+
+    /* Architecture flow */
+    .arch-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 24px 0;
+    }
+    .arch-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+    .arch-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--subtle);
+      width: 72px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      padding-right: 12px;
+    }
+    .arch-blocks {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 12px 0;
+    }
+    .arch-block {
+      background: var(--surface);
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      padding: 8px 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+    .arch-block.accent {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+    .arch-arrow {
+      font-size: 14px;
+      color: var(--subtle);
+      padding: 0 2px;
+    }
+    .arch-divider {
+      border: none;
+      border-top: 1px dashed var(--border);
+      margin: 4px 72px;
+    }
+
+    /* Migration step */
+    .step-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 24px 0;
+      overflow: hidden;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .step-num {
+      width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .step-body { padding: 16px 20px 20px; }
+    .step-body p { margin-bottom: 10px; }
+    .step-body p:last-child { margin-bottom: 0; }
+    .step-body ul { margin-bottom: 10px; }
+
+    /* Pattern table */
+    .pattern-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      margin: 20px 0;
+    }
+    .pattern-table th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--subtle);
+      border-bottom: 1px solid var(--border-strong);
+    }
+    .pattern-table td {
+      padding: 10px 14px;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.55;
+    }
+    .pattern-table td:first-child { color: var(--text-primary); font-weight: 500; }
+    .pattern-table tr:last-child td { border-bottom: none; }
+    .badge-safe { color: #7ee787; font-size: 12px; font-weight: 600; }
+    .badge-manual { color: #f0a500; font-size: 12px; font-weight: 600; }
+    .badge-config { color: #79c0ff; font-size: 12px; font-weight: 600; }
+
+    /* Fact card */
+    .fact-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin: 24px 0;
+    }
+    .fact-card-header {
+      padding: 12px 20px;
+      background: var(--surface-raised);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .fact-card-header .verified-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      border: 1px solid rgba(0,217,126,0.2);
+      border-radius: 4px;
+      padding: 2px 8px;
+    }
+    .fact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+    }
+    .fact-cell {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .fact-cell:nth-child(odd) { border-right: 1px solid var(--border); }
+    .fact-cell:nth-last-child(-n+2) { border-bottom: none; }
+    .fact-key { font-size: 13px; color: var(--muted); }
+    .fact-val { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+    .fact-val.accent { color: var(--accent); }
+
+    /* Example block */
+    .example-block {
+      margin: 28px 0;
+    }
+    .example-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+    }
+    .example-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-left: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .tag-rewritten { background: rgba(126,231,135,0.12); color: #7ee787; }
+    .tag-skipped { background: rgba(240,165,0,0.12); color: #f0a500; }
+
+    /* Provider boundary */
+    .boundary-list {
+      list-style: none;
+      padding: 0;
+      margin: 20px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .boundary-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+    .boundary-item-icon {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 1px;
+    }
+    .boundary-item-icon.auto { background: var(--accent-soft); color: var(--accent); }
+    .boundary-item-icon.manual { background: rgba(240,165,0,0.12); color: #f0a500; }
+    .boundary-item-label { color: var(--text-primary); font-weight: 600; }
+    .boundary-item-sub { color: var(--muted); font-size: 13px; margin-top: 1px; }
+
+    /* CTA */
+    .cta-primary {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin: 32px 0;
+    }
+    .cta-secondary {
+      background: var(--surface-raised);
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      margin: 24px 0;
+    }
+    .cta-secondary h3 { margin: 0 0 8px; }
+    .cta-secondary p { margin-bottom: 12px; }
+    .cta-privacy-note { font-size: 12px; color: var(--subtle); margin-top: 8px; }
+
+    .article-links {
+      border-top: 1px solid var(--border);
+      margin-top: 48px;
+      padding-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 13.5px;
+    }
+    .article-links a { color: var(--muted); }
+    .article-links a:hover { color: var(--accent); }
+    .article-links .sep { color: var(--border-strong); }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border); padding: 28px 24px;
+      max-width: 1180px; margin: 0 auto;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+    }
+    .footer-copy { font-size: 13px; color: #555; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a { font-size: 13px; color: #666; transition: color var(--transition); }
+    .footer-links a:hover { color: var(--text-primary); text-decoration: none; }
+
+    /* Light mode */
+    [data-theme="light"] {
+      --bg: #f8fafb;
+      --surface: #ffffff;
+      --surface-raised: #f0f4f7;
+      --surface-soft: #eef2f5;
+      --border: #d1dbe3;
+      --border-strong: #b0c0cc;
+      --text: #0f1a14;
+      --text-primary: #0f1a14;
+      --text-secondary: #3d5a4a;
+      --muted: #3d5a4a;
+      --subtle: #6b8a7a;
+      --accent: #007a49;
+      --accent-soft: rgba(0, 122, 73, 0.10);
+    }
+    [data-theme="light"] nav {
+      background: rgba(248,250,251,0.92);
+      border-bottom-color: rgba(0,0,0,0.08);
+    }
+    [data-theme="light"] .github-btn { color: var(--text-primary); }
+    [data-theme="light"] body {
+      background: linear-gradient(180deg, #f0fdf6 0%, #f8fafb 30%, #f8fafb 100%);
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      display: flex; align-items: center; gap: 2px;
+      background: var(--surface-raised); border: 1px solid var(--border);
+      border-radius: 6px; padding: 2px; flex-shrink: 0;
+    }
+    .theme-btn {
+      background: none; border: none; border-radius: 4px; padding: 4px 8px;
+      cursor: pointer; color: var(--muted); font-size: 12px; font-family: inherit;
+      display: flex; align-items: center; transition: background 0.1s, color 0.1s; line-height: 1;
+    }
+    .theme-btn.active, .theme-btn:hover { background: var(--accent); color: #fff; }
+
+    @media (max-width: 860px) {
+      .page-wrap {
+        grid-template-columns: 1fr;
+        gap: 0;
+      }
+      .toc-col {
+        position: static;
+        padding-bottom: 32px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 40px;
+      }
+      .toc-list { border-left: none; display: flex; flex-wrap: wrap; gap: 4px; }
+      .toc-list a { border-left: none; border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; }
+      .toc-list a:hover { border-color: var(--accent); }
+    }
+    @media (max-width: 680px) {
+      .nav-links a:not(.github-btn) { display: none; }
+      .nav-inner { padding: 0 18px; }
+      .fact-grid { grid-template-columns: 1fr; }
+      .fact-cell:nth-child(odd) { border-right: none; }
+      .fact-cell:nth-last-child(-n+2) { border-bottom: 1px solid var(--border); }
+      .fact-cell:last-child { border-bottom: none; }
+    }
+  </style>
+  <script>(function(){var s=localStorage.getItem('flaglint-theme')||'dark';var r=s==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',r);})();</script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="/" class="logo" aria-label="FlagLint">FlagLint</a>
+    <div class="nav-links" aria-label="Primary navigation">
+      <a href="/docs/">Docs</a>
+      <a href="/blog/">Blog</a>
+      <a href="/guides/">Guides</a>
+      <div class="theme-toggle" role="group" aria-label="Select theme">
+        <button class="theme-btn" data-theme-value="light" title="Light mode" aria-label="Light mode">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 7a5 5 0 1 0 0 10A5 5 0 0 0 12 7zm0-2a1 1 0 0 0 1-1V2a1 1 0 0 0-2 0v2a1 1 0 0 0 1 1zm0 14a1 1 0 0 0-1 1v2a1 1 0 0 0 2 0v-2a1 1 0 0 0-1-1zm9-8h-2a1 1 0 0 0 0 2h2a1 1 0 0 0 0-2zM5 12a1 1 0 0 0-1-1H2a1 1 0 0 0 0 2h2a1 1 0 0 0 1-1z"/></svg>
+        </button>
+        <button class="theme-btn" data-theme-value="dark" title="Dark mode" aria-label="Dark mode">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+        </button>
+        <button class="theme-btn" data-theme-value="auto" title="Auto (system)" aria-label="Auto theme">Auto</button>
+      </div>
+      <a class="github-btn" href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+  <!-- Table of Contents -->
+  <aside class="toc-col" aria-label="Table of contents">
+    <div class="toc-label">On this page</div>
+    <ul class="toc-list">
+      <li><a href="#what-changes">What changes</a></li>
+      <li><a href="#argument-order-risk">Why it's risky</a></li>
+      <li><a href="#pattern-classification">Pattern classification</a></li>
+      <li><a href="#migration-workflow">Migration workflow</a></li>
+      <li><a href="#case-study">Case study</a></li>
+      <li><a href="#examples">Rewrite examples</a></li>
+      <li><a href="#provider-boundary">Provider boundary</a></li>
+      <li><a href="#preventing-regression">Preventing regression</a></li>
+      <li><a href="#get-started">Get started</a></li>
+    </ul>
+  </aside>
+
+  <!-- Article content -->
+  <article class="article-col">
+    <div class="breadcrumb">
+      <a href="/">FlagLint</a>
+      <span class="sep">›</span>
+      <a href="/guides/">Guides</a>
+      <span class="sep">›</span>
+      <span>LaunchDarkly to OpenFeature Node.js</span>
+    </div>
+
+    <h1>Migrating LaunchDarkly Node.js SDK Usage to OpenFeature: A Safe, Practical Guide</h1>
+    <div class="article-meta">
+      <span>Published 2026-06-07</span>
+      <span>·</span>
+      <span>Verified with FlagLint v0.7.0</span>
+      <span>·</span>
+      <span>Node.js · OpenFeature · LaunchDarkly</span>
+    </div>
+
+    <!-- Section 1 -->
+    <h2 id="what-changes">What changes when adopting OpenFeature</h2>
+    <p>
+      Adopting OpenFeature changes where in your application the flag evaluation boundary lives.
+      Today, most LaunchDarkly Node.js codebases call the LaunchDarkly SDK directly from business
+      logic — every <code>boolVariation</code>, <code>stringVariation</code>, or <code>jsonVariation</code>
+      call is a direct dependency on the LaunchDarkly SDK.
+    </p>
+
+    <div class="arch-flow">
+      <div class="arch-row">
+        <span class="arch-label">Before</span>
+        <div class="arch-blocks">
+          <div class="arch-block accent">Application code</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-block">LaunchDarkly SDK</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-block">LaunchDarkly service</div>
+        </div>
+      </div>
+      <hr class="arch-divider">
+      <div class="arch-row">
+        <span class="arch-label">After</span>
+        <div class="arch-blocks">
+          <div class="arch-block accent">Application code</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-block">OpenFeature API</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-block">LaunchDarkly provider</div>
+          <span class="arch-arrow">→</span>
+          <div class="arch-block">LaunchDarkly service</div>
+        </div>
+      </div>
+    </div>
+
+    <p>Four things to understand before starting:</p>
+    <ul>
+      <li><strong>OpenFeature is a vendor-neutral evaluation API standard — it does not replace LaunchDarkly.</strong>
+        LaunchDarkly may continue to evaluate your flags through its official OpenFeature provider.</li>
+      <li><strong>The flag service does not change.</strong> Your existing LaunchDarkly flags, targeting rules,
+        and environments stay exactly as they are.</li>
+      <li><strong>The migration moves the evaluation boundary into application code.</strong> You are changing
+        how your application calls the flag service, not what the flag service does.</li>
+      <li><strong>FlagLint does not configure or operate the provider.</strong> FlagLint analyzes
+        your source code and rewrites call sites. Initializing the OpenFeature client with a LaunchDarkly
+        provider is a separate manual step covered in the <a href="/docs/integrations/openfeature-provider/">OpenFeature Provider Setup guide</a>.</li>
+    </ul>
+
+    <!-- Section 2 -->
+    <h2 id="argument-order-risk">Why the migration is deceptively risky</h2>
+    <p>
+      If you were to migrate by hand or with a naive find-and-replace, you would almost certainly introduce
+      a silent runtime bug. The root cause is an argument-order inversion between the LaunchDarkly SDK
+      and the OpenFeature API.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header"><span>Argument order comparison</span></div>
+      <pre><span class="diff-comment">// LaunchDarkly: (key, context, fallback)</span>
+ldClient.boolVariation("checkout-v2", context, false);
+
+<span class="diff-comment">// OpenFeature: (key, fallback, context)</span>
+openFeatureClient.getBooleanValue("checkout-v2", false, context);</pre>
+    </div>
+
+    <p>
+      The equivalent migration diff looks like this:
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header"><span>checkout.ts</span></div>
+      <pre><span class="diff-remove">- return ldClient.boolVariation("checkout-v2", context, false);</span>
+<span class="diff-add">+ return flags.getBooleanValue("checkout-v2", false, context);</span></pre>
+    </div>
+
+    <p>
+      A naive search-and-replace that transposes the method name without also transposing the arguments will:
+    </p>
+    <ul>
+      <li><strong>Compile without errors.</strong> TypeScript accepts both orderings because <code>context</code>
+        satisfies the <code>EvaluationContext</code> type in the third position and <code>false</code>
+        satisfies the fallback type in the second.</li>
+      <li><strong>Pass TypeScript type checking.</strong> No type error is raised. The bug is invisible at
+        compile time.</li>
+      <li><strong>Change runtime behavior.</strong> <code>false</code> becomes the context object. <code>context</code>
+        becomes the fallback value. The flag evaluates against incorrect targeting data in production.</li>
+    </ul>
+
+    <div class="callout warn">
+      <strong>This is a correctness hazard, not a compile-time error.</strong> Your application will start
+      and your tests may pass — but flags will evaluate against wrong context data until someone notices
+      unexpected behavior in production. FlagLint rewrites both the method name and the argument order
+      together, atomically, only when it can prove the transformation is safe.
+    </div>
+
+    <!-- Section 3 -->
+    <h2 id="pattern-classification">Migration-pattern classification</h2>
+    <p>
+      Not all LaunchDarkly call sites are equally safe to rewrite automatically. FlagLint classifies
+      every detected call site by migration pattern before deciding whether to rewrite or report for
+      manual review.
+    </p>
+
+    <table class="pattern-table">
+      <thead>
+        <tr>
+          <th>Pattern</th>
+          <th>Automation status</th>
+          <th>Reason</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Static boolean evaluation</td>
+          <td><span class="badge-safe">Usually safe</span></td>
+          <td>Flag key is a literal; argument types and positions are known</td>
+        </tr>
+        <tr>
+          <td>Static string evaluation</td>
+          <td><span class="badge-safe">Usually safe</span></td>
+          <td>Direct mapping exists (<code>stringVariation</code> → <code>getStringValue</code>)</td>
+        </tr>
+        <tr>
+          <td>Static number evaluation</td>
+          <td><span class="badge-safe">Usually safe</span></td>
+          <td>Direct mapping exists (<code>numberVariation</code> → <code>getNumberValue</code>)</td>
+        </tr>
+        <tr>
+          <td>Static JSON/object evaluation</td>
+          <td><span class="badge-safe">Usually safe with parity review</span></td>
+          <td>Type mapping exists; review expected value shape</td>
+        </tr>
+        <tr>
+          <td>Dynamic flag key</td>
+          <td><span class="badge-manual">Manual review</span></td>
+          <td>Flag key is a variable — FlagLint cannot verify the target flag at compile time</td>
+        </tr>
+        <tr>
+          <td>Detail evaluation</td>
+          <td><span class="badge-manual">Manual review</span></td>
+          <td><code>variationDetail</code>/<code>boolVariationDetail</code> return metadata; OpenFeature detail APIs differ</td>
+        </tr>
+        <tr>
+          <td>Bulk flag evaluation</td>
+          <td><span class="badge-manual">Manual review</span></td>
+          <td><code>allFlagsState</code> has no single-flag codemod; requires architecture decision</td>
+        </tr>
+        <tr>
+          <td>Internal wrapper function</td>
+          <td><span class="badge-config">Configuration or review required</span></td>
+          <td>Client identity may be ambiguous; wrapper must be registered in <code>.flaglintrc</code></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <strong>FlagLint rewrites only cases it can prove are safe.</strong> Any call site where the flag
+      key, argument types, fallback value, or OpenFeature client binding cannot be statically proven is
+      left unchanged and reported for manual review.
+    </div>
+
+    <!-- Section 4 -->
+    <h2 id="migration-workflow">Complete migration workflow</h2>
+    <p>
+      FlagLint provides four commands that form a complete migration workflow. Run them in order.
+    </p>
+
+    <!-- Step 1 -->
+    <div class="step-block">
+      <div class="step-header">
+        <div class="step-num">1</div>
+        <div class="step-title">Audit — understand your exposure</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" style="margin-top:0">
+          <div class="code-block-header">
+            <span>bash</span>
+            <button class="copy-btn" data-copy="npx flaglint@latest audit ./src">Copy</button>
+          </div>
+          <pre>npx flaglint@latest audit ./src</pre>
+        </div>
+        <p><strong>When to run:</strong> Before any migration work begins, and periodically as the codebase evolves.</p>
+        <p><strong>What it does:</strong> Scans source files for direct LaunchDarkly SDK calls, classifies each usage by migration risk, and produces a readiness score. Add <code>--format json</code> or <code>--format html</code> for machine-readable or browser-viewable output. Add <code>--cost-estimate</code> for a directional effort estimate.</p>
+        <ul>
+          <li>Does <em>not</em> modify any files</li>
+          <li>Does <em>not</em> require API credentials or network access</li>
+          <li>Does <em>not</em> upload your source code anywhere</li>
+        </ul>
+        <p><strong>Exit code:</strong> Always 0 — this command is informational only.</p>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="step-block">
+      <div class="step-header">
+        <div class="step-num">2</div>
+        <div class="step-title">Preview — review the diffs before applying</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" style="margin-top:0">
+          <div class="code-block-header">
+            <span>bash</span>
+            <button class="copy-btn" data-copy="npx flaglint@latest migrate ./src --dry-run">Copy</button>
+          </div>
+          <pre>npx flaglint@latest migrate ./src --dry-run</pre>
+        </div>
+        <p><strong>When to run:</strong> After reviewing the audit output, before applying any changes.</p>
+        <p><strong>What it does:</strong> Shows exactly which call sites will be rewritten and what the
+          rewritten code looks like — as a reviewable diff — without touching any files. Output includes
+          the count of automatable vs. skipped calls and the reason each skipped call was left unchanged.</p>
+        <ul>
+          <li>Does <em>not</em> modify any files</li>
+        </ul>
+        <p><strong>Exit code:</strong> Always 0 — this command is informational only.</p>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="step-block">
+      <div class="step-header">
+        <div class="step-num">3</div>
+        <div class="step-title">Apply — write the proven-safe rewrites</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" style="margin-top:0">
+          <div class="code-block-header">
+            <span>bash</span>
+            <button class="copy-btn" data-copy="npx flaglint@latest migrate ./src --apply">Copy</button>
+          </div>
+          <pre>npx flaglint@latest migrate ./src --apply</pre>
+        </div>
+        <p><strong>When to run:</strong> After reviewing the dry-run output on a clean git branch.</p>
+        <p><strong>What it does:</strong> Applies proven-safe rewrites to source files in place. Only call
+          sites that pass FlagLint's safety analysis are rewritten; manual-review call sites are not touched.</p>
+        <ul>
+          <li>Does <em>not</em> touch flagged manual-review call sites</li>
+          <li>Does <em>not</em> rewrite without a proven OpenFeature binding</li>
+          <li>Requires a clean git working tree by default; pass <code>--allow-dirty</code> to override</li>
+        </ul>
+        <p><strong>Exit code:</strong> 0 on success; non-zero if preconditions fail.</p>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="step-block">
+      <div class="step-header">
+        <div class="step-num">4</div>
+        <div class="step-title">Validate — enforce the boundary in CI</div>
+      </div>
+      <div class="step-body">
+        <div class="code-block" style="margin-top:0">
+          <div class="code-block-header">
+            <span>bash</span>
+            <button class="copy-btn" data-copy="npx flaglint@latest validate ./src --no-direct-launchdarkly">Copy</button>
+          </div>
+          <pre>npx flaglint@latest validate ./src --no-direct-launchdarkly</pre>
+        </div>
+        <p><strong>When to run:</strong> In CI after migration is complete; also locally to confirm the
+          boundary is clean. See the <a href="/docs/cli/validate/">validate CLI reference</a> for all options.</p>
+        <p><strong>What it does:</strong> Fails with a non-zero exit code if any direct LaunchDarkly evaluation
+          calls remain in the scanned files.</p>
+        <ul>
+          <li>Does <em>not</em> pass if unapproved direct calls remain</li>
+        </ul>
+        <p><strong>Exit code:</strong> 0 if no direct LaunchDarkly calls are found; 1 if any are found.</p>
+        <div class="callout" style="margin-top:14px;margin-bottom:0">
+          Enable strict enforcement only after all manual-review call sites have been resolved — either
+          rewritten, wrapped, or explicitly reviewed and documented. If any intentional LaunchDarkly calls
+          remain (for example, in a wrapper still under active review), strict validation will fail until
+          they are addressed.
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <h2 id="case-study">Enterprise checkout service case study</h2>
+    <p>
+      This case study uses the <a href="https://github.com/flaglint/flaglint/tree/main/examples/enterprise-checkout-service" target="_blank" rel="noopener noreferrer">FlagLint enterprise-checkout-service demo fixture</a>,
+      a realistic checkout service with intentionally mixed patterns — static evaluations, dynamic keys,
+      detail calls, and a shared wrapper function.
+    </p>
+
+    <div class="fact-card">
+      <div class="fact-card-header">
+        enterprise-checkout-service
+        <span class="verified-badge">Verified · FlagLint v0.7.0</span>
+      </div>
+      <div class="fact-grid">
+        <div class="fact-cell">
+          <span class="fact-key">Source files scanned</span>
+          <span class="fact-val">5</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Direct LaunchDarkly calls</span>
+          <span class="fact-val">20</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Unique flags</span>
+          <span class="fact-val">13</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">High risk</span>
+          <span class="fact-val" style="color:#f85149">3</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Medium risk</span>
+          <span class="fact-val" style="color:#f0a500">10</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Safely automatable</span>
+          <span class="fact-val accent">10</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Manual review required</span>
+          <span class="fact-val">10</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Reviewable diffs</span>
+          <span class="fact-val">10</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Skipped calls</span>
+          <span class="fact-val">10</span>
+        </div>
+        <div class="fact-cell">
+          <span class="fact-key">Files changed by migrate</span>
+          <span class="fact-val">3</span>
+        </div>
+      </div>
+    </div>
+
+    <p>
+      The three changed files are <code>checkout.ts</code>, <code>pricing.ts</code>, and <code>product.ts</code>
+      — the files that contained only static-key evaluations. The remaining two files
+      (<code>analytics.ts</code> and <code>flags-wrapper.ts</code>) were left unchanged because they contain
+      dynamic keys, detail calls, or bulk evaluation patterns that require manual review.
+    </p>
+
+    <p>Actual audit output from <code>flaglint audit</code>:</p>
+    <div class="code-block">
+      <div class="code-block-header"><span>Terminal output</span></div>
+      <pre>✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+
+Migration readiness: 50/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 50%
+10 safely automatable  ·  10 require manual review</pre>
+    </div>
+
+    <p>
+      A readiness score of 50/100 means roughly half the call sites in this codebase require
+      manual review before migration can be declared complete. In this fixture, that is primarily
+      due to dynamic flag keys inside a shared wrapper function in <code>flags-wrapper.ts</code> that
+      accepts a flag key as a parameter. Resolving those 10 manual-review calls — for example, by
+      extracting keys to constants where possible — would push the score toward 100/100.
+    </p>
+
+    <!-- Section 6 -->
+    <h2 id="examples">Rewrite and refusal examples</h2>
+    <p>
+      The following examples come directly from <code>flaglint migrate --dry-run</code> output on the
+      enterprise-checkout-service fixture.
+    </p>
+
+    <!-- Example 1 -->
+    <div class="example-block">
+      <div class="example-title">
+        Example 1 — Boolean evaluation
+        <span class="example-tag tag-rewritten">Rewritten</span>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header"><span>checkout.ts</span></div>
+        <pre><span class="diff-comment">// Before</span>
+return ldClient.boolVariation("checkout-v2", ctx, false);
+<span class="diff-comment">// After</span>
+return openFeatureClient.getBooleanValue("checkout-v2", false, ctx);</pre>
+      </div>
+      <p>
+        FlagLint confirms that <code>"checkout-v2"</code> is a string literal, that <code>ctx</code>
+        is an evaluation context, and that <code>false</code> is a boolean fallback. The argument order
+        is transposed and the method is renamed atomically.
+      </p>
+    </div>
+
+    <!-- Example 2 -->
+    <div class="example-block">
+      <div class="example-title">
+        Example 2 — String evaluation
+        <span class="example-tag tag-rewritten">Rewritten</span>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header"><span>pricing.ts</span></div>
+        <pre><span class="diff-comment">// Before</span>
+return ldClient.stringVariation("payment-provider", ctx, "stripe");
+<span class="diff-comment">// After</span>
+return openFeatureClient.getStringValue("payment-provider", "stripe", ctx);</pre>
+      </div>
+      <p>
+        The same pattern applies to string evaluations. <code>stringVariation</code> maps to
+        <code>getStringValue</code>; argument positions are transposed; the string literal key is
+        preserved exactly.
+      </p>
+    </div>
+
+    <!-- Example 3 -->
+    <div class="example-block">
+      <div class="example-title">
+        Example 3 — Dynamic flag key
+        <span class="example-tag tag-skipped">Left unchanged</span>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header"><span>flags-wrapper.ts — not rewritten</span></div>
+        <pre>return ldClient.boolVariation(flagKey, ldContext, defaultValue);</pre>
+      </div>
+      <p>FlagLint reports:</p>
+      <div class="code-block">
+        <div class="code-block-header"><span>flaglint output</span></div>
+        <pre>Manual review required: dynamic flag key</pre>
+      </div>
+      <p>
+        <code>flagKey</code> is a function parameter — its value is not known at compile time, so FlagLint
+        cannot verify which OpenFeature method to call or confirm the fallback type. This is a safety
+        feature: rewriting dynamic keys could silently break flag routing if the key string resolves
+        differently at runtime. The correct resolution is to extract the key to a constant where
+        possible, or manually review and rewrite each call site after confirming the key's range of values.
+      </p>
+    </div>
+
+    <!-- Example 4 -->
+    <div class="example-block">
+      <div class="example-title">
+        Example 4 — Detail evaluation
+        <span class="example-tag tag-skipped">Left unchanged</span>
+      </div>
+      <div class="code-block">
+        <div class="code-block-header"><span>analytics.ts — not rewritten</span></div>
+        <pre>return ldClient.boolVariationDetail(flagKey, context, false);</pre>
+      </div>
+      <p>FlagLint reports:</p>
+      <div class="code-block">
+        <div class="code-block-header"><span>flaglint output</span></div>
+        <pre>Manual review required: detail methods skipped — OpenFeature detail APIs exist,
+but LaunchDarkly/OpenFeature detail result parity requires manual review</pre>
+      </div>
+      <p>
+        <code>boolVariationDetail</code> returns an <code>LDEvaluationDetail</code> object with
+        <code>reason</code> and <code>variationIndex</code> fields alongside the boolean value.
+        OpenFeature has equivalent detail APIs, but the result shape and field semantics differ between
+        the two SDKs. FlagLint does not rewrite detail calls because doing so could produce code that
+        compiles correctly but reads the wrong fields at runtime. Manual review ensures field-by-field
+        parity before you proceed.
+      </p>
+    </div>
+
+    <!-- Section 7 -->
+    <h2 id="provider-boundary">Provider boundary</h2>
+    <p>
+      Rewriting application call sites is necessary but not sufficient. Before the rewritten code
+      will work in production, the OpenFeature client must be initialized with a LaunchDarkly provider
+      that routes evaluation calls to the LaunchDarkly service. That is a separate manual setup step —
+      see the <a href="/docs/integrations/openfeature-provider/">OpenFeature Provider Setup guide</a>
+      for instructions.
+    </p>
+
+    <ul class="boundary-list">
+      <li class="boundary-item">
+        <div class="boundary-item-icon auto">FL</div>
+        <div>
+          <div class="boundary-item-label">Source-code migration</div>
+          <div class="boundary-item-sub">FlagLint handles: rewrites call sites, transposes arguments, renames methods</div>
+        </div>
+      </li>
+      <li class="boundary-item">
+        <div class="boundary-item-icon manual">M</div>
+        <div>
+          <div class="boundary-item-label">OpenFeature client initialization</div>
+          <div class="boundary-item-sub">Manual setup: initialize OpenFeature with your chosen provider before evaluations</div>
+        </div>
+      </li>
+      <li class="boundary-item">
+        <div class="boundary-item-icon manual">M</div>
+        <div>
+          <div class="boundary-item-label">LaunchDarkly provider configuration</div>
+          <div class="boundary-item-sub">Manual setup: register the LaunchDarkly OpenFeature provider with your SDK key</div>
+        </div>
+      </li>
+      <li class="boundary-item">
+        <div class="boundary-item-icon manual">M</div>
+        <div>
+          <div class="boundary-item-label">Application rollout and testing</div>
+          <div class="boundary-item-sub">Manual: verify flag behavior is unchanged in staging before promoting to production</div>
+        </div>
+      </li>
+      <li class="boundary-item">
+        <div class="boundary-item-icon auto">FL</div>
+        <div>
+          <div class="boundary-item-label">CI enforcement</div>
+          <div class="boundary-item-sub">FlagLint handles: <code>flaglint validate --no-direct-launchdarkly</code> gates the boundary in CI</div>
+        </div>
+      </li>
+    </ul>
+
+    <!-- Section 8 -->
+    <h2 id="preventing-regression">Preventing regression in CI</h2>
+    <p>
+      Once the migration is complete, add a validation step to CI to ensure no new direct LaunchDarkly
+      calls are introduced as the codebase evolves.
+    </p>
+
+    <div class="code-block">
+      <div class="code-block-header">
+        <span>bash</span>
+        <button class="copy-btn" data-copy="npx flaglint@latest validate ./src --no-direct-launchdarkly">Copy</button>
+      </div>
+      <pre>npx flaglint@latest validate ./src --no-direct-launchdarkly</pre>
+    </div>
+
+    <p>Actual output from after-complete validation on the enterprise-checkout-service fixture:</p>
+    <div class="code-block">
+      <div class="code-block-header"><span>Terminal output — exit code: 0</span></div>
+      <pre>✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
+  Scanned 5 file(s).</pre>
+    </div>
+
+    <p>GitHub Actions snippet:</p>
+    <div class="code-block">
+      <div class="code-block-header"><span>.github/workflows/ci.yml</span></div>
+      <pre>- name: Enforce OpenFeature boundary
+  run: npx flaglint@latest validate ./src --no-direct-launchdarkly</pre>
+    </div>
+
+    <div class="callout warn">
+      <strong>Enable strict enforcement only after all direct LaunchDarkly calls are resolved.</strong>
+      If any manual-review call sites remain — dynamic keys, detail calls, bulk evaluation, or wrapper
+      functions still under review — validation will fail until they are addressed. Resolve, wrap, or
+      explicitly document approved exceptions before enabling this CI gate.
+    </div>
+
+    <!-- Section 9 -->
+    <h2 id="get-started">Get started</h2>
+    <p>
+      Run the audit command to see where you stand. FlagLint runs entirely locally — your source code
+      does not leave your machine.
+    </p>
+
+    <div class="cta-primary">
+      <div class="code-block" style="margin:0">
+        <div class="code-block-header">
+          <span>Start here — run this in your project root</span>
+          <button class="copy-btn" id="main-copy-btn" data-copy="npx flaglint@latest audit ./src">Copy</button>
+        </div>
+        <pre>npx flaglint@latest audit ./src</pre>
+      </div>
+      <p style="margin-top:14px;margin-bottom:0;font-size:14px;color:var(--muted)">
+        FlagLint runs locally. Your source code does not leave your machine.
+      </p>
+    </div>
+
+    <div class="cta-secondary">
+      <h3>10 Repository Audit Program</h3>
+      <p>
+        Using LaunchDarkly in a Node.js codebase? Join the 10 Repository Audit Program.
+        Run FlagLint locally and share only anonymized totals — flag counts, risk breakdown,
+        and readiness score. No source code, no file paths, no flag keys leave your machine.
+      </p>
+      <a href="mailto:krishansharma0327@gmail.com?subject=10%20Repository%20Audit%20Program"
+         style="display:inline-block;background:var(--accent);color:#000;font-weight:700;font-size:14px;padding:10px 20px;border-radius:6px;text-decoration:none;">
+        Express interest →
+      </a>
+      <p class="cta-privacy-note">
+        (This is an interest-collection link. No data is submitted automatically.)
+      </p>
+    </div>
+
+    <div class="article-links">
+      <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+      <span class="sep">|</span>
+      <a href="https://npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm package</a>
+      <span class="sep">|</span>
+      <a href="/docs/">Documentation</a>
+      <span class="sep">|</span>
+      <a href="/docs/concepts/migration-readiness/">Migration readiness explained</a>
+      <span class="sep">|</span>
+      <a href="/docs/concepts/safety-model/">Safety model</a>
+    </div>
+  </article>
+</div>
+
+<footer>
+  <span class="footer-copy">© 2026 FlagLint — MIT License</span>
+  <div class="footer-links">
+    <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="https://www.npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
+    <a href="/trust">Security &amp; Trust</a>
+    <a href="/privacy">Privacy</a>
+    <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">Contact</a>
+  </div>
+</footer>
+
+<script>
+(function() {
+  var STORAGE_KEY = 'flaglint-theme';
+
+  function getSystemTheme() {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+
+  function applyTheme(preference) {
+    var resolved = preference === 'auto' ? getSystemTheme() : preference;
+    document.documentElement.setAttribute('data-theme', resolved);
+    localStorage.setItem(STORAGE_KEY, preference);
+    document.querySelectorAll('.theme-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.dataset.themeValue === preference);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var saved = localStorage.getItem(STORAGE_KEY) || 'dark';
+    applyTheme(saved);
+
+    document.querySelectorAll('.theme-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() { applyTheme(btn.dataset.themeValue); });
+    });
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+      if (localStorage.getItem(STORAGE_KEY) === 'auto') applyTheme('auto');
+    });
+
+    // Copy buttons
+    document.querySelectorAll('.copy-btn[data-copy]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var text = btn.getAttribute('data-copy');
+        navigator.clipboard.writeText(text).then(function() {
+          var orig = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.textContent = orig;
+            btn.classList.remove('copied');
+          }, 1800);
+        }).catch(function() {
+          // Clipboard API not available — command is visible as text
+        });
+      });
+    });
+
+    // TOC active state on scroll
+    var headings = document.querySelectorAll('h2[id]');
+    var tocLinks = document.querySelectorAll('.toc-list a');
+    if (headings.length && tocLinks.length) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            tocLinks.forEach(function(link) {
+              var active = link.getAttribute('href') === '#' + entry.target.id;
+              link.classList.toggle('active', active);
+            });
+          }
+        });
+      }, { rootMargin: '-80px 0px -60% 0px' });
+      headings.forEach(function(h) { observer.observe(h); });
+    }
+  });
+})();
+</script>
+</body>
+</html>
