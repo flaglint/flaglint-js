@@ -726,23 +726,24 @@ openFeatureClient.getBooleanValue("checkout-v2", false, context);</pre>
     </div>
 
     <p>
-      A naive search-and-replace that transposes the method name without also transposing the arguments will:
+      A mechanical migration can still produce incorrect code, especially in:
     </p>
     <ul>
-      <li><strong>Compile without errors.</strong> TypeScript accepts both orderings because <code>context</code>
-        satisfies the <code>EvaluationContext</code> type in the third position and <code>false</code>
-        satisfies the fallback type in the second.</li>
-      <li><strong>Pass TypeScript type checking.</strong> No type error is raised. The bug is invisible at
-        compile time.</li>
-      <li><strong>Change runtime behavior.</strong> <code>false</code> becomes the context object. <code>context</code>
-        becomes the fallback value. The flag evaluates against incorrect targeting data in production.</li>
+      <li><strong>JavaScript</strong> — no type enforcement at all</li>
+      <li><strong>Loosely typed or <code>any</code>-typed TypeScript</strong> — the compiler cannot catch the mismatch</li>
+      <li><strong>Wrapper APIs or codemods</strong> — tools that transpose the method name without also transposing the arguments</li>
     </ul>
+    <p>
+      In strictly typed, direct SDK usage, TypeScript <em>may</em> catch the incorrect ordering — but teams
+      should not rely on type checking as their migration strategy. Type errors depend on how the client
+      and context types are declared; they are not guaranteed.
+    </p>
 
     <div class="callout warn">
-      <strong>This is a correctness hazard, not a compile-time error.</strong> Your application will start
-      and your tests may pass — but flags will evaluate against wrong context data until someone notices
-      unexpected behavior in production. FlagLint rewrites both the method name and the argument order
-      together, atomically, only when it can prove the transformation is safe.
+      <strong>This is a correctness hazard, not necessarily a compile-time error.</strong> Your application
+      may start and your tests may pass — but flags can evaluate against wrong context data until someone
+      notices unexpected behavior in production. FlagLint rewrites both the method name and the argument
+      order together, atomically, only when it can prove the transformation is safe.
     </div>
 
     <!-- Section 3 -->
@@ -800,7 +801,7 @@ openFeatureClient.getBooleanValue("checkout-v2", false, context);</pre>
         <tr>
           <td>Internal wrapper function</td>
           <td><span class="badge-config">Configuration or review required</span></td>
-          <td>Client identity may be ambiguous; wrapper must be registered in <code>.flaglintrc</code></td>
+          <td>Internal wrappers require manual review or explicit configuration. FlagLint does not assume that arbitrary wrapper methods are semantically equivalent to direct SDK evaluations.</td>
         </tr>
       </tbody>
     </table>
@@ -1166,9 +1167,24 @@ but LaunchDarkly/OpenFeature detail result parity requires manual review</pre>
       <pre>npx flaglint@latest validate ./src --no-direct-launchdarkly</pre>
     </div>
 
-    <p>Actual output from after-complete validation on the enterprise-checkout-service fixture:</p>
+    <p>
+      <strong>After the 10 safe rewrites only</strong> — 10 manual-review calls still remain in
+      <code>analytics.ts</code> and <code>flags-wrapper.ts</code>. Strict validation fails at this
+      intermediate state:
+    </p>
     <div class="code-block">
-      <div class="code-block-header"><span>Terminal output — exit code: 0</span></div>
+      <div class="code-block-header"><span>Intermediate state — exit code: 1</span></div>
+      <pre>10 direct LaunchDarkly calls remain. Resolve manual-review findings before enforcing this gate.</pre>
+    </div>
+
+    <p>
+      Once all 10 manual-review calls have been separately resolved or removed, validation passes.
+      The output below is from the enterprise-checkout-service
+      <code>after-complete</code> fixture — a completed-state demonstration where those calls have
+      already been resolved:
+    </p>
+    <div class="code-block">
+      <div class="code-block-header"><span>Completed-state demonstration — exit code: 0</span></div>
       <pre>✓ validate --no-direct-launchdarkly: no direct LaunchDarkly evaluation calls found.
   Scanned 5 file(s).</pre>
     </div>
