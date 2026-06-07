@@ -12,8 +12,10 @@ import {
   formatAuditJson,
   formatAuditMarkdown,
   formatAuditHtml,
+  type AuditRenderOptions,
 } from "../auditor/reporter.js";
 import { renderReadinessBar } from "../readiness/readiness-bar.js";
+import { computeEstimate } from "../estimate/estimate.js";
 
 const VALID_AUDIT_FORMATS = ["json", "markdown", "html"] as const;
 type AuditFormat = (typeof VALID_AUDIT_FORMATS)[number];
@@ -27,18 +29,29 @@ export function registerAuditCommand(program: Command): void {
     .option("-o, --output <file>", "write report to file")
     .option("-c, --config <path>", "path to .flaglintrc config file")
     .option("--exclude-tests", "exclude test files (*.test.*, *.spec.*, __tests__/, tests/)")
+    .option("--cost-estimate", "include a migration effort estimate in the report. The default assumptions are configurable planning heuristics, not observed industry benchmarks.")
+    .option("--hourly-rate <rate>", "hourly rate for cost projection (requires --cost-estimate)")
     .addHelpText(
       "after",
       `
 Examples:
   $ flaglint audit                    generate flag debt audit report
   $ flaglint audit --format html     shareable HTML report
-  $ flaglint audit --output audit.md save to file`
+  $ flaglint audit --output audit.md save to file
+  $ flaglint audit --cost-estimate   include migration effort estimate
+  $ flaglint audit --cost-estimate --hourly-rate 125   include cost projection`
     )
     .action(
       async (
         dir: string,
-        options: { format: string; output?: string; config?: string; excludeTests?: boolean }
+        options: {
+          format: string;
+          output?: string;
+          config?: string;
+          excludeTests?: boolean;
+          costEstimate?: boolean;
+          hourlyRate?: string;
+        }
       ) => {
         if (!(VALID_AUDIT_FORMATS as readonly string[]).includes(options.format)) {
           process.stderr.write(
@@ -47,6 +60,27 @@ Examples:
             )
           );
           process.exit(2);
+        }
+
+        // Validate --hourly-rate before doing any work
+        let hourlyRate: number | undefined;
+        if (options.hourlyRate !== undefined) {
+          if (!options.costEstimate) {
+            process.stderr.write(
+              chalk.yellow("warn: --hourly-rate has no effect without --cost-estimate\n")
+            );
+          } else {
+            const parsed = Number(options.hourlyRate);
+            if (!Number.isFinite(parsed) || parsed <= 0) {
+              process.stderr.write(
+                chalk.red(
+                  `Error: --hourly-rate must be a positive number, got: ${options.hourlyRate}\n`
+                )
+              );
+              process.exit(2);
+            }
+            hourlyRate = parsed;
+          }
         }
 
         try {
@@ -127,6 +161,14 @@ Examples:
               `No LaunchDarkly SDK usage detected in ${scanResult.scannedFiles} files.\n`
             )
           );
+          if (format === "json" && options.costEstimate) {
+            // Produce a well-formed JSON report so callers get { estimate: null } consistently.
+            const emptyReport = buildAuditReport(scanResult, []);
+            process.stdout.write(formatAuditJson(emptyReport, { estimate: null }) + "\n");
+            process.stderr.write(chalk.dim("Migration estimate: N/A\n"));
+          } else if (options.costEstimate) {
+            process.stderr.write(chalk.dim("Migration estimate: N/A\n"));
+          }
           process.exit(0);
         }
 
@@ -135,13 +177,17 @@ Examples:
           scanResult.migrationInventory ?? []
         );
 
+        const renderOptions: AuditRenderOptions | undefined = options.costEstimate
+          ? { estimate: computeEstimate(auditReport.readiness, hourlyRate !== undefined ? { hourlyRate } : undefined) }
+          : undefined;
+
         let output: string;
         if (format === "json") {
-          output = formatAuditJson(auditReport);
+          output = formatAuditJson(auditReport, renderOptions);
         } else if (format === "html") {
-          output = formatAuditHtml(auditReport);
+          output = formatAuditHtml(auditReport, renderOptions);
         } else {
-          output = formatAuditMarkdown(auditReport);
+          output = formatAuditMarkdown(auditReport, renderOptions);
         }
 
         if (options.output) {
@@ -173,6 +219,9 @@ Examples:
         process.stderr.write("\n");
         if (readiness.grade === "not-applicable") {
           process.stderr.write(chalk.dim("Migration readiness: N/A — no direct LaunchDarkly calls detected.\n"));
+          if (options.costEstimate) {
+            process.stderr.write(chalk.dim("Migration estimate: N/A\n"));
+          }
         } else {
           const score = readiness.score!;
           const scoreColor = score >= 80 ? chalk.green : score >= 50 ? chalk.yellow : chalk.red;
@@ -183,6 +232,21 @@ Examples:
               `${readiness.automatableCalls} safely automatable  ·  ${readiness.manualReviewCalls} require manual review\n`
             )
           );
+
+          if (options.costEstimate && renderOptions?.estimate) {
+            const est = renderOptions.estimate;
+            process.stderr.write("\n");
+            process.stderr.write(
+              chalk.cyan(`Estimated migration effort: ${est.totalHoursLow}h – ${est.totalHoursHigh}h\n`)
+            );
+            if (est.costLow !== undefined && est.costHigh !== undefined) {
+              const fmtCost = (n: number) => "$" + n.toLocaleString("en-US");
+              const costRange = est.costLow === est.costHigh
+                ? fmtCost(est.costLow)
+                : `${fmtCost(est.costLow)} – ${fmtCost(est.costHigh)}`;
+              process.stderr.write(chalk.cyan(`Estimated cost: ${costRange}\n`));
+            }
+          }
         }
 
         process.exit(0);
