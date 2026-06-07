@@ -2,16 +2,16 @@
 
 Enterprise Checkout Service — Flag Inventory
 
-**Scanned:** 5 files in 68ms
-**Flag usages:** 20 across 11 unique flags
+**Scanned:** 5 files in 64ms  
+**Flag usages:** 20 across 11 unique flags  
 **Stale candidates:** 0 flags flagged for review
 
 ## Flag Inventory
 | Flag Key | Usages | Files | Call Types | Status |
 |----------|--------|-------|------------|--------|
-| dynamic | 8 | 3 | variationDetail, boolVariation, stringVariation, numberVariation, jsonVariation, variation | ✓ Active |
+| (dynamic key) | 8 | 3 | variationDetail, boolVariation, stringVariation, numberVariation, jsonVariation, variation | ✓ Active |
 | checkout-experiment | 1 | 1 | boolVariationDetail | ✓ Active |
-| * | 1 | 1 | allFlagsState | ✓ Active |
+| (dynamic key) | 1 | 1 | allFlagsState | ✓ Active |
 | checkout-v2 | 1 | 1 | boolVariation | ✓ Active |
 | payment-provider | 1 | 1 | stringVariation | ✓ Active |
 | one-click-checkout | 1 | 1 | boolVariation | ✓ Active |
@@ -64,3 +64,4 @@ Flags with non-static keys that could not be automatically identified:
 - `dynamic` at flags-wrapper.ts:75 — key determined at runtime
 - `dynamic` at flags-wrapper.ts:86 — key determined at runtime
 - `dynamic` at product.ts:52 — key determined at runtime
+

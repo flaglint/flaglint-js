@@ -13,6 +13,7 @@ import {
   formatAuditMarkdown,
   formatAuditHtml,
 } from "../auditor/reporter.js";
+import { renderReadinessBar } from "../readiness/readiness-bar.js";
 
 const VALID_AUDIT_FORMATS = ["json", "markdown", "html"] as const;
 type AuditFormat = (typeof VALID_AUDIT_FORMATS)[number];
@@ -167,6 +168,22 @@ Examples:
             `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk${lowRiskSegment}\n`
           )
         );
+
+        const { readiness } = auditReport;
+        process.stderr.write("\n");
+        if (readiness.grade === "not-applicable") {
+          process.stderr.write(chalk.dim("Migration readiness: N/A — no direct LaunchDarkly calls detected.\n"));
+        } else {
+          const score = readiness.score!;
+          const scoreColor = score >= 80 ? chalk.green : score >= 50 ? chalk.yellow : chalk.red;
+          process.stderr.write(scoreColor(`Migration readiness: ${score}/100  ·  ${readiness.grade}\n`));
+          process.stderr.write(scoreColor(renderReadinessBar(score) + "\n"));
+          process.stderr.write(
+            chalk.dim(
+              `${readiness.automatableCalls} safely automatable  ·  ${readiness.manualReviewCalls} require manual review\n`
+            )
+          );
+        }
 
         process.exit(0);
       }

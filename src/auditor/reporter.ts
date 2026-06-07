@@ -1,4 +1,5 @@
 import type { AuditReport, FlagRiskLevel } from "./index.js";
+import { renderReadinessBar } from "../readiness/readiness-bar.js";
 
 declare const __PKG_VERSION__: string;
 
@@ -15,11 +16,12 @@ function displayFlagKey(flag: { flagKey: string; isDynamic: boolean }): string {
 }
 
 export function formatAuditJson(report: AuditReport): string {
-  return JSON.stringify(report, null, 2);
+  const { summary, flags, readiness } = report;
+  return JSON.stringify({ summary, flags, readiness }, null, 2);
 }
 
 export function formatAuditMarkdown(report: AuditReport): string {
-  const { summary, flags } = report;
+  const { summary, flags, readiness } = report;
   const lines: string[] = [];
 
   lines.push("# FlagLint Audit Report");
@@ -55,6 +57,21 @@ export function formatAuditMarkdown(report: AuditReport): string {
   lines.push(
     `| ${summary.dynamicKeys} | ${summary.detailEvaluations} | ${summary.bulkCalls} | ${summary.staleSignals} | ${summary.safelyAutomatable} | ${summary.manualReview} |`
   );
+  lines.push("");
+
+  lines.push("## Migration Readiness");
+  lines.push("");
+  if (readiness.grade === "not-applicable") {
+    lines.push("Migration readiness: **N/A** — no direct LaunchDarkly calls detected.");
+  } else {
+    lines.push(`Migration readiness: **${readiness.score}/100** · ${readiness.grade}`);
+    lines.push("");
+    lines.push(renderReadinessBar(readiness.score!));
+    lines.push("");
+    lines.push(
+      `${readiness.automatableCalls} safely automatable  ·  ${readiness.manualReviewCalls} require manual review`
+    );
+  }
   lines.push("");
 
   lines.push("## Flag Debt Inventory");
@@ -94,7 +111,7 @@ export function formatAuditMarkdown(report: AuditReport): string {
 }
 
 export function formatAuditHtml(report: AuditReport): string {
-  const { summary, flags } = report;
+  const { summary, flags, readiness } = report;
   const version =
     typeof __PKG_VERSION__ !== "undefined" ? __PKG_VERSION__ : "0.1.0";
   const date = new Date(summary.scannedAt).toLocaleString();
@@ -122,6 +139,16 @@ export function formatAuditHtml(report: AuditReport): string {
     })
     .join("\n        ");
 
+  const readinessScore = readiness.score ?? 0;
+  const readinessColor = readiness.grade === "not-applicable" ? "#6c757d" : readinessScore >= 80 ? "#16a34a" : readinessScore >= 50 ? "#d97706" : "#dc2626";
+  const readinessFillPct = readinessScore;
+  const breakdownRows = readiness.manualReviewBreakdown
+    .map(
+      (d) =>
+        `<tr><td>${esc(d.label)}</td><td>${d.count}</td><td style="color:var(--muted);font-size:.8em">${esc(d.explanation)}</td></tr>`
+    )
+    .join("\n        ");
+
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -146,6 +173,14 @@ export function formatAuditHtml(report: AuditReport): string {
     .card-num.purple{color:#7c3aed}
     .card-num.orange{color:#ea580c}
     .card-label{color:var(--muted);font-size:.75rem;margin-top:.375rem;text-transform:uppercase;letter-spacing:.05em}
+    .readiness-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem}
+    .readiness-score-line{display:flex;align-items:baseline;gap:.75rem;margin-bottom:.75rem}
+    .readiness-score-num{font-size:2.5rem;font-weight:700;line-height:1}
+    .readiness-grade{font-size:.875rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+    .readiness-bar-track{height:12px;background:var(--border);border-radius:6px;overflow:hidden;margin-bottom:.75rem}
+    .readiness-bar-fill{height:100%;border-radius:6px;transition:width .3s}
+    .readiness-stats{display:flex;gap:2rem;font-size:.875rem;color:var(--muted);flex-wrap:wrap}
+    .readiness-norm{margin-top:.5rem;font-size:.8em;color:var(--muted)}
     table{width:100%;border-collapse:collapse;font-size:.8125rem}
     th{text-align:left;padding:.625rem .75rem;background:var(--surface);border-bottom:2px solid var(--border);font-weight:600;white-space:nowrap}
     td{padding:.625rem .75rem;border-bottom:1px solid var(--border);vertical-align:top}
@@ -178,6 +213,32 @@ export function formatAuditHtml(report: AuditReport): string {
     ${summary.lowRisk > 0 ? `<div class="card"><div class="card-num green">${summary.lowRisk}</div><div class="card-label">Low Risk</div></div>` : ""}
     <div class="card"><div class="card-num purple">${summary.safelyAutomatable}</div><div class="card-label">Safely Automatable</div></div>
     <div class="card"><div class="card-num orange">${summary.manualReview}</div><div class="card-label">Manual Review</div></div>
+  </div>
+
+  <h2>Migration Readiness</h2>
+  <div class="readiness-block">
+    ${readiness.grade === "not-applicable" ? `
+    <div class="readiness-stats">N/A — no direct LaunchDarkly calls detected.</div>` : `
+    <div class="readiness-score-line">
+      <span class="readiness-score-num" style="color:${readinessColor}">${readinessScore}</span>
+      <span style="color:var(--muted);font-size:1.25rem">/100</span>
+      <span class="readiness-grade" style="color:${readinessColor}">${readiness.grade}</span>
+    </div>
+    <div class="readiness-bar-track">
+      <div class="readiness-bar-fill" style="width:${readinessFillPct}%;background:${readinessColor}"></div>
+    </div>
+    <div class="readiness-stats">
+      <span>${readiness.automatableCalls} safely automatable</span>
+      <span>${readiness.manualReviewCalls} require manual review</span>
+      <span>${readiness.totalCalls} total calls</span>
+    </div>
+    ${readiness.manualReviewBreakdown.length > 0 ? `
+    <table style="margin-top:1rem">
+      <thead><tr><th>Issue</th><th>Occurrences</th><th>Explanation</th></tr></thead>
+      <tbody>
+        ${breakdownRows}
+      </tbody>
+    </table>` : ""}`}
   </div>
 
   <h2>Flag Debt Inventory</h2>
