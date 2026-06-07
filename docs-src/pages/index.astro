@@ -137,11 +137,16 @@
       gap: 20px;
     }
     .logo {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 800;
-      letter-spacing: 0;
+      letter-spacing: -0.03em;
       color: var(--text);
+      text-decoration: none;
     }
+    .logo-flag { color: #f5f7f6; }
+    .logo-lint { color: #16e38b; }
+    [data-theme="light"] .logo-flag { color: #17201c; }
+    [data-theme="light"] .logo-lint { color: #08734f; }
     .nav-links {
       display: flex;
       align-items: center;
@@ -918,7 +923,7 @@
   <!-- ── Nav ─────────────────────────────────────────────────────────── -->
   <nav>
     <div class="nav-inner">
-      <a class="logo" href="/" aria-label="FlagLint">FlagLint</a>
+      <a class="logo" href="/" aria-label="FlagLint"><span class="logo-flag">Flag</span><span class="logo-lint">Lint</span></a>
       <div class="nav-links" aria-label="Primary navigation">
         <a href="/docs/">Docs</a>
         <a href="/blog/">Blog</a>

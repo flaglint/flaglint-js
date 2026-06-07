@@ -1,17 +1,21 @@
 ---
 title: Overview
 description: Standardize LaunchDarkly Node.js server SDK evaluation calls on OpenFeature while keeping LaunchDarkly as the provider.
-lastUpdated: 2026-05-28
+lastUpdated: 2026-06-06
 tableOfContents: false
 ---
 
-FlagLint helps platform teams inventory direct LaunchDarkly Node.js server SDK usage, plan a guarded OpenFeature migration, and enforce the new boundary in CI.
-
-![FlagLint demo](/flaglint-demo.gif)
+Most teams do not know how many direct LaunchDarkly SDK calls are in their codebase, which ones are safe to migrate, or which ones will silently break if migrated naively. FlagLint answers all three questions before you touch a line of code.
 
 ```bash
 npx flaglint audit ./src
 ```
+
+```text
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+```
+
+No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
 
 <div class="button-grid">
   <a href="/docs/quickstart">Quickstart</a>

@@ -4,13 +4,17 @@ date: 2026-05-29
 description: "The argument-order difference between LaunchDarkly and OpenFeature silently breaks flag evaluations in production. Here's what it looks like, why grep misses it, and how AST analysis catches it."
 authors:
   - name: Krishan Sharma
-    title: Author of FlagLint
+    title: Founder and maintainer of FlagLint
     url: https://www.linkedin.com/in/krishansha/
 tags: ["launchdarkly", "openfeature", "migration", "nodejs", "devops"]
 ---
 
-Most LaunchDarkly → OpenFeature migrations fail the same way.
-And nobody catches it until it's in production.
+LaunchDarkly and OpenFeature both evaluate flags with three arguments, but the
+fallback and context positions are reversed. A naive codemod can produce
+valid-looking code that silently changes runtime behavior.
+
+This article shows the argument-order trap and why FlagLint uses AST analysis
+before rewriting any call site.
 
 <!-- excerpt -->
 

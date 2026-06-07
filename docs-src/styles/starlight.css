@@ -1,21 +1,222 @@
 :root {
-  --sl-color-accent-low: #06351f;
-  --sl-color-accent: #00d97e;
-  --sl-color-accent-high: #b8f7d8;
+  --fl-brand: #08734f;
+  --fl-brand-hover: #065e41;
+  --fl-brand-soft: #eaf6f1;
+  --fl-bg: #ffffff;
+  --fl-surface: #f8faf9;
+  --fl-surface-raised: #ffffff;
+  --fl-text-primary: #17201c;
+  --fl-text-secondary: #46524c;
+  --fl-text-muted: #7a847f;
+  --fl-border: #dce4e0;
+  --fl-border-subtle: #e9eeeb;
+  --fl-code-bg: #f4f7f5;
+  --fl-focus: #08734f;
+
+  --sl-color-accent-low: var(--fl-brand-soft);
+  --sl-color-accent: var(--fl-brand);
+  --sl-color-accent-high: #004d2e;
+  --sl-color-text-accent: var(--fl-brand);
+  --sl-color-bg: var(--fl-bg);
+  --sl-color-bg-nav: rgba(255, 255, 255, 0.92);
+  --sl-color-bg-sidebar: var(--fl-surface);
+  --sl-color-bg-inline-code: var(--fl-code-bg);
+  --sl-color-hairline: var(--fl-border-subtle);
+  --sl-color-hairline-light: var(--fl-border-subtle);
+  --sl-color-hairline-shade: var(--fl-border);
+  --sl-color-text: var(--fl-text-secondary);
+
+  --sl-nav-height: 4rem;
+  --sl-sidebar-width: 16.25rem;
+  --sl-content-width: 54rem;
+  --sl-content-gap-y: 1rem;
 }
 
 :root[data-theme="dark"] {
-  --sl-color-bg: #080a09;
-  --sl-color-bg-nav: rgba(8, 10, 9, 0.92);
-  --sl-color-bg-sidebar: #0d1110;
-  --sl-color-hairline: #1e2a25;
-  --sl-color-text: #edf7f1;
-  --sl-color-text-accent: #37e596;
+  --fl-brand: #56d6a0;
+  --fl-brand-hover: #73e4b5;
+  --fl-brand-soft: rgba(86, 214, 160, 0.12);
+  --fl-bg: #0d1310;
+  --fl-surface: #121a16;
+  --fl-surface-raised: #17201b;
+  --fl-text-primary: #eef5f1;
+  --fl-text-secondary: #c2ccc7;
+  --fl-text-muted: #8f9b95;
+  --fl-border: #29352f;
+  --fl-border-subtle: #202b25;
+  --fl-code-bg: #111915;
+  --fl-focus: #73e4b5;
+
+  --sl-color-accent-low: var(--fl-brand-soft);
+  --sl-color-accent: var(--fl-brand);
+  --sl-color-accent-high: #b8f7d8;
+  --sl-color-bg: var(--fl-bg);
+  --sl-color-bg-nav: rgba(13, 19, 16, 0.92);
+  --sl-color-bg-sidebar: var(--fl-surface);
+  --sl-color-bg-inline-code: var(--fl-code-bg);
+  --sl-color-hairline: var(--fl-border-subtle);
+  --sl-color-hairline-light: var(--fl-border-subtle);
+  --sl-color-hairline-shade: var(--fl-border);
+  --sl-color-text: var(--fl-text-secondary);
+  --sl-color-text-accent: var(--fl-brand);
   --sl-color-text-invert: #04130b;
 }
 
+:root[data-theme="light"] {
+  --sl-color-accent-low: var(--fl-brand-soft);
+  --sl-color-accent: var(--fl-brand);
+  --sl-color-accent-high: #004d2e;
+  --sl-color-text-accent: #006040;
+}
+
+html {
+  background: var(--fl-bg);
+}
+
+body {
+  color: var(--fl-text-secondary);
+}
+
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--fl-focus);
+  outline-offset: 3px;
+}
+
 .site-title {
-  font-weight: 750;
+  font-weight: 800;
+}
+
+.header {
+  border-bottom-color: var(--fl-border-subtle);
+}
+
+site-search button[data-open-modal] {
+  min-height: 2.35rem;
+  max-width: 7.375rem;
+  border: 1px solid var(--fl-border);
+  border-radius: 0.65rem;
+  background: var(--fl-surface-raised);
+  color: var(--fl-text-secondary);
+  overflow: hidden;
+}
+
+site-search button[data-open-modal]:hover {
+  border-color: color-mix(in srgb, var(--fl-brand) 45%, var(--fl-border));
+  color: var(--fl-text-primary);
+}
+
+.social-icons a {
+  color: var(--fl-text-muted);
+}
+
+.social-icons a:hover {
+  color: var(--fl-brand);
+}
+
+starlight-theme-select select {
+  border-color: var(--fl-border);
+  border-radius: 0.6rem;
+  background: var(--fl-surface-raised);
+}
+
+.sidebar-content {
+  padding-top: 1.35rem;
+}
+
+.sidebar-content summary,
+.sidebar-content a {
+  border-radius: 0.45rem;
+}
+
+.sidebar-content .large {
+  font-size: 0.92rem;
+}
+
+.sidebar-content .group-label .large {
+  color: var(--fl-text-primary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sidebar-content a[aria-current="page"] {
+  border-inline-start: 3px solid var(--fl-brand);
+  background: var(--fl-brand-soft);
+  color: var(--fl-text-primary);
+  font-weight: 700;
+}
+
+.sidebar-content a:not([aria-current="page"]):hover {
+  background: color-mix(in srgb, var(--fl-brand) 8%, transparent);
+  color: var(--fl-text-primary);
+}
+
+.right-sidebar-panel {
+  color: var(--fl-text-muted);
+}
+
+.right-sidebar-panel starlight-toc li {
+  margin-block: 0.35rem;
+}
+
+.right-sidebar-panel starlight-toc a {
+  line-height: 1.35;
+  padding-block: 0.18rem;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word;
+}
+
+.content-panel {
+  border-top-color: color-mix(in srgb, var(--fl-border-subtle) 58%, transparent);
+}
+
+.sl-markdown-content {
+  color: var(--fl-text-secondary);
+  line-height: 1.72;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4 {
+  color: var(--fl-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content h2 {
+  margin-top: 2.15rem;
+}
+
+.sl-markdown-content a:not(.path-card) {
+  color: var(--sl-color-text-accent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.18em;
+}
+
+.sl-markdown-content code:not(pre code) {
+  border: 1px solid var(--fl-border-subtle);
+  border-radius: 0.3rem;
+  background: var(--fl-code-bg);
+  color: var(--fl-text-primary);
+  padding: 0.08rem 0.28rem;
+}
+
+.sl-markdown-content pre {
+  overflow-x: auto;
+  border-color: var(--fl-border);
+}
+
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  border-color: var(--fl-border);
 }
 
 .hero img {
@@ -30,7 +231,7 @@
 }
 
 .sl-markdown-content .button-grid a {
-  border: 1px solid var(--sl-color-gray-5);
+  border: 1px solid var(--fl-border);
   border-radius: 0.45rem;
   padding: 0.55rem 0.85rem;
   text-decoration: none;
@@ -59,10 +260,10 @@
 
 .path-card,
 .workflow-step {
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.5rem;
+  border: 1px solid var(--fl-border);
+  border-radius: 0.55rem;
   padding: 1rem;
-  background: color-mix(in srgb, var(--sl-color-bg) 88%, var(--sl-color-accent) 12%);
+  background: color-mix(in srgb, var(--fl-surface-raised) 88%, var(--fl-brand) 12%);
 }
 
 .path-card strong,
@@ -88,46 +289,272 @@
   cursor: pointer;
 }
 
-/* A1: Light mode — #00d97e is 1.87:1 on white (WCAG fail). Override with darker greens. */
-:root[data-theme="light"] {
-  --sl-color-accent-low: #d4f5e6;
-  --sl-color-accent: #007a49;
-  --sl-color-accent-high: #004d2e;
-  --sl-color-text-accent: #006040;
-}
-
-/* A2a: Remove excess gap above block-level images (e.g. the overview GIF).
-   Starlight's default block spacing stacks up to ~400px on overview pages.
-   Paragraphs whose only child is an img get normal 1rem spacing instead. */
+/* Remove excess gap above block-level images, including overview GIFs. */
 .sl-markdown-content p:has(> img:only-child) {
   margin-block-start: 1rem;
 }
 
-/* A2: Prevent code blocks and tables from overflowing on narrow viewports */
-.sl-markdown-content pre {
-  overflow-x: auto;
-}
-
-.sl-markdown-content table {
-  display: block;
-  overflow-x: auto;
-  max-width: 100%;
-}
-
-/* A3: Narrow right TOC column — Starlight default grows to ~490px at wide viewports.
-   Target: 200-220px. Override the `width` formula from TwoColumnContent.astro and
-   give reclaimed space back to the main content area. These rules are unlayered and
-   therefore beat @layer starlight.core without needing !important. */
-:root {
-  --sl-content-width: 52rem;
-}
-
+/* Cap the total layout width and center the three-column shell. */
 @media (min-width: 72rem) {
+  .page {
+    max-width: 1500px;
+    margin-inline: auto;
+  }
+
   .right-sidebar-container {
-    width: 13rem;
+    width: 15rem;
   }
 
   [data-has-sidebar][data-has-toc] .main-pane {
-    width: calc(100% - 13rem);
+    width: calc(100% - 15rem);
   }
+
+  /* Center article content within the available column, not left-pinned. */
+  [data-has-sidebar] .main-pane .content-panel .sl-container {
+    --sl-content-margin-inline: auto;
+  }
+}
+
+/* Blog pages use the Starlight shell, but the index should read as a blog. */
+html:has(.posts) {
+  --sl-content-width: 60rem;
+}
+
+html:has(.posts) .right-sidebar-container {
+  display: none;
+  width: 0;
+}
+
+html:has(.posts) .main-pane {
+  width: 100%;
+}
+
+html:has(.posts) .content-panel {
+  border-top: 0;
+}
+
+/* Belt-and-suspenders: hide TOC and center content on /blog/ by canonical URL. */
+html:has(link[rel="canonical"][href$="/blog/"]) .right-sidebar-container {
+  display: none !important;
+  width: 0 !important;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .main-pane {
+  width: 100%;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .content-panel .sl-container {
+  --sl-content-margin-inline: auto;
+  max-width: 60rem;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type {
+  display: block !important;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type .sl-container {
+  padding-top: 3.25rem;
+  padding-bottom: 1rem;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type h1 {
+  color: var(--fl-text-primary);
+  font-size: clamp(2.35rem, 4vw, 3.25rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type .sl-container::after {
+  content: "Engineering notes on auditing LaunchDarkly usage, migrating safely to OpenFeature, and enforcing provider-neutral feature-flag boundaries.";
+  display: block;
+  max-width: 44rem;
+  margin-top: 1rem;
+  color: var(--fl-text-secondary);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+html:has(link[rel="canonical"][href*="/blog/"]:not([href$="/blog/"])) .content-panel:first-of-type h1 {
+  max-width: 56.25rem;
+  font-size: clamp(2.25rem, 3.2vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+}
+
+html:has(.posts) .posts {
+  gap: 2rem;
+}
+
+html:has(.posts) article.preview {
+  gap: 1rem;
+  padding: 1.65rem;
+  border: 1px solid var(--fl-border-subtle);
+  border-radius: 0.85rem;
+  background: var(--fl-surface-raised);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="dark"]:has(.posts) article.preview {
+  box-shadow: none;
+}
+
+html:has(.posts) article.preview h2 {
+  margin-bottom: 0.85rem;
+  font-size: clamp(1.65rem, 2.2vw, 2.2rem);
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+html:has(.posts) article.preview h2 a {
+  color: var(--fl-text-primary);
+}
+
+html:has(.posts) article.preview h2 a:hover {
+  color: var(--fl-brand);
+}
+
+html:has(.posts) article.preview .metadata {
+  gap: 0.65rem;
+  color: var(--fl-text-muted);
+}
+
+html:has(.posts) article.preview .dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  color: var(--fl-text-muted);
+  font-size: 0.86rem;
+  font-weight: 650;
+}
+
+html:has(.posts) article.preview .metadata-alt::before {
+  content: "- ";
+}
+
+html:has(.posts) article.preview .author {
+  color: var(--fl-text-secondary);
+  text-decoration: none;
+}
+
+html:has(.posts) article.preview .author:hover .name {
+  color: var(--fl-brand);
+}
+
+html:has(.posts) article.preview .name {
+  color: var(--fl-text-primary);
+  font-weight: 700;
+}
+
+html:has(.posts) article.preview .title {
+  color: var(--fl-text-muted);
+}
+
+html:has(.posts) article.preview > .sl-markdown-content {
+  color: var(--fl-text-secondary);
+  font-size: 1rem;
+  line-height: 1.68;
+}
+
+html:has(.posts) article.preview footer b {
+  display: none;
+}
+
+html:has(.posts) article.preview footer ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+}
+
+html:has(.posts) article.preview footer li {
+  margin: 0;
+}
+
+html:has(.posts) article.preview footer a {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--fl-brand-soft);
+  color: var(--sl-color-text-accent);
+  font-size: 0.8rem;
+  font-weight: 650;
+  margin: 0;
+  padding: 0.28rem 0.58rem;
+  text-decoration: none;
+}
+
+html:has(.posts) article.preview footer a:hover {
+  border-color: color-mix(in srgb, var(--fl-brand) 45%, transparent);
+}
+
+@media (max-width: 50rem) {
+  :root {
+    --sl-content-width: 100%;
+  }
+
+  .path-grid {
+    grid-template-columns: 1fr;
+  }
+
+  html:has(.posts) article.preview {
+    padding: 1.15rem;
+    border-radius: 0.7rem;
+  }
+
+  html:has(.posts) article.preview h2 {
+    font-size: 1.65rem;
+  }
+}
+
+/* ── Typography ──────────────────────────────────────────────────────────── */
+
+/* Smaller, tighter page titles — Starlight renders h1 outside .sl-markdown-content */
+.sl-container h1,
+.page-title,
+.sl-markdown-content h1 {
+  font-size: clamp(2rem, 3vw, 2.75rem) !important;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+/* Darken body copy slightly for long-form readability. */
+:root {
+  --fl-text-secondary: #3d4a44;
+}
+
+:root[data-theme="dark"] {
+  --fl-text-secondary: #c8d4ce;
+}
+
+/* ── Right-side TOC improvements ─────────────────────────────────────────── */
+
+/* Allow long heading labels to wrap — reinforce with higher specificity. */
+.right-sidebar-panel starlight-toc nav a {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word;
+  line-height: 1.45;
+  padding-block: 0.22rem;
+}
+
+/* Green only for the active heading; muted for all others. */
+.right-sidebar-panel starlight-toc a[aria-current="true"] {
+  color: var(--fl-brand);
+  font-weight: 650;
+}
+
+/* Hide the TOC rail when there is only one entry (nothing to navigate). */
+.right-sidebar-container:has(starlight-toc li:only-child) {
+  display: none;
+}
+
+/* ── Mermaid diagram canvas ──────────────────────────────────────────────── */
+
+.sl-markdown-content pre.mermaid {
+  background: transparent;
+  border: none;
+  padding: 0;
+  max-width: 38rem;
 }
