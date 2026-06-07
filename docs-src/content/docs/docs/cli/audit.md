@@ -1,7 +1,7 @@
 ---
 title: flaglint audit
 description: Generate a local flag debt audit report with risk scoring. No API key required.
-lastUpdated: 2026-06-02
+lastUpdated: 2026-06-07
 ---
 
 `flaglint audit` scans your source code and classifies every detected LaunchDarkly Node.js SDK
@@ -27,6 +27,8 @@ npx flaglint audit ./src
 | `--output <file>` | Write report to a file. |
 | `--config <path>` | Use an explicit config file. |
 | `--exclude-tests` | Exclude test/spec files and test directories. |
+| `--cost-estimate` | Add a directional migration-effort estimate to audit output. |
+| `--hourly-rate <number>` | Add an optional engineering-cost range using a user-supplied hourly rate. Valid only with `--cost-estimate`. |
 
 ## Risk Levels
 
@@ -57,7 +59,40 @@ Generated from `examples/enterprise-checkout-service/src`:
 
 ```text
 ✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+
+Migration readiness: 50/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 50%
+10 safely automatable  ·  10 require manual review
 ```
+
+## Migration Readiness
+
+The migration readiness score is a ratio of safely automatable calls to total detected direct
+LaunchDarkly calls, expressed as a percentage from 0–100. See the
+[Migration Readiness concept page](/docs/concepts/migration-readiness/) for grade thresholds
+and a full breakdown of manual-review categories.
+
+## Cost Estimate (--cost-estimate)
+
+Add `--cost-estimate` to include a directional planning estimate in the audit output:
+
+```bash
+npx flaglint audit ./src --cost-estimate
+```
+
+```text
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+
+Migration readiness: 50/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 50%
+10 safely automatable  ·  10 require manual review
+
+Estimated migration effort: 22.8h – 43.9h
+Estimates are directional. See the report for assumptions.
+```
+
+See the [Cost Estimation reference page](/docs/cli/cost-estimate/) for the full algorithm,
+configurable defaults, and disclaimer.
 
 ## Markdown Report Excerpt
 
@@ -66,13 +101,13 @@ Generated from `examples/enterprise-checkout-service/src`:
 
 | Total Flags | High Risk | Medium Risk | Total Usages |
 |-------------|-----------|-------------|--------------|
-| 13          | 3         | 10          | 19           |
+| 13          | 3         | 10          | 20           |
 
 ## Flag Debt Inventory
 
 | Flag Key              | Risk      | Usages | Reasons                            |
 |-----------------------|-----------|--------|------------------------------------|
-| `<dynamic key>`       | 🔴 High   | 7      | key cannot be resolved statically  |
+| `<dynamic key>`       | 🔴 High   | 8      | key cannot be resolved statically  |
 | `checkout-experiment` | 🔴 High   | 1      | detail evaluation                  |
 | `*`                   | 🔴 High   | 1      | bulk call                          |
 | `checkout-v2`         | 🟡 Medium | 1      | safely automatable                 |
