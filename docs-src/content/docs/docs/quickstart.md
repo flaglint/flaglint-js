@@ -168,6 +168,6 @@ Completed-state demo output:
 
 ---
 
-**Further reading:** [Why migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) · [Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
+**Further reading:** [LaunchDarkly-to-OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) · [Why migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) · [Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
 
 [Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/quickstart.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Why FlagLint](/docs/why-flaglint/)

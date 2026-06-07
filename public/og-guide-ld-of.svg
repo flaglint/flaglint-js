@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#0a0a0a"/>
+
+  <!-- Subtle grid lines -->
+  <g stroke="#1a1a1a" stroke-width="1" opacity="0.6">
+    <line x1="0" y1="105" x2="1200" y2="105"/>
+    <line x1="0" y1="210" x2="1200" y2="210"/>
+    <line x1="0" y1="315" x2="1200" y2="315"/>
+    <line x1="0" y1="420" x2="1200" y2="420"/>
+    <line x1="0" y1="525" x2="1200" y2="525"/>
+    <line x1="200" y1="0" x2="200" y2="630"/>
+    <line x1="400" y1="0" x2="400" y2="630"/>
+    <line x1="600" y1="0" x2="600" y2="630"/>
+    <line x1="800" y1="0" x2="800" y2="630"/>
+    <line x1="1000" y1="0" x2="1000" y2="630"/>
+  </g>
+
+  <!-- Accent glow top-left -->
+  <ellipse cx="200" cy="200" rx="320" ry="220" fill="#00d97e" opacity="0.04"/>
+
+  <!-- FlagLint wordmark -->
+  <text x="64" y="90" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-size="38" font-weight="700" letter-spacing="-0.5">
+    <tspan fill="#f5f7f6">Flag</tspan><tspan fill="#00d97e">Lint</tspan>
+  </text>
+
+  <!-- Divider -->
+  <line x1="64" y1="108" x2="1136" y2="108" stroke="#222222" stroke-width="1"/>
+
+  <!-- Main headline -->
+  <text x="64" y="210" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-size="52" font-weight="700" fill="#f0f0f0" letter-spacing="-1">Migrating LaunchDarkly</text>
+  <text x="64" y="272" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-size="52" font-weight="700" fill="#f0f0f0" letter-spacing="-1">Node.js to OpenFeature</text>
+
+  <!-- Subtitle -->
+  <text x="64" y="334" font-family="'Inter', -apple-system, BlinkMacSystemFont, sans-serif" font-size="28" font-weight="500" fill="#999999">Safely. Without swapping arguments.</text>
+
+  <!-- Code snippet visual — before -->
+  <rect x="64" y="374" width="520" height="48" rx="6" fill="#111111" stroke="#333333" stroke-width="1"/>
+  <text x="82" y="393" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" fill="#f85149">−</text>
+  <text x="98" y="393" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" fill="#8b949e">ldClient.</text>
+  <text x="163" y="393" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" fill="#e6edf3">boolVariation</text>
+  <text x="82" y="413" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#8b949e">  (key,</text>
+  <text x="130" y="413" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#79c0ff"> context</text>
+  <text x="196" y="413" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#8b949e">,</text>
+  <text x="205" y="413" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#a5d6ff"> false</text>
+  <text x="240" y="413" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#8b949e">)</text>
+
+  <!-- Arrow -->
+  <text x="608" y="406" font-family="'Inter', sans-serif" font-size="28" fill="#00d97e" font-weight="700">↓</text>
+
+  <!-- Code snippet visual — after -->
+  <rect x="64" y="434" width="520" height="48" rx="6" fill="#0a1a12" stroke="#00d97e" stroke-width="1" opacity="0.8"/>
+  <text x="82" y="453" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" fill="#7ee787">+</text>
+  <text x="98" y="453" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" fill="#8b949e">openFeatureClient.</text>
+  <text x="232" y="453" font-family="'SF Mono', 'Fira Code', monospace" font-size="13" fill="#e6edf3">getBooleanValue</text>
+  <text x="82" y="473" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#8b949e">  (key,</text>
+  <text x="130" y="473" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#a5d6ff"> false</text>
+  <text x="165" y="473" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#8b949e">,</text>
+  <text x="174" y="473" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#79c0ff"> context</text>
+  <text x="234" y="473" font-family="'SF Mono', 'Fira Code', monospace" font-size="12" fill="#8b949e">)</text>
+
+  <!-- Accent pill badge -->
+  <rect x="64" y="503" width="240" height="32" rx="6" fill="rgba(0,217,126,0.10)" stroke="rgba(0,217,126,0.3)" stroke-width="1"/>
+  <text x="82" y="524" font-family="'Inter', -apple-system, sans-serif" font-size="14" font-weight="600" fill="#00d97e">FlagLint audit · migrate · validate</text>
+
+  <!-- Bottom-right domain -->
+  <text x="1136" y="590" font-family="'Inter', -apple-system, sans-serif" font-size="16" font-weight="500" fill="#555555" text-anchor="end">flaglint.dev/guides</text>
+</svg>
