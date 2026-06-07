@@ -109,6 +109,26 @@ Full coverage table: [Supported Scope](https://flaglint.dev/docs/reference/suppo
 
 ---
 
+## Provider setup (one-time, manual)
+
+Before `migrate --apply`, complete provider bootstrap once:
+
+```ts
+import { OpenFeature } from "@openfeature/server-sdk";
+import { LaunchDarklyProvider } from "@launchdarkly/openfeature-node-server";
+
+await OpenFeature.setProviderAndWait(
+  new LaunchDarklyProvider(process.env.LD_SDK_KEY!)
+);
+export const openFeatureClient = OpenFeature.getClient();
+```
+
+Evaluation context accepts either `targetingKey` (OpenFeature-native) or an existing LaunchDarkly `key`. Do not remove LaunchDarkly packages — the OpenFeature provider depends on them at runtime.
+
+Full instructions: [OpenFeature Provider Setup](https://flaglint.dev/docs/tutorials/add-openfeature-provider)
+
+---
+
 ## Local analysis
 
 FlagLint runs entirely on your machine. No source code, flag keys, or file paths leave your environment. No LaunchDarkly API key or credentials are required for `audit`, `scan`, `migrate`, or `validate`.
