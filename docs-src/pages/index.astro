@@ -340,6 +340,14 @@
       font-size: 18px;
       line-height: 1.7;
       max-width: 500px;
+      margin-bottom: 14px;
+    }
+    .hero-differentiator {
+      color: var(--text);
+      font-size: 17px;
+      font-weight: 700;
+      line-height: 1.5;
+      max-width: 500px;
       margin-bottom: 32px;
     }
     .hero-cta-row {
@@ -899,10 +907,7 @@
     <div class="nav-inner">
       <a class="logo" href="/" aria-label="FlagLint">Flag<span>Lint</span></a>
       <div class="nav-links" aria-label="Primary navigation">
-        <a href="/docs/cli/audit">Audit</a>
-        <a href="/docs/quickstart">Quickstart</a>
-        <a href="/docs/tutorials/migrate-a-node-service">Migration</a>
-        <a href="/docs/integrations/github-actions">CI</a>
+        <a href="/docs/">Docs</a>
         <a href="/blog/">Blog</a>
         <a href="/docs/" class="nav-search" id="nav-search-btn" title="Search docs (⌘K)" aria-label="Search docs">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -936,11 +941,11 @@
           <div class="section-kicker">LaunchDarkly Node.js SDK → OpenFeature</div>
           <h1>Every LaunchDarkly SDK call in your codebase.<br>Ranked by risk.</h1>
           <p class="hero-body">
-            FlagLint is a free CLI that audits your Node.js source files locally —
-            no API key, no source upload. Find every direct LaunchDarkly call,
-            classify it by migration risk, and generate safe OpenFeature rewrites
-            where safety can be proven. <strong style="color:var(--text);">FlagLint knows when not to rewrite.</strong>
+            FlagLint is a free, open-source CLI that audits direct LaunchDarkly SDK
+            usage, ranks migration risk, and generates OpenFeature rewrites only
+            where safety can be proven.
           </p>
+          <p class="hero-differentiator">FlagLint knows when not to rewrite.</p>
           <div class="hero-cta-row">
             <a class="btn btn-primary btn-lg" href="/docs/cli/audit">
               Run your first audit →
@@ -998,7 +1003,7 @@
     ═════════════════════════════════════════════════════════════════ -->
     <section class="section-proof">
       <div class="section-inner">
-        <div class="section-kicker">Why the argument order matters</div>
+        <div class="section-kicker">Migration risk</div>
         <h2 class="section-heading">Naive find-and-replace<br>breaks in production.</h2>
         <p class="section-copy">
           LaunchDarkly is <code>(key, context, fallback)</code>.
@@ -1154,7 +1159,7 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
               <strong>Skipped:</strong> dynamic flag key cannot be resolved statically.
             </div>
             <div class="result-row" aria-label="Dry run migration summary">
-              <span>10 safe rewrites</span>
+              <span>Example result: 10 safe rewrites</span>
               <span>3 manual-review cases</span>
               <span>0 files changed in dry-run</span>
             </div>
@@ -1271,6 +1276,7 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
         <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://www.npmjs.com/package/flaglint" target="_blank" rel="noopener noreferrer">npm</a>
         <a href="/trust">Trust</a>
+        <a href="/docs/reference/security">Security</a>
         <a href="/privacy">Privacy</a>
         <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">Issues</a>
       </div>
