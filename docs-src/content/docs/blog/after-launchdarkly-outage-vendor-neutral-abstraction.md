@@ -4,18 +4,17 @@ date: 2026-05-29
 description: "The October 2025 AWS outage showed why vendor lock-in in feature flags is a real risk. Here's how to add an OpenFeature abstraction layer without a 6-week migration project."
 authors:
   - name: Krishan Sharma
-    title: Author of FlagLint
+    title: Founder and maintainer of FlagLint
     url: https://www.linkedin.com/in/krishansha/
 tags: ["launchdarkly", "openfeature", "vendor-lock-in", "nodejs", "devops"]
 ---
 
-In October 2025, an AWS US-East-1 outage took LaunchDarkly offline.
-Teams couldn't update or create feature flags. Rollbacks were delayed.
+A provider outage can expose how deeply application code depends on a single
+feature-flag SDK. OpenFeature creates a neutral application boundary without
+forcing teams to abandon LaunchDarkly.
 
-For teams with direct LaunchDarkly SDK calls throughout their codebase,
-there was no quick path to a fallback provider.
-
-This doesn't require abandoning LaunchDarkly. It requires one abstraction layer.
+This article walks through the local audit, migration preview, and CI enforcement
+path that lets teams add that boundary incrementally.
 
 <!-- excerpt -->
 

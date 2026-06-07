@@ -1,0 +1,62 @@
+---
+const pathname = Astro.url.pathname;
+const isDocs = pathname.startsWith("/docs");
+const isBlog = pathname.startsWith("/blog");
+---
+
+<div class="flaglint-titlebar sl-flex">
+  <a href="/" class="site-title sl-flex" aria-label="FlagLint home">
+    <span translate="no">FlagLint</span>
+  </a>
+  <nav class="product-nav" aria-label="Primary sections">
+    <a href="/docs/" aria-current={isDocs ? "page" : undefined}>Docs</a>
+    <a href="/blog/" aria-current={isBlog ? "page" : undefined}>Blog</a>
+  </nav>
+</div>
+
+<style>
+  @layer starlight.core {
+    .flaglint-titlebar {
+      align-items: center;
+      gap: 1.1rem;
+      min-width: 0;
+    }
+
+    .site-title {
+      align-items: center;
+      color: var(--sl-color-gray-1);
+      font-size: var(--sl-text-h4);
+      font-weight: 800;
+      letter-spacing: 0;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .product-nav {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      font-size: var(--sl-text-sm);
+      font-weight: 650;
+    }
+
+    .product-nav a {
+      border-radius: 0.45rem;
+      color: var(--sl-color-gray-2);
+      padding: 0.35rem 0.55rem;
+      text-decoration: none;
+    }
+
+    .product-nav a:hover,
+    .product-nav a[aria-current="page"] {
+      background: color-mix(in srgb, var(--sl-color-accent) 12%, transparent);
+      color: var(--sl-color-text-accent);
+    }
+
+    @media (max-width: 42rem) {
+      .product-nav {
+        display: none;
+      }
+    }
+  }
+</style>

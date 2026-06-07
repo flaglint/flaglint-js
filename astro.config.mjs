@@ -13,13 +13,17 @@ export default defineConfig({
         starlightBlog({
           title: "FlagLint Blog",
           prefix: "blog",
+          navigation: "none",
           recentPostCount: 5,
+          metrics: {
+            readingTime: true,
+          },
         }),
       ],
       favicon: "/favicon.svg",
-      title: "FlagLint Docs",
+      title: "FlagLint",
       description:
-        "Technical articles on LaunchDarkly → OpenFeature migrations, argument-order bugs, and safe codemod patterns for Node.js teams.",
+        "FlagLint documentation and engineering notes for auditing LaunchDarkly Node.js SDK usage, previewing safe OpenFeature migrations, and enforcing the boundary in CI.",
       social: [
         {
           icon: "github",
@@ -28,6 +32,9 @@ export default defineConfig({
         },
       ],
       customCss: ["./docs-src/styles/starlight.css"],
+      components: {
+        SiteTitle: "./docs-src/components/StarlightSiteTitle.astro",
+      },
       editLink: {
         baseUrl: "https://github.com/flaglint/flaglint/edit/main/",
       },
@@ -38,7 +45,7 @@ export default defineConfig({
         {
           label: "Blog",
           items: [
-            { label: "FlagLint Blog", link: "/blog/" },
+            { label: "All posts", link: "/blog/" },
           ],
         },
         {
