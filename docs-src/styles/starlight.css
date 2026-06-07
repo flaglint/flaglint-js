@@ -6,7 +6,7 @@
   --fl-surface: #f8faf9;
   --fl-surface-raised: #ffffff;
   --fl-text-primary: #17201c;
-  --fl-text-secondary: #59635e;
+  --fl-text-secondary: #46524c;
   --fl-text-muted: #7a847f;
   --fl-border: #dce4e0;
   --fl-border-subtle: #e9eeeb;
@@ -40,7 +40,7 @@
   --fl-surface: #121a16;
   --fl-surface-raised: #17201b;
   --fl-text-primary: #eef5f1;
-  --fl-text-secondary: #b7c3bd;
+  --fl-text-secondary: #c2ccc7;
   --fl-text-muted: #8f9b95;
   --fl-border: #29352f;
   --fl-border-subtle: #202b25;
@@ -144,7 +144,7 @@ starlight-theme-select select {
 .sidebar-content a[aria-current="page"] {
   border-inline-start: 3px solid var(--fl-brand);
   background: var(--fl-brand-soft);
-  color: var(--sl-color-text-accent);
+  color: var(--fl-text-primary);
   font-weight: 700;
 }
 
@@ -157,8 +157,17 @@ starlight-theme-select select {
   color: var(--fl-text-muted);
 }
 
+.right-sidebar-panel starlight-toc li {
+  margin-block: 0.35rem;
+}
+
+.right-sidebar-panel starlight-toc a {
+  line-height: 1.35;
+  padding-block: 0.18rem;
+}
+
 .content-panel {
-  border-top-color: var(--fl-border-subtle);
+  border-top-color: color-mix(in srgb, var(--fl-border-subtle) 58%, transparent);
 }
 
 .sl-markdown-content {
@@ -282,11 +291,15 @@ starlight-theme-select select {
 /* Keep the docs TOC narrow so the main column has enough room. */
 @media (min-width: 72rem) {
   .right-sidebar-container {
-    width: 13rem;
+    width: 14rem;
   }
 
   [data-has-sidebar][data-has-toc] .main-pane {
-    width: calc(100% - 13rem);
+    width: calc(100% - 14rem);
+  }
+
+  [data-has-sidebar] .main-pane .content-panel .sl-container {
+    --sl-content-margin-inline: 5rem auto;
   }
 }
 
@@ -332,6 +345,13 @@ html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type .sl
   color: var(--fl-text-secondary);
   font-size: 1.08rem;
   line-height: 1.65;
+}
+
+html:has(link[rel="canonical"][href*="/blog/"]:not([href$="/blog/"])) .content-panel:first-of-type h1 {
+  max-width: 56.25rem;
+  font-size: clamp(2.25rem, 3.2vw, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.035em;
 }
 
 html:has(.posts) .posts {
