@@ -23,38 +23,29 @@ Enter
 Show
 
 # ─────────────────────────────────────────
-# SCENE 1: scan
+# SCENE 1: audit with readiness
 # ─────────────────────────────────────────
 Type "cd flaglint-demo"
 Enter
 Sleep 500ms
 
-Type "npx flaglint scan ./src"
+Type "npx flaglint@latest audit ./src"
 Enter
 Sleep 4s
-
-# pause so viewer can read the output
-Sleep 3s
+Sleep 1500ms
 
 # ─────────────────────────────────────────
-# SCENE 2: migrate dry-run
+# SCENE 2: audit with effort estimate
 # ─────────────────────────────────────────
-Type "flaglint migrate ./src --dry-run"
-Enter
-Sleep 5s
-
-# pause on the diff output
-Sleep 4s
-
-# ─────────────────────────────────────────
-# SCENE 3: CI gate
-# ─────────────────────────────────────────
-Type "flaglint validate ./src --no-direct-launchdarkly"
+Type "npx flaglint@latest audit ./src --cost-estimate"
 Enter
 Sleep 4s
+Sleep 1500ms
 
-# pause on the exit 1 output
-Sleep 3s
-
-# final pause before loop
-Sleep 2s
+# ─────────────────────────────────────────
+# SCENE 3: validate against clean migrated directory
+# ─────────────────────────────────────────
+Type "npx flaglint@latest validate ./after-complete --no-direct-launchdarkly"
+Enter
+Sleep 4s
+Sleep 1500ms

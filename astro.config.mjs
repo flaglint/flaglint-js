@@ -76,6 +76,7 @@ export default defineConfig({
             { label: "Safety Model", slug: "docs/concepts/safety-model" },
             { label: "OpenFeature Boundary", slug: "docs/concepts/openfeature-boundary" },
             { label: "Source-Level Debt Signals", slug: "docs/concepts/source-level-debt-signals" },
+            { label: "Migration Readiness", slug: "docs/concepts/migration-readiness" },
           ],
         },
         {
@@ -83,6 +84,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { label: "audit", slug: "docs/cli/audit" },
+            { label: "Cost Estimation", slug: "docs/cli/cost-estimate" },
             { label: "scan", slug: "docs/cli/scan" },
             { label: "migrate", slug: "docs/cli/migrate" },
             { label: "validate", slug: "docs/cli/validate" },

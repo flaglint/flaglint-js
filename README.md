@@ -32,17 +32,31 @@ npx flaglint audit ./src
 ```
 ✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 
-| Flag Key            | Risk   | Usages | Reasons                           |
-|---------------------|--------|--------|-----------------------------------|
-| <dynamic key>       | High   | 7      | key cannot be resolved statically |
-| checkout-experiment | High   | 1      | detail evaluation                 |
-| *                   | High   | 1      | bulk call                         |
-| checkout-v2         | Medium | 1      | safely automatable                |
+Migration readiness: 50/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 50%
+10 safely automatable  ·  10 require manual review
 ```
 
-No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
+Add `--cost-estimate` to include a directional planning estimate:
 
-**[Documentation](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[npm](https://npmjs.com/package/flaglint)**
+```bash
+npx flaglint audit ./src --cost-estimate
+```
+
+```
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+
+Migration readiness: 50/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 50%
+10 safely automatable  ·  10 require manual review
+
+Estimated migration effort: 22.8h – 43.9h
+Estimates are directional. See the report for assumptions.
+```
+
+For the full report see `--format html`. [Documentation](https://flaglint.dev/docs) · [Quickstart](https://flaglint.dev/docs/quickstart) · [npm](https://npmjs.com/package/flaglint)
+
+No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
 
 ---
 
