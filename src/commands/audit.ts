@@ -178,7 +178,7 @@ Examples:
         );
 
         const renderOptions: AuditRenderOptions | undefined = options.costEstimate
-          ? { estimate: computeEstimate(auditReport.readiness, hourlyRate !== undefined ? { hourlyRate } : undefined) }
+          ? { estimate: computeEstimate(auditReport.readiness, undefined, hourlyRate) }
           : undefined;
 
         let output: string;
@@ -237,15 +237,13 @@ Examples:
             const est = renderOptions.estimate;
             process.stderr.write("\n");
             process.stderr.write(
-              chalk.cyan(`Estimated migration effort: ${est.totalHoursLow}h – ${est.totalHoursHigh}h\n`)
+              chalk.cyan(`Estimated migration effort: ${est.hoursLow}h – ${est.hoursHigh}h\n`)
             );
             if (est.costLow !== undefined && est.costHigh !== undefined) {
               const fmtCost = (n: number) => "$" + n.toLocaleString("en-US");
-              const costRange = est.costLow === est.costHigh
-                ? fmtCost(est.costLow)
-                : `${fmtCost(est.costLow)} – ${fmtCost(est.costHigh)}`;
-              process.stderr.write(chalk.cyan(`Estimated cost: ${costRange}\n`));
+              process.stderr.write(chalk.cyan(`Estimated cost: ${fmtCost(est.costLow)} – ${fmtCost(est.costHigh)}\n`));
             }
+            process.stderr.write(chalk.dim("Estimates are directional. See the report for assumptions.\n"));
           }
         }
 

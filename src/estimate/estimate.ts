@@ -3,18 +3,19 @@ import type { MigrationReadiness } from "../readiness/readiness.js";
 export const ESTIMATE_DISCLAIMER =
   "Estimates are directional planning guides based on call-site complexity. Actual effort depends on test coverage, team familiarity, and provider setup. FlagLint does not access runtime data or LaunchDarkly billing.";
 
-export interface EstimateAssumptions {
+export interface EstimationAssumptions {
   automationHoursPerCall: number;
   manualReviewHoursPerCall: number;
   validationMultiplier: number;
-  hourlyRate?: number;
+  minimumHours: number;
 }
 
-// High-effort defaults: conservative planning heuristics, not observed industry benchmarks.
-export const DEFAULT_ASSUMPTIONS: EstimateAssumptions = {
-  automationHoursPerCall: 0.5,
-  manualReviewHoursPerCall: 4,
-  validationMultiplier: 0.2,
+// Conservative planning heuristics, not observed industry benchmarks.
+export const DEFAULT_ASSUMPTIONS: EstimationAssumptions = {
+  automationHoursPerCall: 0.25,
+  manualReviewHoursPerCall: 1.5,
+  validationMultiplier: 0.3,
+  minimumHours: 4,
 };
 
 export interface EstimateBreakdownItem {
@@ -26,12 +27,13 @@ export interface EstimateBreakdownItem {
 }
 
 export interface MigrationEstimate {
-  totalHoursLow: number;
-  totalHoursHigh: number;
+  hoursLow: number;
+  hoursHigh: number;
   costLow?: number;
   costHigh?: number;
+  hourlyRate?: number;
   breakdown: EstimateBreakdownItem[];
-  assumptions: EstimateAssumptions;
+  assumptions: EstimationAssumptions;
   disclaimer: string;
 }
 
@@ -41,63 +43,65 @@ function round1(n: number): number {
 
 export function computeEstimate(
   readiness: MigrationReadiness,
-  overrides?: Partial<EstimateAssumptions>
+  overrides?: Partial<EstimationAssumptions>,
+  hourlyRate?: number
 ): MigrationEstimate | null {
   if (readiness.grade === "not-applicable") return null;
 
-  const assumptions: EstimateAssumptions = { ...DEFAULT_ASSUMPTIONS, ...overrides };
+  const assumptions: EstimationAssumptions = { ...DEFAULT_ASSUMPTIONS, ...overrides };
   const { automatableCalls, manualReviewCalls } = readiness;
 
-  const automationHours = automatableCalls * assumptions.automationHoursPerCall;
+  const automationLow = automatableCalls * assumptions.automationHoursPerCall;
+  const automationHigh = automationLow * 1.5;
 
-  const manualHoursLow = manualReviewCalls * assumptions.manualReviewHoursPerCall;
-  // High-end uncertainty: manual review calls carry 1.5× variance (harder calls take longer)
-  const manualHoursHigh = manualReviewCalls * assumptions.manualReviewHoursPerCall * 1.5;
+  const manualLow = manualReviewCalls * assumptions.manualReviewHoursPerCall;
+  const manualHigh = manualLow * 2;
 
-  const subTotalLow = automationHours + manualHoursLow;
-  const subTotalHigh = automationHours + manualHoursHigh;
+  const validationLow = (automationLow + manualLow) * assumptions.validationMultiplier;
+  const validationHigh = (automationHigh + manualHigh) * assumptions.validationMultiplier;
 
-  const validationHoursLow = subTotalLow * assumptions.validationMultiplier;
-  const validationHoursHigh = subTotalHigh * assumptions.validationMultiplier;
-
-  const totalHoursLow = round1(subTotalLow + validationHoursLow);
-  const totalHoursHigh = round1(subTotalHigh + validationHoursHigh);
+  // Totals computed from unrounded phase values, then rounded to 1 decimal
+  const rawLow = automationLow + manualLow + validationLow;
+  const rawHigh = automationHigh + manualHigh + validationHigh;
+  const hoursLow = Math.max(assumptions.minimumHours, round1(rawLow));
+  const hoursHigh = Math.max(assumptions.minimumHours, round1(rawHigh));
 
   const breakdown: EstimateBreakdownItem[] = [
     {
       label: "Automatable calls",
       calls: automatableCalls,
-      hoursLow: round1(automationHours),
-      hoursHigh: round1(automationHours),
+      hoursLow: round1(automationLow),
+      hoursHigh: round1(automationHigh),
       basis: `${assumptions.automationHoursPerCall}h per automatable call`,
     },
     {
       label: "Manual review calls",
       calls: manualReviewCalls,
-      hoursLow: round1(manualHoursLow),
-      hoursHigh: round1(manualHoursHigh),
+      hoursLow: round1(manualLow),
+      hoursHigh: round1(manualHigh),
       basis: `${assumptions.manualReviewHoursPerCall}h per manual-review call`,
     },
     {
       label: "Validation & testing",
       calls: 0,
-      hoursLow: round1(validationHoursLow),
-      hoursHigh: round1(validationHoursHigh),
+      hoursLow: round1(validationLow),
+      hoursHigh: round1(validationHigh),
       basis: `${assumptions.validationMultiplier * 100}% of migration work`,
     },
   ];
 
   const result: MigrationEstimate = {
-    totalHoursLow,
-    totalHoursHigh,
+    hoursLow,
+    hoursHigh,
     breakdown,
     assumptions,
     disclaimer: ESTIMATE_DISCLAIMER,
   };
 
-  if (assumptions.hourlyRate !== undefined) {
-    result.costLow = Math.round(totalHoursLow * assumptions.hourlyRate);
-    result.costHigh = Math.round(totalHoursHigh * assumptions.hourlyRate);
+  if (hourlyRate !== undefined) {
+    result.hourlyRate = hourlyRate;
+    result.costLow = Math.round(hoursLow * hourlyRate);
+    result.costHigh = Math.round(hoursHigh * hourlyRate);
   }
 
   return result;
