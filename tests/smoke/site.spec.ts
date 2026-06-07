@@ -9,7 +9,7 @@ for (const route of CRITICAL_ROUTES) {
 
     await page.goto(route);
     await expect(page.locator('body')).toBeVisible();
-    await expect(page.locator('h1, h2').first()).toBeVisible();
+    await expect(page.locator('h1').first()).toBeVisible();
     expect(errors).toHaveLength(0);
   });
 }
