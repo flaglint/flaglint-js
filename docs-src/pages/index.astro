@@ -136,8 +136,12 @@
       justify-content: space-between;
       gap: 20px;
     }
-    .logo { font-size: 20px; font-weight: 800; letter-spacing: 0; }
-    .logo span { color: var(--accent); }
+    .logo {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 0;
+      color: var(--text);
+    }
     .nav-links {
       display: flex;
       align-items: center;
@@ -339,9 +343,10 @@
       color: var(--muted);
       font-size: 18px;
       line-height: 1.7;
-      max-width: 500px;
+      max-width: 620px;
       margin-bottom: 14px;
     }
+    .hero-body span { display: block; }
     .hero-differentiator {
       color: var(--text);
       font-size: 17px;
@@ -367,6 +372,11 @@
       align-items: center;
     }
     .trust-strip .sep { color: var(--border-strong); }
+
+    .workflow-copy { max-width: none; }
+    @media (min-width: 981px) {
+      .workflow-copy { white-space: nowrap; }
+    }
 
     /* ── Section: Proof (argument-order problem) ─────────────────────── */
     .section-proof {
@@ -570,6 +580,7 @@
       font-size: 12px;
       line-height: 1.5;
     }
+    .wf-secondary span { display: block; }
     .wf-inline-code {
       color: var(--accent);
       font-size: 11px;
@@ -868,6 +879,8 @@
       section { padding: 64px 18px; }
       .hero { padding: 72px 18px 56px; }
       .hero h1 { font-size: clamp(30px,7vw,40px); }
+      .hero-body span { display: inline; }
+      .workflow-copy { white-space: normal; }
       .scope-grid { grid-template-columns: 1fr; }
       .signup-form { align-items: stretch; }
       .signup-field { width: 100%; }
@@ -905,7 +918,7 @@
   <!-- ── Nav ─────────────────────────────────────────────────────────── -->
   <nav>
     <div class="nav-inner">
-      <a class="logo" href="/" aria-label="FlagLint">Flag<span>Lint</span></a>
+      <a class="logo" href="/" aria-label="FlagLint">FlagLint</a>
       <div class="nav-links" aria-label="Primary navigation">
         <a href="/docs/">Docs</a>
         <a href="/blog/">Blog</a>
@@ -941,16 +954,16 @@
           <div class="section-kicker">LaunchDarkly Node.js SDK → OpenFeature</div>
           <h1>Every LaunchDarkly SDK call in your codebase.<br>Ranked by risk.</h1>
           <p class="hero-body">
-            FlagLint is a free, open-source CLI that audits direct LaunchDarkly SDK
-            usage, ranks migration risk, and generates OpenFeature rewrites only
-            where safety can be proven.
+            <span>FlagLint is a free, open-source CLI that audits direct</span>
+            <span>LaunchDarkly SDK usage, ranks migration risk, and generates</span>
+            <span>OpenFeature rewrites only where safety can be proven.</span>
           </p>
           <p class="hero-differentiator">FlagLint knows when not to rewrite.</p>
           <div class="hero-cta-row">
-            <a class="btn btn-primary btn-lg" href="/docs/cli/audit">
-              Run your first audit →
+            <a class="btn btn-primary btn-lg" href="/docs/quickstart">
+              Run FlagLint →
             </a>
-            <a class="btn btn-sm" href="/docs/quickstart">Quickstart</a>
+            <a class="btn btn-sm" href="/docs/cli/audit">View audit docs</a>
           </div>
           <div class="trust-strip">
             <span>MIT licensed</span>
@@ -1004,7 +1017,7 @@
     <section class="section-proof">
       <div class="section-inner">
         <div class="section-kicker">Migration risk</div>
-        <h2 class="section-heading">Naive find-and-replace<br>breaks in production.</h2>
+        <h2 class="section-heading">Naive find-and-replace can silently<br>change production behavior.</h2>
         <p class="section-copy">
           LaunchDarkly is <code>(key, context, fallback)</code>.
           OpenFeature is <code>(key, fallback, context)</code>.
@@ -1078,9 +1091,8 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
       <div class="section-inner">
         <div class="section-kicker">How it works</div>
         <h2 class="section-heading">Audit, migrate, enforce.</h2>
-        <p class="section-copy" style="margin-bottom:0;">
-          Three commands. Each step is independent and reviewable —
-          nothing is changed without your explicit action.
+        <p class="section-copy workflow-copy" style="margin-bottom:0;">
+          Three commands. Each step is independent and reviewable — nothing is changed without your explicit action.
         </p>
 
         <div class="workflow-strip" role="list">
@@ -1095,7 +1107,10 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
             </p>
             <code class="cmd">npx flaglint audit ./src</code>
             <code class="cmd" style="margin-top:6px;">npx flaglint audit ./src --format html</code>
-            <p class="wf-secondary">Need structured inventory? Use <code class="wf-inline-code">flaglint scan</code>.</p>
+            <p class="wf-secondary">
+              <span>Need structured inventory?</span>
+              <span>Use <code class="wf-inline-code">flaglint scan</code>.</span>
+            </p>
           </div>
 
           <div class="wf-divider" aria-hidden="true">→</div>
@@ -1139,8 +1154,7 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
         <div class="section-kicker">Proof and boundaries</div>
         <h2 class="section-heading">Rewrites safe calls.<br>Stops at uncertainty.</h2>
         <p class="section-copy">
-          FlagLint shows exactly what it can migrate and exactly what still needs review.
-          Dry runs never modify files.
+          Dry-run output separates safe rewrites from manual review.
         </p>
 
         <div class="proof-trust-grid">
@@ -1148,8 +1162,8 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
           <div class="proof-card">
             <h3>One safe rewrite, one explicit skip.</h3>
             <p>
-              Static typed evaluations with a proven OpenFeature binding are rewritten.
-              Dynamic expressions stay visible for manual review.
+              Proven static calls are rewritten.
+              Dynamic expressions stay visible for review.
             </p>
             <div class="mini-diff" aria-label="Safe migration diff">
 <pre><span class="diff-minus">- return ldClient.boolVariation("checkout-v2", ctx, false);</span>
@@ -1161,7 +1175,7 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
             <div class="result-row" aria-label="Dry run migration summary">
               <span>Example result: 10 safe rewrites</span>
               <span>3 manual-review cases</span>
-              <span>0 files changed in dry-run</span>
+              <span>0 files changed</span>
             </div>
             <div class="proof-links">
               <a href="/docs/tutorials/migrate-a-node-service">View the complete migration example →</a>
@@ -1232,7 +1246,7 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
 
         <div class="signup" aria-labelledby="signup-heading">
           <div class="signup-kicker">Stay updated</div>
-          <h3 id="signup-heading">Get notified when FlagLint ships.</h3>
+          <h3 id="signup-heading">Get FlagLint release updates.</h3>
           <p class="signup-copy">New releases and important CLI updates.</p>
           <form
             id="cli-updates-form"

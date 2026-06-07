@@ -75,6 +75,9 @@ Generated from the same demo:
 ℹ  1 dynamic flag key(s) require manual review
 ```
 
+Audit groups detected calls into risk findings. Scan reports file-level usages
+and unique static keys, so totals may differ.
+
 The Markdown report inventory includes the detected static and manual-review calls:
 
 ```text
