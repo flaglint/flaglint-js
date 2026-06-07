@@ -349,28 +349,6 @@
       flex-wrap: wrap;
       margin-bottom: 24px;
     }
-    .command-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      background: var(--surface-soft);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
-      color: var(--accent);
-      font-size: 13px;
-      font-family: "SF Mono","Cascadia Code","Fira Code",ui-monospace,monospace;
-      cursor: pointer;
-      transition: border-color 0.15s;
-      max-width: 100%;
-      overflow: hidden;
-    }
-    .command-pill:hover { border-color: var(--accent); }
-    .command-pill .dollar { color: var(--subtle); }
-    [data-theme="light"] .command-pill {
-      background: #f0f4f2;
-      border-color: #c8d8ce;
-    }
     .trust-strip {
       font-size: 12px;
       font-weight: 500;
@@ -578,51 +556,271 @@
       background: #edf5f0;
       border-color: #c0d8ca;
     }
+    .wf-secondary {
+      margin: 12px 0 0;
+      color: var(--subtle);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .wf-inline-code {
+      color: var(--accent);
+      font-size: 11px;
+      background: var(--surface-soft);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+    }
 
-    /* ── Section: Docs cards ─────────────────────────────────────────── */
-    .docs-section {
-      background: linear-gradient(180deg,rgba(0,217,126,0.06),transparent);
+    /* ── Section: Proof + Trust ──────────────────────────────────────── */
+    .proof-trust {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
     }
-    [data-theme="light"] .docs-section {
-      background: linear-gradient(180deg,rgba(0,122,73,0.05),transparent);
-    }
-    .docs-grid {
+    [data-theme="light"] .proof-trust { background: #f4f8f6; }
+    .proof-trust-grid {
       display: grid;
       grid-template-columns: repeat(2,1fr);
-      gap: 16px;
-      margin-top: 36px;
+      gap: 24px;
+      margin-top: 38px;
+      align-items: stretch;
     }
-    .doc-card {
-      display: block;
+    .proof-trust-grid > * { min-width: 0; }
+    .proof-card,
+    .trust-card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
+      border-radius: 12px;
       padding: 24px;
-      text-decoration: none;
-      transition: border-color 0.15s,transform 0.15s;
+      min-width: 0;
     }
-    .doc-card:hover {
-      border-color: var(--accent);
-      transform: translateY(-2px);
-    }
-    .doc-card h3 {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 7px;
+    .proof-card h3,
+    .trust-card h3 {
+      font-size: 18px;
+      line-height: 1.25;
+      margin-bottom: 10px;
       letter-spacing: -0.01em;
     }
-    .doc-card p {
-      font-size: 14px;
+    .proof-card p,
+    .trust-card p {
       color: var(--muted);
+      font-size: 14px;
       line-height: 1.6;
     }
-    .doc-card .card-arrow {
-      display: inline-block;
-      margin-top: 12px;
+    .mini-diff {
+      margin-top: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #0d1117;
+      max-width: 100%;
+    }
+    .mini-diff pre {
+      padding: 16px;
+      color: #d8e2dd;
       font-size: 12px;
-      font-weight: 600;
+      line-height: 1.7;
+      white-space: pre;
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    .diff-minus { color: #f87171; }
+    .diff-plus { color: #3dd68c; }
+    .skip-line {
+      margin-top: 14px;
+      padding: 11px 13px;
+      border: 1px solid rgba(242,184,75,0.35);
+      border-radius: 7px;
+      background: rgba(242,184,75,0.08);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .skip-line strong { color: var(--warning); }
+    .result-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .result-row span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--surface-raised);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .trust-list {
+      list-style: none;
+      display: grid;
+      gap: 9px;
+      margin: 16px 0 22px;
+    }
+    .trust-list li {
+      display: flex;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .trust-list li::before {
+      content: "✓";
+      color: var(--accent);
+      font-weight: 800;
+      flex: 0 0 auto;
+    }
+    .scope-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+    .scope-grid h4 {
+      font-size: 12px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 8px;
+    }
+    .scope-grid ul {
+      list-style: none;
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .proof-links {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .proof-links a {
       color: var(--accent);
     }
+
+    /* ── Section: Final CTA + email ─────────────────────────────────── */
+    .final-cta {
+      padding: 64px 24px;
+    }
+    .final-panel {
+      max-width: 760px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .final-panel h2 {
+      font-size: clamp(24px,3vw,34px);
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 12px;
+    }
+    .final-links {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 18px 0 34px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .final-links a { color: var(--accent); }
+    .signup {
+      border-top: 1px solid var(--border);
+      padding-top: 30px;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .signup-kicker {
+      color: var(--subtle);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .signup h3 {
+      font-size: 18px;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+    .signup-copy {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .signup-form {
+      display: flex;
+      justify-content: center;
+      align-items: end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .signup-field {
+      flex: 1;
+      min-width: 220px;
+      text-align: left;
+    }
+    .signup-label {
+      display: block;
+      color: var(--subtle);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .signup-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 13px;
+      border: 1px solid var(--border-strong);
+      border-radius: 6px;
+      background: var(--surface-soft);
+      color: var(--text);
+      font: inherit;
+      font-size: 14px;
+    }
+    .signup-input:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+    .signup-input[aria-invalid="true"] {
+      border-color: var(--danger);
+    }
+    .signup-button {
+      min-height: 42px;
+      padding: 9px 16px;
+      background: rgba(255,255,255,0.04);
+      color: var(--text);
+      border-color: var(--border);
+      white-space: nowrap;
+    }
+    .signup-button[disabled] {
+      cursor: wait;
+      opacity: 0.72;
+    }
+    .signup-note,
+    .signup-status {
+      margin-top: 10px;
+      color: var(--subtle);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .signup-status {
+      min-height: 18px;
+      font-weight: 700;
+    }
+    .signup-status[data-state="success"] { color: var(--accent); }
+    .signup-status[data-state="error"] { color: var(--danger); }
 
     /* ── Footer ──────────────────────────────────────────────────────── */
     footer {
@@ -653,6 +851,7 @@
       .diff-grid { grid-template-columns: 1fr; }
       .diff-arrow-col { display: none; }
       .workflow-strip { grid-template-columns: 1fr; }
+      .proof-trust-grid { grid-template-columns: 1fr; }
       .wf-divider { display: none; }
       .wf-step { border-bottom: 1px solid var(--border); }
       .wf-step:last-of-type { border-bottom: none; }
@@ -661,7 +860,10 @@
       section { padding: 64px 18px; }
       .hero { padding: 72px 18px 56px; }
       .hero h1 { font-size: clamp(30px,7vw,40px); }
-      .docs-grid { grid-template-columns: 1fr; }
+      .scope-grid { grid-template-columns: 1fr; }
+      .signup-form { align-items: stretch; }
+      .signup-field { width: 100%; }
+      .signup-button { width: 100%; }
       .nav-links a:not(.github-btn):not(.nav-search) { display: none; }
       .nav-inner { padding: 0 18px; }
       .search-label,.nav-search kbd { display: none; }
@@ -695,7 +897,7 @@
   <!-- ── Nav ─────────────────────────────────────────────────────────── -->
   <nav>
     <div class="nav-inner">
-      <a class="logo" href="/">Flag<span>Lint</span></a>
+      <a class="logo" href="/" aria-label="FlagLint">Flag<span>Lint</span></a>
       <div class="nav-links" aria-label="Primary navigation">
         <a href="/docs/cli/audit">Audit</a>
         <a href="/docs/quickstart">Quickstart</a>
@@ -737,7 +939,7 @@
             FlagLint is a free CLI that audits your Node.js source files locally —
             no API key, no source upload. Find every direct LaunchDarkly call,
             classify it by migration risk, and generate safe OpenFeature rewrites
-            where safety can be proven.
+            where safety can be proven. <strong style="color:var(--text);">FlagLint knows when not to rewrite.</strong>
           </p>
           <div class="hero-cta-row">
             <a class="btn btn-primary btn-lg" href="/docs/cli/audit">
@@ -772,11 +974,11 @@
 <pre><span class="t-dim">$</span> npx flaglint audit ./src
 <span class="t-dim">  Auditing ./src...</span>
 
-<span class="t-green">✓ Audit complete: 13 flags — 3 high risk, 10 medium, 0 low</span>
+<span class="t-green">✓ Audit complete: 13 flags — 3 high risk, 10 medium</span>
 
 <span class="t-dim">Flag Key               Risk     Usages  Reason</span>
 <span class="t-dim">────────────────────────────────────────────────────</span>
-<span class="t-red">dynamic                High        7   dynamic key</span>
+<span class="t-red">&lt;dynamic key&gt;          High        7   key cannot be resolved statically</span>
 <span class="t-red">checkout-experiment    High        1   detail evaluation</span>
 <span class="t-red">*                      High        1   bulk call</span>
 <span class="t-amber">checkout-v2            Medium      1   safely automatable</span>
@@ -797,13 +999,14 @@
     <section class="section-proof">
       <div class="section-inner">
         <div class="section-kicker">Why the argument order matters</div>
-        <h2 class="section-heading">Find-and-replace migrations<br>break in production.</h2>
+        <h2 class="section-heading">Naive find-and-replace<br>breaks in production.</h2>
         <p class="section-copy">
           LaunchDarkly is <code>(key, context, fallback)</code>.
           OpenFeature is <code>(key, fallback, context)</code>.
           A naive rewrite silently swaps context and fallback —
           and your flags evaluate against the wrong value.
-          FlagLint uses AST analysis to get the order right, every time.
+          FlagLint rewrites only when the client, key, type, fallback, context,
+          and destination binding can all be proven.
         </p>
 
         <div class="diff-grid" aria-label="Before and after code comparison">
@@ -883,10 +1086,11 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
             <h3>Audit</h3>
             <p>
               Get a risk-ranked overview of every LaunchDarkly call in your
-              codebase. High, medium, and low risk — before touching any code.
+              codebase before touching any code.
             </p>
             <code class="cmd">npx flaglint audit ./src</code>
             <code class="cmd" style="margin-top:6px;">npx flaglint audit ./src --format html</code>
+            <p class="wf-secondary">Need structured inventory? Use <code class="wf-inline-code">flaglint scan</code>.</p>
           </div>
 
           <div class="wf-divider" aria-hidden="true">→</div>
@@ -923,38 +1127,134 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
     </section>
 
     <!-- ════════════════════════════════════════════════════════════════
-         SECTION 4 — DOCS ENTRY
+         SECTION 4 — PROOF + TRUST
     ═════════════════════════════════════════════════════════════════ -->
-    <section class="docs-section">
+    <section class="proof-trust">
       <div class="section-inner">
-        <div class="section-kicker">Get started</div>
-        <h2 class="section-heading">Read the docs.</h2>
-        <div class="docs-grid">
+        <div class="section-kicker">Proof and boundaries</div>
+        <h2 class="section-heading">Rewrites safe calls.<br>Stops at uncertainty.</h2>
+        <p class="section-copy">
+          FlagLint shows exactly what it can migrate and exactly what still needs review.
+          Dry runs never modify files.
+        </p>
 
-          <a class="doc-card" href="/docs/cli/audit">
-            <h3>Flag Debt Audit</h3>
-            <p>Classify every LaunchDarkly call by risk level. No API key. One command. Start here.</p>
-            <span class="card-arrow">Read →</span>
-          </a>
+        <div class="proof-trust-grid">
 
-          <a class="doc-card" href="/docs/quickstart">
-            <h3>Quickstart</h3>
-            <p>Run your first audit, inspect the inventory, and preview a safe migration in 10 minutes.</p>
-            <span class="card-arrow">Read →</span>
-          </a>
+          <div class="proof-card">
+            <h3>One safe rewrite, one explicit skip.</h3>
+            <p>
+              Static typed evaluations with a proven OpenFeature binding are rewritten.
+              Dynamic expressions stay visible for manual review.
+            </p>
+            <div class="mini-diff" aria-label="Safe migration diff">
+<pre><span class="diff-minus">- return ldClient.boolVariation("checkout-v2", ctx, false);</span>
+<span class="diff-plus">+ return flags.getBooleanValue("checkout-v2", false, ctx);</span></pre>
+            </div>
+            <div class="skip-line">
+              <strong>Skipped:</strong> dynamic flag key cannot be resolved statically.
+            </div>
+            <div class="result-row" aria-label="Dry run migration summary">
+              <span>10 safe rewrites</span>
+              <span>3 manual-review cases</span>
+              <span>0 files changed in dry-run</span>
+            </div>
+            <div class="proof-links">
+              <a href="/docs/tutorials/migrate-a-node-service">View the complete migration example →</a>
+            </div>
+          </div>
 
-          <a class="doc-card" href="/docs/tutorials/migrate-a-node-service">
-            <h3>Migration Tutorial</h3>
-            <p>Walk through the enterprise checkout demo end to end — dry-run, apply, and validate.</p>
-            <span class="card-arrow">Read →</span>
-          </a>
+          <div class="trust-card">
+            <h3>Know what it does, and what it does not do.</h3>
+            <p>
+              FlagLint is intentionally narrow: local analysis, guarded rewrites,
+              and CI enforcement for LaunchDarkly Node.js server SDK usage.
+            </p>
+            <ul class="trust-list">
+              <li>Runs locally in your checkout.</li>
+              <li>No LaunchDarkly API key or SDK credentials required.</li>
+              <li>No source upload to a FlagLint service.</li>
+              <li>Unsafe cases are never silently rewritten.</li>
+            </ul>
+            <div class="scope-grid" aria-label="Supported and unsupported scope">
+              <div>
+                <h4>Supported now</h4>
+                <ul>
+                  <li>Node.js server SDK</li>
+                  <li>JavaScript and TypeScript</li>
+                  <li>Static typed evaluations</li>
+                  <li>SARIF CI policy output</li>
+                </ul>
+              </div>
+              <div>
+                <h4>Manual review or outside coverage</h4>
+                <ul>
+                  <li>Dynamic keys</li>
+                  <li>Detail and bulk evaluations</li>
+                  <li>Browser and React SDKs</li>
+                  <li>Other languages and providers</li>
+                </ul>
+              </div>
+            </div>
+            <div class="proof-links">
+              <a href="/docs/reference/supported-scope">Supported scope →</a>
+              <a href="/docs/concepts/safety-model">Safety model →</a>
+            </div>
+          </div>
 
-          <a class="doc-card" href="/docs/integrations/github-actions">
-            <h3>CI Enforcement</h3>
-            <p>Add <code style="font-size:12px;background:var(--surface-raised);padding:1px 5px;border-radius:3px;">flaglint validate</code> to GitHub Actions. Block regressions with SARIF annotations.</p>
-            <span class="card-arrow">Read →</span>
-          </a>
+        </div>
+      </div>
+    </section>
 
+    <!-- ════════════════════════════════════════════════════════════════
+         SECTION 5 — FINAL CTA + EMAIL
+    ═════════════════════════════════════════════════════════════════ -->
+    <section class="final-cta">
+      <div class="final-panel">
+        <h2>Audit your codebase before changing it.</h2>
+        <p class="section-copy" style="margin:0 auto;">
+          Start with the local audit, then use the docs when you are ready to inspect,
+          migrate, or enforce the boundary in CI.
+        </p>
+        <div class="final-links" aria-label="Recommended next links">
+          <a href="/docs/quickstart">Quickstart</a>
+          <span>·</span>
+          <a href="/docs/concepts/safety-model">Safety model</a>
+          <span>·</span>
+          <a href="/docs/reference/supported-scope">Supported scope</a>
+          <span>·</span>
+          <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
+
+        <div class="signup" aria-labelledby="signup-heading">
+          <div class="signup-kicker">Stay updated</div>
+          <h3 id="signup-heading">Get notified when FlagLint ships.</h3>
+          <p class="signup-copy">New releases and important CLI updates.</p>
+          <form
+            id="cli-updates-form"
+            class="signup-form"
+            action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0"
+            method="POST"
+            novalidate
+          >
+            <div class="signup-field">
+              <label class="signup-label" for="cli-updates-email">Email address</label>
+              <input
+                id="cli-updates-email"
+                class="signup-input"
+                type="email"
+                name="email"
+                placeholder="you@example.com"
+                autocomplete="email"
+                required
+                aria-describedby="cli-updates-note cli-updates-status"
+              />
+            </div>
+            <button type="submit" class="btn signup-button" data-default-label="Notify me">
+              Notify me
+            </button>
+          </form>
+          <p id="cli-updates-note" class="signup-note">CLI release updates only. Unsubscribe anytime.</p>
+          <p id="cli-updates-status" class="signup-status" aria-live="polite" role="status"></p>
         </div>
       </div>
     </section>
@@ -1023,22 +1323,81 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
         }
       });
 
-      // Command pill: copy to clipboard on click
-      document.querySelectorAll('.command-pill').forEach(function(pill) {
-        pill.addEventListener('click', function() {
-          var cmd = pill.querySelector('code');
-          if (cmd && navigator.clipboard) {
-            navigator.clipboard.writeText(cmd.textContent.trim()).then(function() {
-              var orig = pill.dataset.orig || pill.innerHTML;
-              pill.dataset.orig = orig;
-              pill.innerHTML = '<span style="color:var(--accent)">✓ Copied!</span>';
-              setTimeout(function() { pill.innerHTML = orig; }, 1800);
-            });
+      var updatesForm = document.getElementById('cli-updates-form');
+      if (updatesForm) {
+        var emailInput = document.getElementById('cli-updates-email');
+        var submitButton = updatesForm.querySelector('button[type="submit"]');
+        var status = document.getElementById('cli-updates-status');
+
+        function setStatus(message, state) {
+          if (!status) return;
+          status.textContent = message;
+          status.dataset.state = state || '';
+          status.setAttribute('role', state === 'error' ? 'alert' : 'status');
+        }
+
+        function setLoading(isLoading) {
+          if (!submitButton) return;
+          submitButton.disabled = isLoading;
+          submitButton.textContent = isLoading ? 'Submitting...' : (submitButton.dataset.defaultLabel || 'Notify me');
+        }
+
+        updatesForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          if (!emailInput) return;
+          var email = emailInput.value.trim();
+          emailInput.setAttribute('aria-invalid', 'false');
+
+          if (!email) {
+            emailInput.setAttribute('aria-invalid', 'true');
+            setStatus('Error: enter an email address.', 'error');
+            emailInput.focus();
+            return;
           }
+
+          if (!emailInput.checkValidity()) {
+            emailInput.setAttribute('aria-invalid', 'true');
+            setStatus('Error: enter a valid email address.', 'error');
+            emailInput.focus();
+            return;
+          }
+
+          setLoading(true);
+          setStatus('Submitting CLI update signup...', '');
+
+          var body = new FormData(updatesForm);
+          body.set('email', email);
+
+          fetch(updatesForm.action, {
+            method: updatesForm.method || 'POST',
+            body: body,
+            headers: { 'Accept': 'application/json' },
+          }).then(function(response) {
+            return response.text().then(function(text) {
+              var lower = text.toLowerCase();
+              if (response.ok) {
+                if (lower.indexOf('already') >= 0 || lower.indexOf('duplicate') >= 0 || lower.indexOf('subscribed') >= 0) {
+                  setStatus('Success: this email is already subscribed to CLI updates.', 'success');
+                } else {
+                  setStatus('Success: check your inbox for FlagLint CLI release updates.', 'success');
+                }
+                return;
+              }
+              emailInput.setAttribute('aria-invalid', 'true');
+              if (lower.indexOf('already') >= 0 || lower.indexOf('duplicate') >= 0 || lower.indexOf('subscribed') >= 0) {
+                setStatus('Success: this email is already subscribed to CLI updates.', 'success');
+              } else {
+                setStatus('Error: we could not submit the form. Your email is still in the field; try again.', 'error');
+              }
+            });
+          }).catch(function() {
+            emailInput.setAttribute('aria-invalid', 'true');
+            setStatus('Error: network problem. Your email is still in the field; try again.', 'error');
+          }).finally(function() {
+            setLoading(false);
+          });
         });
-        pill.title = 'Click to copy';
-        pill.style.cursor = 'pointer';
-      });
+      }
     });
   })();
   </script>
