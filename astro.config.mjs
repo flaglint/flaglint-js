@@ -50,6 +50,7 @@ export default defineConfig({
         },
         {
           label: "Start Here",
+          collapsed: true,
           items: [
             { label: "Overview", slug: "docs" },
             { label: "Quickstart", slug: "docs/quickstart" },
@@ -59,6 +60,7 @@ export default defineConfig({
         },
         {
           label: "Tutorials",
+          collapsed: true,
           items: [
             { label: "Migrate a Node Service", slug: "docs/tutorials/migrate-a-node-service" },
             { label: "Add OpenFeature Provider", slug: "docs/tutorials/add-openfeature-provider" },
@@ -68,6 +70,7 @@ export default defineConfig({
         },
         {
           label: "Concepts",
+          collapsed: true,
           items: [
             { label: "How FlagLint Works", slug: "docs/concepts/how-flaglint-works" },
             { label: "Safety Model", slug: "docs/concepts/safety-model" },
@@ -77,11 +80,12 @@ export default defineConfig({
         },
         {
           label: "CLI",
+          collapsed: true,
           items: [
+            { label: "audit", slug: "docs/cli/audit" },
             { label: "scan", slug: "docs/cli/scan" },
             { label: "migrate", slug: "docs/cli/migrate" },
             { label: "validate", slug: "docs/cli/validate" },
-            { label: "audit", slug: "docs/cli/audit" },
             { label: "Configuration", slug: "docs/cli/configuration" },
             { label: "Report Formats", slug: "docs/cli/report-formats" },
             { label: "Exit Codes", slug: "docs/cli/exit-codes" },
@@ -89,6 +93,7 @@ export default defineConfig({
         },
         {
           label: "Guides",
+          collapsed: true,
           items: [
             { label: "Express", slug: "docs/guides/express" },
             { label: "NestJS", slug: "docs/guides/nestjs" },
@@ -99,16 +104,17 @@ export default defineConfig({
         },
         {
           label: "Reference",
+          collapsed: true,
           items: [
             { label: "Supported Scope", slug: "docs/reference/supported-scope" },
             { label: "Limitations", slug: "docs/reference/limitations" },
-            { label: "Security", slug: "docs/reference/security" },
             { label: "FAQ", slug: "docs/reference/faq" },
             { label: "Changelog", slug: "docs/reference/changelog" },
           ],
         },
         {
           label: "Integrations",
+          collapsed: true,
           items: [
             { label: "GitHub Actions", slug: "docs/integrations/github-actions" },
             { label: "OpenTelemetry", slug: "docs/integrations/opentelemetry" },
@@ -116,6 +122,7 @@ export default defineConfig({
         },
         {
           label: "Trust",
+          collapsed: true,
           items: [
             { label: "Security", slug: "docs/trust/security" },
             { label: "Privacy", slug: "docs/trust/privacy" },

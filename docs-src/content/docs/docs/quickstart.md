@@ -6,23 +6,12 @@ lastUpdated: 2026-05-28
 
 ## Requirements
 
-- Node.js 20 or newer. This is read from `package.json` through the package `engines.node` value.
-- A JavaScript or TypeScript project using LaunchDarkly Node.js server-side SDK evaluation calls from:
-  - `@launchdarkly/node-server-sdk`
-  - legacy `launchdarkly-node-server-sdk`
+- Node.js 20 or newer.
+- A JavaScript or TypeScript project using LaunchDarkly Node.js server-side SDK evaluation calls from `@launchdarkly/node-server-sdk` or `launchdarkly-node-server-sdk`.
 
-Browser SDKs, React SDKs, non-Node SDKs, and non-LaunchDarkly providers are outside current detection coverage and do not appear in reports.
-
-## Command Distinction
-
-- `audit`: risk-ranked human-readable overview for engineers.
-- `scan`: detailed file-level structured inventory for automation.
-- `migrate`: guarded OpenFeature rewrites where behavior can be proven.
-- `validate`: CI policy enforcement for the LaunchDarkly SDK boundary.
+Browser SDKs, React SDKs, non-Node SDKs, and non-LaunchDarkly providers are outside current detection coverage.
 
 ## 1. Run an Audit
-
-![FlagLint demo](/flaglint-demo.gif)
 
 ```bash
 npx flaglint audit ./src
@@ -58,6 +47,13 @@ The audit gives engineers a risk-ranked overview before any migration work:
 | *                     | High      | 1      | bulk call                          |
 | checkout-v2           | Medium    | 1      | safely automatable                 |
 ```
+
+**The four commands and when to use each:**
+
+- `audit` — risk-ranked overview for engineers planning a migration. Start here.
+- `scan` — detailed file-level structured inventory for automation and deeper review.
+- `migrate` — guarded OpenFeature rewrites only where behavior can be statically proven.
+- `validate` — CI gate that blocks new direct LaunchDarkly evaluation calls from entering.
 
 ## 2. Inspect Detailed Inventory With Scan
 
@@ -170,27 +166,8 @@ Completed-state demo output:
   Scanned 5 file(s).
 ```
 
-## Workflow Diagram
+---
 
-```text
-Existing Node.js service
-  -> flaglint audit
-  -> risk-ranked overview
-  -> flaglint scan
-  -> file-level structured inventory
-  -> migrate --dry-run
-  -> reviewed OpenFeature diff
-  -> migrate --apply on a branch
-  -> validate in CI
-```
+**Further reading:** [Why migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) · [Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
 
-## Further Reading
-
-- [Why LaunchDarkly → OpenFeature migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) — The argument-order difference that breaks naive codemods
-- [After the LaunchDarkly Outage: Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
-
-## Feedback
-
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/quickstart.md)
-- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
-- Next: [Why FlagLint](/docs/why-flaglint/)
+[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/quickstart.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Why FlagLint](/docs/why-flaglint/)

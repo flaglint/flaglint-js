@@ -95,10 +95,12 @@ summary:focus-visible {
 
 site-search button[data-open-modal] {
   min-height: 2.35rem;
+  max-width: 7.375rem;
   border: 1px solid var(--fl-border);
   border-radius: 0.65rem;
   background: var(--fl-surface-raised);
   color: var(--fl-text-secondary);
+  overflow: hidden;
 }
 
 site-search button[data-open-modal]:hover {
@@ -164,6 +166,10 @@ starlight-theme-select select {
 .right-sidebar-panel starlight-toc a {
   line-height: 1.35;
   padding-block: 0.18rem;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word;
 }
 
 .content-panel {
@@ -288,24 +294,30 @@ starlight-theme-select select {
   margin-block-start: 1rem;
 }
 
-/* Keep the docs TOC narrow so the main column has enough room. */
+/* Cap the total layout width and center the three-column shell. */
 @media (min-width: 72rem) {
+  .page {
+    max-width: 1500px;
+    margin-inline: auto;
+  }
+
   .right-sidebar-container {
-    width: 14rem;
+    width: 15rem;
   }
 
   [data-has-sidebar][data-has-toc] .main-pane {
-    width: calc(100% - 14rem);
+    width: calc(100% - 15rem);
   }
 
+  /* Center article content within the available column, not left-pinned. */
   [data-has-sidebar] .main-pane .content-panel .sl-container {
-    --sl-content-margin-inline: 5rem auto;
+    --sl-content-margin-inline: auto;
   }
 }
 
 /* Blog pages use the Starlight shell, but the index should read as a blog. */
 html:has(.posts) {
-  --sl-content-width: 56rem;
+  --sl-content-width: 60rem;
 }
 
 html:has(.posts) .right-sidebar-container {
@@ -319,6 +331,21 @@ html:has(.posts) .main-pane {
 
 html:has(.posts) .content-panel {
   border-top: 0;
+}
+
+/* Belt-and-suspenders: hide TOC and center content on /blog/ by canonical URL. */
+html:has(link[rel="canonical"][href$="/blog/"]) .right-sidebar-container {
+  display: none !important;
+  width: 0 !important;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .main-pane {
+  width: 100%;
+}
+
+html:has(link[rel="canonical"][href$="/blog/"]) .content-panel .sl-container {
+  --sl-content-margin-inline: auto;
+  max-width: 60rem;
 }
 
 html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type {
@@ -338,7 +365,7 @@ html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type h1 
 }
 
 html:has(link[rel="canonical"][href$="/blog/"]) .content-panel:first-of-type .sl-container::after {
-  content: "Engineering notes on LaunchDarkly audits, OpenFeature migrations, AST-based codemods, CI enforcement, and feature-flag architecture.";
+  content: "Engineering notes on auditing LaunchDarkly usage, migrating safely to OpenFeature, and enforcing provider-neutral feature-flag boundaries.";
   display: block;
   max-width: 44rem;
   margin-top: 1rem;
@@ -478,4 +505,56 @@ html:has(.posts) article.preview footer a:hover {
   html:has(.posts) article.preview h2 {
     font-size: 1.65rem;
   }
+}
+
+/* ── Typography ──────────────────────────────────────────────────────────── */
+
+/* Smaller, tighter page titles — Starlight renders h1 outside .sl-markdown-content */
+.sl-container h1,
+.page-title,
+.sl-markdown-content h1 {
+  font-size: clamp(2rem, 3vw, 2.75rem) !important;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+/* Darken body copy slightly for long-form readability. */
+:root {
+  --fl-text-secondary: #3d4a44;
+}
+
+:root[data-theme="dark"] {
+  --fl-text-secondary: #c8d4ce;
+}
+
+/* ── Right-side TOC improvements ─────────────────────────────────────────── */
+
+/* Allow long heading labels to wrap — reinforce with higher specificity. */
+.right-sidebar-panel starlight-toc nav a {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  word-break: break-word;
+  line-height: 1.45;
+  padding-block: 0.22rem;
+}
+
+/* Green only for the active heading; muted for all others. */
+.right-sidebar-panel starlight-toc a[aria-current="true"] {
+  color: var(--fl-brand);
+  font-weight: 650;
+}
+
+/* Hide the TOC rail when there is only one entry (nothing to navigate). */
+.right-sidebar-container:has(starlight-toc li:only-child) {
+  display: none;
+}
+
+/* ── Mermaid diagram canvas ──────────────────────────────────────────────── */
+
+.sl-markdown-content pre.mermaid {
+  background: transparent;
+  border: none;
+  padding: 0;
+  max-width: 38rem;
 }
