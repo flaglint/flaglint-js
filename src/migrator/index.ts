@@ -7,6 +7,7 @@ import type {
   MigrationValueType,
   ScanResult,
 } from "../types.js";
+import { computeReadiness } from "../readiness/readiness.js";
 
 declare const __PKG_VERSION__: string;
 
@@ -114,12 +115,6 @@ function buildEvidenceItem(item: MigrationInventoryItem): MigrationItem {
   };
 }
 
-function calcReadinessScore(items: MigrationInventoryItem[]): number {
-  if (items.length === 0) return 0;
-  const safeCount = items.filter((item) => item.safelyAutomatable).length;
-  const score = Math.round((safeCount / items.length) * 100);
-  return safeCount === items.length ? 100 : Math.min(score, 99);
-}
 
 function calcRequiredPackages(items: MigrationInventoryItem[]): string[] {
   return items.some(isServerInventoryItem) ? ["@openfeature/server-sdk"] : [];
@@ -141,7 +136,7 @@ export function analyze(result: ScanResult): MigrationAnalysis {
   ).length;
   const manualReviewCount = totalLaunchDarklyUsages - safelyAutomatableCount;
   const autoMigrateCount = safelyAutomatableCount;
-  const readinessScore = calcReadinessScore(inventoryItems);
+  const readinessScore = computeReadiness(result.usages, inventoryItems).score ?? 0;
   const requiredPackages = calcRequiredPackages(inventoryItems);
 
   return {

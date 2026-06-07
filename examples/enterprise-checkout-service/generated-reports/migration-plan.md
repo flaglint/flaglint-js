@@ -1,52 +1,11 @@
 # FlagLint migrate --dry-run
 
-These diffs use the placeholder `openFeatureClient` and require OpenFeature provider/client setup before they can be applied.
+The transformations below use proven OpenFeature client bindings already present in the affected files.
 No files are modified by dry-run output.
 
 Reviewable diffs: 10
 Diffs requiring provider setup: 0
-Skipped usages: 9
-
-## Provider Setup (Required Before Applying Diffs)
-
-LaunchDarkly remains your feature flag provider.
-OpenFeature becomes the evaluation API your application code calls.
-You add one initialization step; **do not remove any LaunchDarkly packages** —
-the OpenFeature provider depends on them at runtime.
-
-### 1. Install packages
-
-```sh
-npm install @openfeature/server-sdk @launchdarkly/node-server-sdk @launchdarkly/openfeature-node-server
-```
-
-### 2. Initialize once at application startup
-
-Add the following to your application bootstrap (do not apply automatically):
-
-```typescript
-import { OpenFeature } from "@openfeature/server-sdk";
-import { LaunchDarklyProvider } from "@launchdarkly/openfeature-node-server";
-
-const ldProvider = new LaunchDarklyProvider(process.env.LD_SDK_KEY!);
-await OpenFeature.setProviderAndWait(ldProvider);
-
-// Share this client across your application.
-// Replace the `openFeatureClient` placeholder in the diffs below.
-const openFeatureClient = OpenFeature.getClient();
-```
-
-### 3. Evaluation context — targeting key
-
-LaunchDarkly requires a targeting key in every evaluation context. The
-provider accepts either OpenFeature `targetingKey` or an existing
-LaunchDarkly `key`.
-Keep your existing LaunchDarkly `key` contexts, or use `targetingKey`
-for new OpenFeature-native contexts:
-
-```typescript
-{ targetingKey: user.id } // or { key: user.id }
-```
+Skipped usages: 10
 
 ## Diffs
 ```diff
@@ -100,4 +59,6 @@ diff --git a/product.ts b/product.ts
 - flags-wrapper.ts:70:11 — `flagKey` via `stringVariation`: dynamic key requires manual review
 - flags-wrapper.ts:73:11 — `flagKey` via `numberVariation`: dynamic key requires manual review
 - flags-wrapper.ts:75:9 — `flagKey` via `jsonVariation`: dynamic key requires manual review
+- flags-wrapper.ts:86:9 — `flagKey` via `variation`: dynamic key requires manual review
 - product.ts:52:9 — `flagKey` via `boolVariation`: dynamic key requires manual review
+

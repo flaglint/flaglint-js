@@ -1,4 +1,6 @@
 import type { FlagUsage, MigrationInventoryItem, ScanResult } from "../types.js";
+import { computeReadiness, type MigrationReadiness } from "../readiness/readiness.js";
+export type { MigrationReadiness, ReadinessIssueBreakdown } from "../readiness/readiness.js";
 
 export type FlagRiskLevel = "high" | "medium" | "low";
 
@@ -37,6 +39,7 @@ export interface AuditSummary {
 export interface AuditReport {
   summary: AuditSummary;
   flags: AuditFlagEntry[];
+  readiness: MigrationReadiness;
 }
 
 function scoreFlag(
@@ -170,5 +173,7 @@ export function buildAuditReport(
     scanRoot: scanResult.scanRoot,
   };
 
-  return { summary, flags };
+  const readiness = computeReadiness(scanResult.usages, inventoryItems);
+
+  return { summary, flags, readiness };
 }
