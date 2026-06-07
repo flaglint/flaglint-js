@@ -12,11 +12,16 @@ Set TypingSpeed 40ms
 Set PlaybackSpeed 1
 
 # ─────────────────────────────────────────
-# Hidden setup: VHS spawns a bare bash (no .bashrc, no nvm), so put the
-# linked flaglint (v0.5.4) and node/npx on PATH. Not shown in the recording.
+# Hidden setup: VHS spawns a bare bash (no .bashrc, no nvm), so put
+# node/npm on PATH and link the local build so "flaglint" resolves to
+# dist/bin/flaglint.js. Run "npm run build:cli && npm link" before recording.
 # ─────────────────────────────────────────
 Hide
 Type `export PATH="/Users/krishankantsharma/.nvm/versions/node/v22.22.2/bin:/usr/local/bin:/usr/bin:/bin:$PATH"`
+Enter
+Type "npm link"
+Enter
+Type "cd examples/enterprise-checkout-service"
 Enter
 Type "clear"
 Enter
@@ -25,11 +30,7 @@ Show
 # ─────────────────────────────────────────
 # SCENE 1: audit with readiness
 # ─────────────────────────────────────────
-Type "cd flaglint-demo"
-Enter
-Sleep 500ms
-
-Type "npx flaglint@latest audit ./src"
+Type "flaglint audit ./src --config .flaglintrc"
 Enter
 Sleep 4s
 Sleep 1500ms
@@ -37,7 +38,7 @@ Sleep 1500ms
 # ─────────────────────────────────────────
 # SCENE 2: audit with effort estimate
 # ─────────────────────────────────────────
-Type "npx flaglint@latest audit ./src --cost-estimate"
+Type "flaglint audit ./src --config .flaglintrc --cost-estimate"
 Enter
 Sleep 4s
 Sleep 1500ms
@@ -45,7 +46,7 @@ Sleep 1500ms
 # ─────────────────────────────────────────
 # SCENE 3: validate against clean migrated directory
 # ─────────────────────────────────────────
-Type "npx flaglint@latest validate ./after-complete --no-direct-launchdarkly"
+Type "flaglint validate ./after-complete --no-direct-launchdarkly"
 Enter
 Sleep 4s
 Sleep 1500ms

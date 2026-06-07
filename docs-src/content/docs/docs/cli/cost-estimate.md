@@ -76,7 +76,7 @@ totalHigh = max(4, round1(automationHigh + manualHigh + validationHigh))
 | `validationMultiplier` | 0.3 | Validation overhead as a fraction of automation + manual total |
 | `minimumHours` | 4 | Floor applied to both low and high totals |
 
-These defaults are configurable planning heuristics, not observed industry benchmarks.
+These defaults are planning heuristics, not observed industry benchmarks.
 
 ## Hourly Rate (--hourly-rate)
 

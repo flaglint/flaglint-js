@@ -14,10 +14,11 @@ safely automatable calls ÷ total detected direct LaunchDarkly calls × 100
 ```
 
 A call is counted as **safely automatable** when FlagLint can statically prove that the
-flag key is a string literal, the fallback value and type are known, and a supported
-OpenFeature client binding is present. Every other call — dynamic keys, detail evaluations,
-bulk calls, ambiguous clients, unknown fallbacks — is counted as **requiring manual review**
-and is excluded from the automatable numerator.
+flag key is a string literal, the fallback value and type are known, the LaunchDarkly source
+client is traceable to a supported SDK import, and a configured OpenFeature destination
+binding is present. Every other call — dynamic keys, detail evaluations, bulk calls,
+ambiguous clients, unknown fallbacks — is counted as **requiring manual review** and is
+excluded from the automatable numerator.
 
 ## Grade Thresholds
 
