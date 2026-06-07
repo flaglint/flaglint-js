@@ -48,6 +48,9 @@
     "test:run": "vitest run",
     "pretest:coverage": "npm run build:cli",
     "test:coverage": "vitest run --coverage",
+    "preview:docs": "ASTRO_TELEMETRY_DISABLED=1 astro preview --port 4321",
+    "test:package": "tsx scripts/test-package.ts",
+    "test:smoke": "playwright test",
     "new-branch": "tsx scripts/new-branch.ts",
     "release:patch": "tsx scripts/release.ts patch",
     "release:minor": "tsx scripts/release.ts minor",
@@ -66,6 +69,7 @@
   },
   "devDependencies": {
     "@astrojs/starlight": "^0.39.2",
+    "@playwright/test": "^1.60.0",
     "@types/micromatch": "^4.0.10",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.1.6",

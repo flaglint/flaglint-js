@@ -11,24 +11,96 @@ env:
 
 jobs:
   test:
+    name: Test Node ${{ matrix.node-version }}
     runs-on: ubuntu-latest
+
     strategy:
+      fail-fast: false
       matrix:
         node-version: [20, 22]
+
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
+
       - run: npm ci
 
-      - name: Type check (src)
+      - name: Type check
         run: npm run typecheck
 
-      - run: npm run test:coverage
-      - uses: actions/upload-artifact@v4
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Upload coverage
         if: matrix.node-version == 22
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage/
+
+  smoke-windows:
+    name: Smoke Windows Node 22
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Test
+        run: npm run test:run
+
+  package-e2e:
+    name: Package E2E
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build and verify package
+        run: npm run test:package
+
+  website-smoke:
+    name: Website Smoke
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build docs
+        run: npm run build:docs
+        env:
+          ASTRO_TELEMETRY_DISABLED: "1"
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Website smoke tests
+        run: npm run test:smoke
