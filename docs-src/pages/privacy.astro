@@ -6,9 +6,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Privacy — FlagLint</title>
-  <meta name="description" content="FlagLint is a local CLI. This website does not collect source code or set cookies. Learn what the website and CLI do and do not collect.">
+  <meta name="description" content="FlagLint is a local CLI. Learn what the website, CLI, and Stay updated email form collect and do not collect.">
   <meta property="og:title" content="Privacy — FlagLint">
-  <meta property="og:description" content="FlagLint is a local static-analysis CLI. This website does not collect source code, set cookies, or run analytics scripts.">
+  <meta property="og:description" content="FlagLint is a local static-analysis CLI. The website has a CLI updates form and does not collect source code.">
   <meta property="og:url" content="https://flaglint.dev/privacy">
   <meta property="og:site_name" content="FlagLint">
   <meta property="og:type" content="website">
@@ -78,7 +78,6 @@
       gap: 20px;
     }
     .logo { font-size: 18px; font-weight: 700; color: var(--text-primary); text-decoration: none; }
-    .logo span { color: var(--accent); }
     .nav-links {
       display: flex;
       gap: 22px;
@@ -235,12 +234,9 @@
 
 <nav>
   <div class="nav-inner">
-    <a href="/" class="logo">Flag<span>Lint</span></a>
+    <a href="/" class="logo" aria-label="FlagLint">FlagLint</a>
     <div class="nav-links" aria-label="Primary navigation">
-      <a href="/docs/quickstart">Quickstart</a>
-      <a href="/docs/tutorials/migrate-a-node-service">Migration</a>
-      <a href="/docs/integrations/github-actions">CI</a>
-      <a href="/docs/reference/supported-scope">Scope</a>
+      <a href="/docs/">Docs</a>
       <a href="/blog/">Blog</a>
       <a href="/docs/" class="nav-search" id="nav-search-btn" title="Search docs (⌘K)" aria-label="Search documentation">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
@@ -281,8 +277,8 @@
   </p>
   <p>
     <strong>The CLI does not transmit source code, flag keys, file paths, LaunchDarkly SDK
-    keys, migration reports, or any other data to FlagLint-owned or third-party infrastructure.</strong>
-    No outbound network connections are made during scan, migration, or validation.
+    keys, migration reports, or any other data to FlagLint-owned infrastructure.</strong>
+    Source-derived data remains local unless you explicitly upload or share it elsewhere.
   </p>
 
   <div class="callout">
@@ -305,6 +301,30 @@
     <strong>flaglint.dev does not set cookies.</strong> The static pages served by this
     domain do not use cookies for any purpose. Your browser's developer tools should
     show zero cookies from flaglint.dev.
+  </p>
+
+  <h3 id="email-updates" style="font-size:17px;font-weight:600;color:var(--text-primary);margin:20px 0 10px">Email updates</h3>
+  <p>
+    When you submit the <strong>Stay updated</strong> form, FlagLint collects your email
+    address so we can send FlagLint CLI release announcements and important product
+    updates. The form is processed by <strong>Loops</strong> through the
+    <code>app.loops.so</code> newsletter form endpoint configured on the homepage.
+  </p>
+  <p>
+    Loops processes and stores the submitted email address. As part of form operation
+    and anti-abuse handling, Loops or its infrastructure may also process technical
+    metadata such as IP address, timestamp, referrer, user agent, and request metadata.
+    This processing is subject to
+    <a href="https://loops.so/privacy" target="_blank" rel="noopener noreferrer">Loops' privacy policy</a>.
+  </p>
+  <p>
+    FlagLint does not sell submitted email addresses or use them for unrelated advertising.
+    You can unsubscribe using the link in any email. To request deletion, use
+    <a href="https://github.com/flaglint/flaglint/issues" target="_blank" rel="noopener noreferrer">GitHub Issues</a>
+    for general privacy requests, or
+    <a href="https://github.com/flaglint/flaglint/security/advisories/new" target="_blank" rel="noopener noreferrer">GitHub Security Advisories</a>
+    if the request includes sensitive information. The repository does not configure a
+    dedicated privacy email address.
   </p>
 
   <h3 style="font-size:17px;font-weight:600;color:var(--text-primary);margin:20px 0 10px">Third-party services</h3>

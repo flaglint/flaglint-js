@@ -10,12 +10,12 @@ FlagLint is conservative. It separates inventory, review, and source edits so te
 
 <pre class="mermaid">
 flowchart TD
-    A["📁 Source files"] --> B["🔍 Local AST analysis"]
-    B --> C["📋 Evaluation inventory"]
-    C --> D["📄 Migration diffs / SARIF"]
-    D --> E["👤 Developer review"]
-    E -->|"approve"| F["✅ migrate --apply"]
-    E -->|"reject"| D
+    A["Source files"] --> B["Local AST analysis"]
+    B --> C["Evaluation inventory"]
+    C --> D["Migration plan / SARIF"]
+    D --> E{Developer review}
+    E -->|approve| F["migrate --apply"]
+    E -->|skip| C
 </pre>
 
 ## What `--apply` Requires

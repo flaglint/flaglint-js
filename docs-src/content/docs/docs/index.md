@@ -1,17 +1,21 @@
 ---
 title: Overview
 description: Standardize LaunchDarkly Node.js server SDK evaluation calls on OpenFeature while keeping LaunchDarkly as the provider.
-lastUpdated: 2026-05-28
+lastUpdated: 2026-06-06
 tableOfContents: false
 ---
 
-FlagLint helps platform teams inventory direct LaunchDarkly Node.js server SDK usage, plan a guarded OpenFeature migration, and enforce the new boundary in CI.
-
-![FlagLint demo](/flaglint-demo.gif)
+Most teams do not know how many direct LaunchDarkly SDK calls are in their codebase, which ones are safe to migrate, or which ones will silently break if migrated naively. FlagLint answers all three questions before you touch a line of code.
 
 ```bash
-npx flaglint scan ./src
+npx flaglint audit ./src
 ```
+
+```text
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+```
+
+No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
 
 <div class="button-grid">
   <a href="/docs/quickstart">Quickstart</a>
@@ -29,7 +33,7 @@ npx flaglint scan ./src
   </a>
   <a href="/docs/quickstart/" class="path-card">
     <strong>Trying FlagLint for the first time →</strong>
-    Run a local scan, inspect the inventory output, and confirm what is inside the supported scope.
+    Run a local audit, inspect detailed inventory with scan if needed, and preview a safe migration.
   </a>
   <a href="/docs/tutorials/migrate-a-node-service/" class="path-card">
     <strong>Migrating an existing Node.js service →</strong>
@@ -39,31 +43,6 @@ npx flaglint scan ./src
     <strong>Enforcing platform standards in CI →</strong>
     Use validation SARIF to annotate direct LaunchDarkly policy violations in pull requests.
   </a>
-</div>
-
-## Workflow
-
-<div class="workflow-grid">
-  <div class="workflow-step">
-    <strong>0. Audit</strong>
-    <code>flaglint audit ./src</code>
-  </div>
-  <div class="workflow-step">
-    <strong>1. Scan</strong>
-    <code>flaglint scan ./src</code>
-  </div>
-  <div class="workflow-step">
-    <strong>2. Migration plan</strong>
-    <code>flaglint migrate ./src --dry-run</code>
-  </div>
-  <div class="workflow-step">
-    <strong>3. Guarded apply</strong>
-    <code>flaglint migrate ./src --apply</code>
-  </div>
-  <div class="workflow-step">
-    <strong>4. CI validation</strong>
-    <code>flaglint validate ./src --no-direct-launchdarkly</code>
-  </div>
 </div>
 
 ## What FlagLint Does

@@ -1,24 +1,20 @@
 ---
 title: Quickstart
-description: Run FlagLint in two minutes, read the output, and choose the next safe step.
+description: Run your first FlagLint audit, inspect inventory, preview migration, and enforce the boundary in CI.
 lastUpdated: 2026-05-28
 ---
 
 ## Requirements
 
-- Node.js 20 or newer. This is read from `package.json` through the package `engines.node` value.
-- A JavaScript or TypeScript project using LaunchDarkly Node.js server-side SDK evaluation calls from:
-  - `@launchdarkly/node-server-sdk`
-  - legacy `launchdarkly-node-server-sdk`
+- Node.js 20 or newer.
+- A JavaScript or TypeScript project using LaunchDarkly Node.js server-side SDK evaluation calls from `@launchdarkly/node-server-sdk` or `launchdarkly-node-server-sdk`.
 
-Browser SDKs, React SDKs, non-Node SDKs, and non-LaunchDarkly providers are outside current detection coverage and do not appear in reports.
+Browser SDKs, React SDKs, non-Node SDKs, and non-LaunchDarkly providers are outside current detection coverage.
 
-## 1. Scan Your Source
-
-![FlagLint demo](/flaglint-demo.gif)
+## 1. Run an Audit
 
 ```bash
-npx flaglint scan ./src
+npx flaglint audit ./src
 ```
 
 The enterprise checkout demo in this repository contains this real TypeScript call site:
@@ -38,10 +34,45 @@ export async function isCheckoutV2Enabled(user: User): Promise<boolean> {
 Generated from `examples/enterprise-checkout-service/src`:
 
 ```text
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+```
+
+The audit gives engineers a risk-ranked overview before any migration work:
+
+```text
+| Flag Key              | Risk      | Usages | Reasons                            |
+|-----------------------|-----------|--------|------------------------------------|
+| <dynamic key>         | High      | 7      | key cannot be resolved statically  |
+| checkout-experiment   | High      | 1      | detail evaluation                  |
+| *                     | High      | 1      | bulk call                          |
+| checkout-v2           | Medium    | 1      | safely automatable                 |
+```
+
+**The four commands and when to use each:**
+
+- `audit` — risk-ranked overview for engineers planning a migration. Start here.
+- `scan` — detailed file-level structured inventory for automation and deeper review.
+- `migrate` — guarded OpenFeature rewrites only where behavior can be statically proven.
+- `validate` — CI gate that blocks new direct LaunchDarkly evaluation calls from entering.
+
+## 2. Inspect Detailed Inventory With Scan
+
+Use `scan` when you need file-level structured inventory for automation or deeper review:
+
+```bash
+npx flaglint scan ./src
+```
+
+Generated from the same demo:
+
+```text
 - Scanning ./examples/enterprise-checkout-service/src...
 ✓ 20 flag usages found across 11 unique flags (90ms)
 ℹ  1 dynamic flag key(s) require manual review
 ```
+
+Audit groups detected calls into risk findings. Scan reports file-level usages
+and unique static keys, so totals may differ.
 
 The Markdown report inventory includes the detected static and manual-review calls:
 
@@ -53,7 +84,7 @@ The Markdown report inventory includes the detected static and manual-review cal
 | * | 1 | 1 | allFlagsState | ✓ Active |
 ```
 
-## 2. Preview a Migration
+## 3. Preview Migration
 
 ```bash frame="none"
 npx flaglint migrate ./src --dry-run
@@ -93,7 +124,7 @@ Actual diff excerpt:
 
 FlagLint preserves the flag key, fallback value, evaluation context, inferred value type, and existing `await` behavior. It changes the call-site evaluation API from the LaunchDarkly SDK method to the matching OpenFeature value method only when the required inputs and an OpenFeature client binding are proven.
 
-## 3. Understand Manual Review
+## 4. Review Manual Cases
 
 The same dry run reports skipped usages:
 
@@ -105,13 +136,21 @@ The same dry run reports skipped usages:
 
 Dynamic keys, detail evaluations, bulk calls, unknown fallback types, configured wrappers, and ambiguous OpenFeature client bindings are reported for review and are not automatically rewritten.
 
-## 4. Add Provider Setup
+## 5. Configure OpenFeature Provider
 
 FlagLint does not generate provider/bootstrap files. LaunchDarkly remains the provider; OpenFeature becomes the application-facing evaluation API.
 
 Next: [add the LaunchDarkly OpenFeature provider](/docs/tutorials/add-openfeature-provider/).
 
-## 5. Enforce in CI
+## 6. Apply Migration on a Branch
+
+After provider setup and review, apply proven rewrites on a branch:
+
+```bash frame="none"
+npx flaglint migrate ./src --apply
+```
+
+## 7. Enforce in CI
 
 After migration, block new direct LaunchDarkly evaluation calls:
 
@@ -127,24 +166,8 @@ Completed-state demo output:
   Scanned 5 file(s).
 ```
 
-## Workflow Diagram
+---
 
-```text
-Existing Node.js service
-  -> flaglint scan
-  -> migration inventory
-  -> migrate --dry-run
-  -> reviewed OpenFeature diff
-  -> validate in CI
-```
+**Further reading:** [Why migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) · [Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
 
-## Further Reading
-
-- [Why LaunchDarkly → OpenFeature migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) — The argument-order difference that breaks naive codemods
-- [After the LaunchDarkly Outage: Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
-
-## Feedback
-
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/quickstart.md)
-- [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
-- Next: [Why FlagLint](/docs/why-flaglint/)
+[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/quickstart.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Why FlagLint](/docs/why-flaglint/)

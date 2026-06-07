@@ -161,9 +161,10 @@ Examples:
         }
 
         const { totalFlags, highRisk, mediumRisk, lowRisk } = auditReport.summary;
+        const lowRiskSegment = lowRisk > 0 ? `, ${lowRisk} low risk` : "";
         process.stderr.write(
           chalk.green(
-            `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk, ${lowRisk} low risk\n`
+            `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk${lowRiskSegment}\n`
           )
         );
 

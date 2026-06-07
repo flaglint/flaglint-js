@@ -12,12 +12,12 @@ import { LinkCard } from '@astrojs/starlight/components';
 ### Added
 
 - **`flaglint audit [dir]`** — new command that generates a local flag debt audit report.
-  Classifies every detected flag as high, medium, or low risk based on call type
-  (dynamic key, detail evaluation, bulk call, React hook), staleness signals, and
-  migration complexity. Supports `--format json`, `--format markdown`, and
-  `--format html`. No LaunchDarkly API key or credentials required.
+  Classifies detected LaunchDarkly Node.js SDK usage by migration risk based on call
+  type, static analyzability, and migration complexity. Supports `--format json`,
+  `--format markdown`, and `--format html`. No LaunchDarkly API key or credentials
+  required.
 - **`openFeatureClientBindings` in `ScanConfig`** — binding configuration is now
-  included in `ScanConfig` for future FlagLint Cloud integrations.
+  included in `ScanConfig` for local migration planning and integration code paths.
 
 ### Fixed
 
@@ -69,8 +69,8 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 ### Added
 
-- `StalenessEvaluator` injectable interface — enables FlagLint Cloud to pass an
-  API-backed evaluator without touching scanner logic.
+- `StalenessEvaluator` injectable interface — enables external evaluators without
+  touching scanner logic.
 
 ---
 

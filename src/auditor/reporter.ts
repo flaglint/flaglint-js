@@ -10,6 +10,10 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+function displayFlagKey(flag: { flagKey: string; isDynamic: boolean }): string {
+  return flag.isDynamic ? "<dynamic key>" : flag.flagKey;
+}
+
 export function formatAuditJson(report: AuditReport): string {
   return JSON.stringify(report, null, 2);
 }
@@ -28,11 +32,19 @@ export function formatAuditMarkdown(report: AuditReport): string {
 
   lines.push("## Summary");
   lines.push("");
-  lines.push("| Total Flags | High Risk | Medium Risk | Low Risk | Total Usages |");
-  lines.push("|-------------|-----------|-------------|----------|--------------|");
-  lines.push(
-    `| ${summary.totalFlags} | ${summary.highRisk} | ${summary.mediumRisk} | ${summary.lowRisk} | ${summary.totalUsages} |`
-  );
+  if (summary.lowRisk > 0) {
+    lines.push("| Total Flags | High Risk | Medium Risk | Low Risk | Total Usages |");
+    lines.push("|-------------|-----------|-------------|----------|--------------|");
+    lines.push(
+      `| ${summary.totalFlags} | ${summary.highRisk} | ${summary.mediumRisk} | ${summary.lowRisk} | ${summary.totalUsages} |`
+    );
+  } else {
+    lines.push("| Total Flags | High Risk | Medium Risk | Total Usages |");
+    lines.push("|-------------|-----------|-------------|--------------|");
+    lines.push(
+      `| ${summary.totalFlags} | ${summary.highRisk} | ${summary.mediumRisk} | ${summary.totalUsages} |`
+    );
+  }
   lines.push("");
   lines.push(
     "| Dynamic Keys | Detail Evals | Bulk Calls | Stale Signals | Safely Automatable | Manual Review |"
@@ -58,8 +70,9 @@ export function formatAuditMarkdown(report: AuditReport): string {
 
   for (const flag of flags) {
     const reasons = flag.riskReasons.join(", ") || "—";
+    const flagKey = displayFlagKey(flag);
     lines.push(
-      `| \`${flag.flagKey}\` | ${riskLabel[flag.riskLevel]} | ${flag.usageCount} | ${flag.fileCount} | ${flag.callTypes.join(", ")} | ${reasons} |`
+      `| \`${flagKey}\` | ${riskLabel[flag.riskLevel]} | ${flag.usageCount} | ${flag.fileCount} | ${flag.callTypes.join(", ")} | ${reasons} |`
     );
   }
   lines.push("");
@@ -97,8 +110,9 @@ export function formatAuditHtml(report: AuditReport): string {
   const rows = flags
     .map((f) => {
       const reasons = f.riskReasons.length > 0 ? esc(f.riskReasons.join(", ")) : "—";
+      const flagKey = displayFlagKey(f);
       return `<tr>
-          <td><code>${esc(f.flagKey)}</code></td>
+          <td><code>${esc(flagKey)}</code></td>
           <td>${riskBadge(f.riskLevel)}</td>
           <td>${f.usageCount}</td>
           <td>${f.fileCount}</td>
@@ -161,7 +175,7 @@ export function formatAuditHtml(report: AuditReport): string {
     <div class="card"><div class="card-num">${summary.totalFlags}</div><div class="card-label">Total Flags</div></div>
     <div class="card"><div class="card-num red">${summary.highRisk}</div><div class="card-label">High Risk</div></div>
     <div class="card"><div class="card-num amber">${summary.mediumRisk}</div><div class="card-label">Medium Risk</div></div>
-    <div class="card"><div class="card-num green">${summary.lowRisk}</div><div class="card-label">Low Risk</div></div>
+    ${summary.lowRisk > 0 ? `<div class="card"><div class="card-num green">${summary.lowRisk}</div><div class="card-label">Low Risk</div></div>` : ""}
     <div class="card"><div class="card-num purple">${summary.safelyAutomatable}</div><div class="card-label">Safely Automatable</div></div>
     <div class="card"><div class="card-num orange">${summary.manualReview}</div><div class="card-label">Manual Review</div></div>
   </div>

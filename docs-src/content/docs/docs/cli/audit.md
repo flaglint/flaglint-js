@@ -5,7 +5,7 @@ lastUpdated: 2026-06-02
 ---
 
 `flaglint audit` scans your source code and classifies every detected LaunchDarkly Node.js SDK
-call by risk level — high, medium, or low. It produces a shareable flag debt report without
+call by risk level. It produces a shareable flag debt report without
 modifying any files or requiring a LaunchDarkly API key.
 
 Use `flaglint audit` before a migration to understand the full scope of work, or as a
@@ -30,7 +30,7 @@ npx flaglint audit ./src
 
 ## Risk Levels
 
-Each flag is classified into one of three risk levels. Classification is based on the
+Each flag is classified by risk level. Classification is based on the
 call types detected in your source — no production data or API access is required.
 
 **High risk** — requires manual review before any migration action:
@@ -51,14 +51,12 @@ LaunchDarkly SDK call that will need to move:
   `numberVariation`, `jsonVariation`) with a proven OpenFeature client binding.
 - `jsonVariation` calls flagged for careful parity review.
 
-**Low risk** — no debt signals detected on this flag.
-
 ## Example Output
 
 Generated from `examples/enterprise-checkout-service/src`:
 
 ```text
-✓ Audit complete: 13 flags — 3 high risk, 10 medium risk, 0 low risk
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 ```
 
 ## Markdown Report Excerpt
@@ -66,15 +64,15 @@ Generated from `examples/enterprise-checkout-service/src`:
 ```text
 # FlagLint Audit Report
 
-| Total Flags | High Risk | Medium Risk | Low Risk | Total Usages |
-|-------------|-----------|-------------|----------|--------------|
-| 13          | 3         | 10          | 0        | 19           |
+| Total Flags | High Risk | Medium Risk | Total Usages |
+|-------------|-----------|-------------|--------------|
+| 13          | 3         | 10          | 19           |
 
 ## Flag Debt Inventory
 
 | Flag Key              | Risk      | Usages | Reasons                            |
 |-----------------------|-----------|--------|------------------------------------|
-| `dynamic`             | 🔴 High   | 7      | dynamic key                        |
+| `<dynamic key>`       | 🔴 High   | 7      | key cannot be resolved statically  |
 | `checkout-experiment` | 🔴 High   | 1      | detail evaluation                  |
 | `*`                   | 🔴 High   | 1      | bulk call                          |
 | `checkout-v2`         | 🟡 Medium | 1      | safely automatable                 |
@@ -106,13 +104,16 @@ Use `flaglint audit` as the first step before a migration:
 # Step 1: Understand your flag debt
 npx flaglint audit ./src --format html --output flag-debt.html
 
-# Step 2: Preview safe migrations
+# Step 2: Inspect detailed inventory if needed
+npx flaglint scan ./src --format json --output flag-inventory.json
+
+# Step 3: Preview safe migrations
 npx flaglint migrate ./src --dry-run
 
-# Step 3: Apply safe rewrites
+# Step 4: Apply safe rewrites on a branch
 npx flaglint migrate ./src --apply
 
-# Step 4: Enforce the boundary in CI
+# Step 5: Enforce the boundary in CI
 npx flaglint validate ./src --no-direct-launchdarkly
 ```
 

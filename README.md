@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Standardize LaunchDarkly usage on OpenFeature.</strong>
+  <strong>Find every direct LaunchDarkly SDK call. Migrate safely. Enforce the boundary.</strong>
 </p>
 
 <p align="center">
@@ -21,99 +21,89 @@
   </a>
 </p>
 
-# FlagLint
+---
 
-**The argument-order difference between LaunchDarkly and OpenFeature 
-silently breaks flag evaluations in production. FlagLint catches it.**
+Most teams do not know how many direct LaunchDarkly SDK calls are in their codebase, which ones are safe to migrate, or which ones will silently break if migrated naively. FlagLint answers all three questions before you touch a line of code.
 
-FlagLint inventories direct LaunchDarkly Node.js SDK calls, generates reviewable migration plans,
-and prevents new vendor-coupled flag access from entering your codebase.
-LaunchDarkly remains your provider. OpenFeature becomes the evaluation API your application code calls.
+```bash
+npx flaglint audit ./src
+```
 
-**[Documentation](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Enterprise Demo](https://flaglint.dev/docs/enterprise-demo)** · **[npm](https://npmjs.com/package/flaglint)** · **[Issues](https://github.com/flaglint/flaglint/issues)**
+```
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 
-![FlagLint demo](./flaglint-demo.gif)
+| Flag Key            | Risk   | Usages | Reasons                           |
+|---------------------|--------|--------|-----------------------------------|
+| <dynamic key>       | High   | 7      | key cannot be resolved statically |
+| checkout-experiment | High   | 1      | detail evaluation                 |
+| *                   | High   | 1      | bulk call                         |
+| checkout-v2         | Medium | 1      | safely automatable                |
+```
+
+No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
+
+**[Documentation](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[npm](https://npmjs.com/package/flaglint)**
 
 ---
 
-## Quick start
+## The problem FlagLint solves
 
-```bash
-npx flaglint scan ./src
-```
+The OpenFeature `getBooleanValue(key, defaultValue, context)` API takes arguments in a different order from LaunchDarkly's `boolVariation(key, context, defaultValue)`. A naive find-and-replace silently swaps your fallback and context, producing valid-looking code that evaluates flags incorrectly in production.
 
-```
-✔ Scanning 5 files...
-✔ Found 20 direct LaunchDarkly Node SDK calls across 11 unique flags
-⚡ 6 dynamic flag keys — manual review required
-↳ 2 detail method calls — manual review required
-
-→ Run flaglint migrate --dry-run for a reviewable migration diff
-```
-
-Preview the migration before changing anything:
-
-```bash
-npx flaglint migrate ./src --dry-run
-```
+FlagLint's static analysis proves — before rewriting anything — that the flag key is static, the fallback value and type are known, and a verified OpenFeature client binding is present. If any condition cannot be proven, the call is reported for manual review and left untouched.
 
 ---
 
 ## Workflow
 
-| Step | Command | What happens |
-|------|---------|-------------|
-| 1 | `flaglint scan ./src` | AST inventory of every direct LD Node server SDK call |
-| 2 | `flaglint migrate --dry-run` | Reviewable before/after diffs; inline provider setup guidance |
-| 3 | `flaglint migrate --apply` | Rewrites only guarded, provably automatable call-sites |
-| 4 | `flaglint validate --no-direct-launchdarkly` | CI gate: exit 1 if direct LD evaluation calls remain |
+| Step | Command | What it does |
+|------|---------|--------------|
+| 1 | `flaglint audit ./src` | Risk-ranked overview. High / medium / low per flag. No API key needed. |
+| 2 | `flaglint scan ./src` | Detailed file-level structured inventory for automation or review. |
+| 3 | `flaglint migrate ./src --dry-run` | Reviewable before/after diffs. Shows exactly what will change. |
+| 4 | `flaglint migrate ./src --apply` | Rewrites only calls with proven static inputs and a verified OpenFeature binding. |
+| 5 | `flaglint validate ./src --no-direct-launchdarkly` | CI gate — exits 1 if any direct LD evaluation call remains. |
 
 ---
 
-### `flaglint audit [dir]`
-
-Generates a local flag debt audit report. No API keys or credentials needed.
-
-```bash
-flaglint audit ./src
-flaglint audit ./src --format html --output audit.html
-flaglint audit ./src --format json
-```
-
-Produces a risk-scored inventory of every LaunchDarkly flag in your codebase — sorted by risk level (high / medium / low) with the reasons for each rating. Useful for planning migration scope before running `migrate --dry-run`.
-
----
-
-## Before → After (real output from enterprise demo)
+## Before and after
 
 ```diff
---- a/checkout.ts
-+++ b/checkout.ts
+--- a/src/routes/checkout.ts
++++ b/src/routes/checkout.ts
 -  return ldClient.boolVariation("checkout-v2", ctx, false);
 +  return openFeatureClient.getBooleanValue("checkout-v2", false, ctx);
 
 -  return ldClient.stringVariation("payment-provider", ctx, "stripe");
 +  return openFeatureClient.getStringValue("payment-provider", "stripe", ctx);
 
---- a/pricing.ts
-+++ b/pricing.ts
+--- a/src/services/pricing.ts
++++ b/src/services/pricing.ts
 -  return ldClient.numberVariation("discount-percentage", ctx, 0);
 +  return openFeatureClient.getNumberValue("discount-percentage", 0, ctx);
 ```
 
-Flag key, fallback value, `await`, and evaluation context are preserved exactly.
+Flag key, fallback value, evaluation context, and `await` are preserved exactly. The LaunchDarkly packages stay — the OpenFeature provider depends on them at runtime.
+
+---
+
+## What is never auto-rewritten
+
+FlagLint is intentionally conservative. These are always skipped and reported for manual review:
+
+- **Dynamic keys** — `ldClient.boolVariation(getFlagKey(user), ctx, false)`
+- **Detail evaluations** — `boolVariationDetail`, `variationDetail`
+- **Bulk calls** — `allFlags()`, `allFlagsState()`
+- **Unknown fallback types**
+- **Configured wrappers**
+- **Ambiguous OpenFeature client bindings**
+- **Browser SDKs, React SDKs, non-Node SDKs**
 
 ---
 
 ## Supported scope
 
-LaunchDarkly Node.js server-side SDK calls from `launchdarkly-node-server-sdk` and
-`@launchdarkly/node-server-sdk`. Both ESM import and CJS `require()` forms.
-
-`--apply` rewrites `boolVariation`, `stringVariation`, `numberVariation`, `jsonVariation`
-where the flag key, fallback, and OpenFeature client binding are statically explicit.
-Detail methods, dynamic keys, bulk calls, and unknown fallback types are reported for manual review.
-Browser SDKs, React SDKs, and non-LaunchDarkly providers are outside current scope.
+LaunchDarkly Node.js server-side SDK calls from `@launchdarkly/node-server-sdk` and `launchdarkly-node-server-sdk`. Both ESM and CommonJS. Node.js 20 or newer.
 
 Full coverage table: [Supported Scope](https://flaglint.dev/docs/reference/supported-scope)
 
@@ -121,29 +111,30 @@ Full coverage table: [Supported Scope](https://flaglint.dev/docs/reference/suppo
 
 ## Provider setup (one-time, manual)
 
-Before `--apply`, complete bootstrap setup once. Full instructions:
-[OpenFeature Provider Setup](https://flaglint.dev/docs/integrations/openfeature-provider)
+Before `migrate --apply`, complete provider bootstrap once:
 
-Key points:
-- `new LaunchDarklyProvider(process.env.LD_SDK_KEY!)` — SDK key constructor
-- Evaluation context accepts either `targetingKey` (OpenFeature-native) or an existing LaunchDarkly `key`
-- **Do not remove LaunchDarkly packages** — the OpenFeature provider depends on them at runtime
+```ts
+import { OpenFeature } from "@openfeature/server-sdk";
+import { LaunchDarklyProvider } from "@launchdarkly/openfeature-node-server";
 
----
+await OpenFeature.setProviderAndWait(
+  new LaunchDarklyProvider(process.env.LD_SDK_KEY!)
+);
+export const openFeatureClient = OpenFeature.getClient();
+```
 
-## Requirements
+Evaluation context accepts either `targetingKey` (OpenFeature-native) or an existing LaunchDarkly `key`. Do not remove LaunchDarkly packages — the OpenFeature provider depends on them at runtime.
 
-Node.js 20 or newer. No LaunchDarkly SDK key or credentials required for scan or migrate.
+Full instructions: [OpenFeature Provider Setup](https://flaglint.dev/docs/tutorials/add-openfeature-provider)
 
 ---
 
 ## Local analysis
 
-FlagLint runs entirely on your machine. No source code, flag keys, or file paths are
-transmitted to any external service. No outbound network connections during scan or migration.
+FlagLint runs entirely on your machine. No source code, flag keys, or file paths leave your environment. No LaunchDarkly API key or credentials are required for `audit`, `scan`, `migrate`, or `validate`.
 
 ---
 
 ## Links
 
-[Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE) · [Full docs](https://flaglint.dev/docs)
+**[Docs](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Blog](https://flaglint.dev/blog)** · [Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE)

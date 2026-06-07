@@ -72,10 +72,10 @@
     "astro": "^6.3.8",
     "clipboardy": "^4.0.0",
     "png-to-ico": "^3.0.1",
+    "starlight-blog": "^0.26.1",
     "tsup": "^8.2.4",
     "tsx": "^4.19.0",
     "typescript": "^5.5.4",
-    "vitest": "^4.1.6",
-    "starlight-blog": "^0.26.1"
+    "vitest": "^4.1.6"
   }
 }
