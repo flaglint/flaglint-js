@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://flaglint.dev/sitemap.xml
+Sitemap: https://flaglint.dev/sitemap-index.xml
