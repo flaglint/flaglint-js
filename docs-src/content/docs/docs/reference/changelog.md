@@ -7,6 +7,31 @@ tableOfContents: false
 
 import { LinkCard } from '@astrojs/starlight/components';
 
+## [0.8.0] — 2026-06-13
+
+### Breaking
+
+- **`--cost-estimate` renamed to `--effort-estimate`** — the flag outputs hours, not
+  dollars; "effort" is more accurate. Update any scripts or CI pipelines that use
+  `--cost-estimate`. The `--hourly-rate` flag is unchanged.
+
+### Fixed
+
+- Homepage email-capture / Loops signup section removed.
+- Homepage version now read from `package.json` at build time — can no longer drift
+  from the published npm version.
+- `robots.txt` sitemap URL corrected to `/sitemap-index.xml` (was `/sitemap.xml`, 404).
+- Audit sample corrected to real fixture output: 13 unique flags across 19 call sites,
+  readiness 53/100, estimate 20.8h–40h.
+
+### Infrastructure
+
+- Vitest timeouts raised to 30 s to fix flaky Windows/Node 22 CI runs.
+- `npm publish --provenance` re-enabled in release workflow.
+- `scripts/metrics/collect.mjs` added for tracking npm downloads and GitHub stats.
+
+---
+
 ## [0.7.0] — 2026-06-07
 
 ### Added
