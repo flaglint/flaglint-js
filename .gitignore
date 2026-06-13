@@ -32,3 +32,15 @@ CONTENT.md
 MEMORY.md
 CONTEXT.md
 CODEBASE.md
+
+
+# Private agent workflow — local only
+.agent-output/
+LATER.md
+tasks/
+flaglint-founder-prompt.md
+flaglint-claude-code-prompts.md
+agent-system.readme.md
+*founder-prompt*
+*claude-code-prompts*
+P0-updated.md
