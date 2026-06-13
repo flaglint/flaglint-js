@@ -51,6 +51,7 @@
     "preview:docs": "ASTRO_TELEMETRY_DISABLED=1 astro preview --port 4321",
     "test:package": "tsx scripts/test-package.ts",
     "test:smoke": "playwright test",
+    "metrics": "node scripts/metrics/collect.mjs",
     "new-branch": "tsx scripts/new-branch.ts",
     "release:patch": "tsx scripts/release.ts patch",
     "release:minor": "tsx scripts/release.ts minor",

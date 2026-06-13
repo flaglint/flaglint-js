@@ -1,4 +1,26 @@
 ---
+// Single source of truth for the displayed version: read from package.json at
+// build time so the site can never drift from the published npm version.
+import pkg from "../../package.json";
+
+const version = pkg.version;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "FlagLint",
+  description:
+    "Free, open-source CLI that finds every direct LaunchDarkly Node.js SDK call, ranks them by migration risk, and generates safe OpenFeature rewrites.",
+  url: "https://flaglint.dev",
+  downloadUrl: "https://www.npmjs.com/package/flaglint",
+  softwareVersion: version,
+  operatingSystem: "Node.js 20+",
+  applicationCategory: "DeveloperApplication",
+  offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  author: { "@type": "Person", name: "Krishan Sharma", url: "https://github.com/flaglint" },
+  license: "https://opensource.org/licenses/MIT",
+  codeRepository: "https://github.com/flaglint/flaglint",
+};
 ---
 <!DOCTYPE html>
 <html lang="en">
@@ -732,7 +754,7 @@
       color: var(--accent);
     }
 
-    /* ── Section: Final CTA + email ─────────────────────────────────── */
+    /* ── Section: Final CTA ─────────────────────────────────────────── */
     .final-cta {
       padding: 64px 24px;
     }
@@ -758,93 +780,6 @@
       font-weight: 700;
     }
     .final-links a { color: var(--accent); }
-    .signup {
-      border-top: 1px solid var(--border);
-      padding-top: 30px;
-      max-width: 520px;
-      margin: 0 auto;
-    }
-    .signup-kicker {
-      color: var(--subtle);
-      font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-    .signup h3 {
-      font-size: 18px;
-      line-height: 1.3;
-      margin-bottom: 6px;
-    }
-    .signup-copy {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.55;
-      margin-bottom: 16px;
-    }
-    .signup-form {
-      display: flex;
-      justify-content: center;
-      align-items: end;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .signup-field {
-      flex: 1;
-      min-width: 220px;
-      text-align: left;
-    }
-    .signup-label {
-      display: block;
-      color: var(--subtle);
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .signup-input {
-      width: 100%;
-      height: 42px;
-      padding: 0 13px;
-      border: 1px solid var(--border-strong);
-      border-radius: 6px;
-      background: var(--surface-soft);
-      color: var(--text);
-      font: inherit;
-      font-size: 14px;
-    }
-    .signup-input:focus-visible {
-      outline: 2px solid var(--accent);
-      outline-offset: 3px;
-    }
-    .signup-input[aria-invalid="true"] {
-      border-color: var(--danger);
-    }
-    .signup-button {
-      min-height: 42px;
-      padding: 9px 16px;
-      background: rgba(255,255,255,0.04);
-      color: var(--text);
-      border-color: var(--border);
-      white-space: nowrap;
-    }
-    .signup-button[disabled] {
-      cursor: wait;
-      opacity: 0.72;
-    }
-    .signup-note,
-    .signup-status {
-      margin-top: 10px;
-      color: var(--subtle);
-      font-size: 12px;
-      line-height: 1.5;
-    }
-    .signup-status {
-      min-height: 18px;
-      font-weight: 700;
-    }
-    .signup-status[data-state="success"] { color: var(--accent); }
-    .signup-status[data-state="error"] { color: var(--danger); }
 
     /* ── Footer ──────────────────────────────────────────────────────── */
     footer {
@@ -887,9 +822,6 @@
       .hero-body span { display: inline; }
       .workflow-copy { white-space: normal; }
       .scope-grid { grid-template-columns: 1fr; }
-      .signup-form { align-items: stretch; }
-      .signup-field { width: 100%; }
-      .signup-button { width: 100%; }
       .nav-links a:not(.github-btn):not(.nav-search) { display: none; }
       .nav-inner { padding: 0 18px; }
       .search-label,.nav-search kbd { display: none; }
@@ -900,23 +832,7 @@
   <!-- Inline theme init — runs before paint to prevent flash -->
   <script>(function(){var s=localStorage.getItem('flaglint-theme')||'dark';var r=s==='auto'?(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):s;document.documentElement.setAttribute('data-theme',r);})();</script>
 
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "FlagLint",
-  "description": "Free, open-source CLI that finds every direct LaunchDarkly Node.js SDK call, ranks them by migration risk, and generates safe OpenFeature rewrites.",
-  "url": "https://flaglint.dev",
-  "downloadUrl": "https://www.npmjs.com/package/flaglint",
-  "softwareVersion": "0.7.0",
-  "operatingSystem": "Node.js 20+",
-  "applicationCategory": "DeveloperApplication",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "author": { "@type": "Person", "name": "Krishan Sharma", "url": "https://github.com/flaglint" },
-  "license": "https://opensource.org/licenses/MIT",
-  "codeRepository": "https://github.com/flaglint/flaglint"
-}
-  </script>
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 </head>
 
 <body>
@@ -991,16 +907,16 @@
               <span class="dot yellow"></span>
               <span class="dot green"></span>
             </div>
-            <span class="term-version">flaglint v0.7.0</span>
+            <span class="term-version">flaglint v{version}</span>
           </div>
           <div class="terminal-body">
 <pre><span class="t-dim">$</span> npx flaglint audit ./src --cost-estimate
 <span class="t-dim">  Auditing ./src...</span>
 
-<span class="t-green">✓ Audit complete: 13 flags — 3 high risk, 10 medium risk</span>
+<span class="t-green">✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk</span>
 
-<span class="t-white">  Readiness: 50/100 · moderate</span>
-<span class="t-dim">  10 safely automatable · 10 require manual review</span>
+<span class="t-white">  Readiness: 53/100 · moderate</span>
+<span class="t-dim">  10 of 19 call sites safely automatable · 9 require manual review</span>
 
 <span class="t-dim">Flag Key               Risk     Usages  Reason</span>
 <span class="t-dim">────────────────────────────────────────────────────</span>
@@ -1010,7 +926,7 @@
 <span class="t-amber">checkout-v2            Medium      1   safely automatable</span>
 <span class="t-amber">payment-provider       Medium      1   safely automatable</span>
 
-<span class="t-dim">  Estimate: 22.8h – 43.9h  (</span><span class="t-green">--cost-estimate</span><span class="t-dim">)</span>
+<span class="t-dim">  Estimate: 20.8h – 40h  (</span><span class="t-green">--cost-estimate</span><span class="t-dim">)</span>
 
 <span class="t-dim">→ next:</span> <span class="t-green">flaglint migrate ./src --dry-run</span></pre>
           </div>
@@ -1236,7 +1152,7 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
     </section>
 
     <!-- ════════════════════════════════════════════════════════════════
-         SECTION 5 — FINAL CTA + EMAIL
+         SECTION 5 — FINAL CTA
     ═════════════════════════════════════════════════════════════════ -->
     <section class="final-cta">
       <div class="final-panel">
@@ -1255,38 +1171,6 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
           <a href="/docs/reference/supported-scope">Supported scope</a>
           <span>·</span>
           <a href="https://github.com/flaglint/flaglint" target="_blank" rel="noopener noreferrer">GitHub</a>
-        </div>
-
-        <div class="signup" aria-labelledby="signup-heading">
-          <div class="signup-kicker">Stay updated</div>
-          <h3 id="signup-heading">Get FlagLint release updates.</h3>
-          <p class="signup-copy">New releases and important CLI updates.</p>
-          <form
-            id="cli-updates-form"
-            class="signup-form"
-            action="https://app.loops.so/api/newsletter-form/cmpeyyijd02t40jud6lemhuu0"
-            method="POST"
-            novalidate
-          >
-            <div class="signup-field">
-              <label class="signup-label" for="cli-updates-email">Email address</label>
-              <input
-                id="cli-updates-email"
-                class="signup-input"
-                type="email"
-                name="email"
-                placeholder="you@example.com"
-                autocomplete="email"
-                required
-                aria-describedby="cli-updates-note cli-updates-status"
-              />
-            </div>
-            <button type="submit" class="btn signup-button" data-default-label="Notify me">
-              Notify me
-            </button>
-          </form>
-          <p id="cli-updates-note" class="signup-note">CLI release updates only. Unsubscribe anytime.</p>
-          <p id="cli-updates-status" class="signup-status" aria-live="polite" role="status"></p>
         </div>
       </div>
     </section>
@@ -1355,82 +1239,6 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
           window.location.href = '/docs/';
         }
       });
-
-      var updatesForm = document.getElementById('cli-updates-form');
-      if (updatesForm) {
-        var emailInput = document.getElementById('cli-updates-email');
-        var submitButton = updatesForm.querySelector('button[type="submit"]');
-        var status = document.getElementById('cli-updates-status');
-
-        function setStatus(message, state) {
-          if (!status) return;
-          status.textContent = message;
-          status.dataset.state = state || '';
-          status.setAttribute('role', state === 'error' ? 'alert' : 'status');
-        }
-
-        function setLoading(isLoading) {
-          if (!submitButton) return;
-          submitButton.disabled = isLoading;
-          submitButton.textContent = isLoading ? 'Submitting...' : (submitButton.dataset.defaultLabel || 'Notify me');
-        }
-
-        updatesForm.addEventListener('submit', function(e) {
-          e.preventDefault();
-          if (!emailInput) return;
-          var email = emailInput.value.trim();
-          emailInput.setAttribute('aria-invalid', 'false');
-
-          if (!email) {
-            emailInput.setAttribute('aria-invalid', 'true');
-            setStatus('Error: enter an email address.', 'error');
-            emailInput.focus();
-            return;
-          }
-
-          if (!emailInput.checkValidity()) {
-            emailInput.setAttribute('aria-invalid', 'true');
-            setStatus('Error: enter a valid email address.', 'error');
-            emailInput.focus();
-            return;
-          }
-
-          setLoading(true);
-          setStatus('Submitting CLI update signup...', '');
-
-          var body = new FormData(updatesForm);
-          body.set('email', email);
-
-          fetch(updatesForm.action, {
-            method: updatesForm.method || 'POST',
-            body: body,
-            headers: { 'Accept': 'application/json' },
-          }).then(function(response) {
-            return response.text().then(function(text) {
-              var lower = text.toLowerCase();
-              if (response.ok) {
-                if (lower.indexOf('already') >= 0 || lower.indexOf('duplicate') >= 0 || lower.indexOf('subscribed') >= 0) {
-                  setStatus('Success: this email is already subscribed to CLI updates.', 'success');
-                } else {
-                  setStatus('Success: check your inbox for FlagLint CLI release updates.', 'success');
-                }
-                return;
-              }
-              emailInput.setAttribute('aria-invalid', 'true');
-              if (lower.indexOf('already') >= 0 || lower.indexOf('duplicate') >= 0 || lower.indexOf('subscribed') >= 0) {
-                setStatus('Success: this email is already subscribed to CLI updates.', 'success');
-              } else {
-                setStatus('Error: we could not submit the form. Your email is still in the field; try again.', 'error');
-              }
-            });
-          }).catch(function() {
-            emailInput.setAttribute('aria-invalid', 'true');
-            setStatus('Error: network problem. Your email is still in the field; try again.', 'error');
-          }).finally(function() {
-            setLoading(false);
-          });
-        });
-      }
     });
   })();
   </script>

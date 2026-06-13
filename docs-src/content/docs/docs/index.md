@@ -12,7 +12,7 @@ npx flaglint audit ./src
 ```
 
 ```text
-✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
 ```
 
 No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
