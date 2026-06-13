@@ -66,4 +66,7 @@ jobs:
       - run: npm run build
 
       - name: Publish to npm
-        run: npm publish --access public
+        # --provenance was dropped during the May repo rename (now long
+        # propagated); re-enable it. Provenance requires the id-token: write
+        # permission granted on this job above.
+        run: npm publish --provenance --access public
