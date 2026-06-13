@@ -833,7 +833,7 @@ openFeatureClient.getBooleanValue("checkout-v2", false, context);</pre>
           <pre>npx flaglint@latest audit ./src</pre>
         </div>
         <p><strong>When to run:</strong> Before any migration work begins, and periodically as the codebase evolves.</p>
-        <p><strong>What it does:</strong> Scans source files for direct LaunchDarkly SDK calls, classifies each usage by migration risk, and produces a readiness score. Add <code>--format json</code> or <code>--format html</code> for machine-readable or browser-viewable output. Add <code>--cost-estimate</code> for a directional effort estimate.</p>
+        <p><strong>What it does:</strong> Scans source files for direct LaunchDarkly SDK calls, classifies each usage by migration risk, and produces a readiness score. Add <code>--format json</code> or <code>--format html</code> for machine-readable or browser-viewable output. Add <code>--effort-estimate</code> for a directional effort estimate.</p>
         <ul>
           <li>Does <em>not</em> modify any files</li>
           <li>Does <em>not</em> require API credentials or network access</li>

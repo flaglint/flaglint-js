@@ -37,10 +37,10 @@ Migration readiness: 53/100  ·  moderate
 10 of 19 call sites safely automatable  ·  9 require manual review
 ```
 
-Add `--cost-estimate` to include a directional planning estimate:
+Add `--effort-estimate` to include a directional planning estimate:
 
 ```bash
-npx flaglint audit ./src --cost-estimate
+npx flaglint audit ./src --effort-estimate
 ```
 
 ```

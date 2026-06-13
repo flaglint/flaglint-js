@@ -27,8 +27,8 @@ npx flaglint audit ./src
 | `--output <file>` | Write report to a file. |
 | `--config <path>` | Use an explicit config file. |
 | `--exclude-tests` | Exclude test/spec files and test directories. |
-| `--cost-estimate` | Add a directional migration-effort estimate to audit output. |
-| `--hourly-rate <number>` | Add an optional engineering-cost range using a user-supplied hourly rate. Valid only with `--cost-estimate`. |
+| `--effort-estimate` | Add a directional migration-effort estimate to audit output. |
+| `--hourly-rate <number>` | Add an optional engineering-cost range using a user-supplied hourly rate. Valid only with `--effort-estimate`. |
 
 ## Risk Levels
 
@@ -72,12 +72,12 @@ LaunchDarkly calls, expressed as a percentage from 0–100. See the
 [Migration Readiness concept page](/docs/concepts/migration-readiness/) for grade thresholds
 and a full breakdown of manual-review categories.
 
-## Cost Estimate (--cost-estimate)
+## Effort Estimate (--effort-estimate)
 
-Add `--cost-estimate` to include a directional planning estimate in the audit output:
+Add `--effort-estimate` to include a directional planning estimate in the audit output:
 
 ```bash
-npx flaglint audit ./src --cost-estimate
+npx flaglint audit ./src --effort-estimate
 ```
 
 ```text
@@ -91,7 +91,7 @@ Estimated migration effort: 20.8h – 40h
 Estimates are directional. See the report for assumptions.
 ```
 
-See the [Cost Estimation reference page](/docs/cli/cost-estimate/) for the full algorithm,
+See the [Cost Estimation reference page](/docs/cli/effort-estimate/) for the full algorithm,
 configurable defaults, and disclaimer.
 
 ## Markdown Report Excerpt
