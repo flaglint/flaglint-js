@@ -1,21 +1,21 @@
 ---
-title: Cost Estimation (--cost-estimate)
+title: Effort Estimation (--effort-estimate)
 description: Add a directional migration-effort estimate to flaglint audit output.
 lastUpdated: 2026-06-07
 ---
 
-`--cost-estimate` adds a directional planning estimate to `flaglint audit` output.
+`--effort-estimate` adds a directional planning estimate to `flaglint audit` output.
 It is a planning guide — not a savings calculation, ROI projection, billing analysis,
-or LaunchDarkly contract cost estimate.
+or LaunchDarkly contract effort estimate.
 
 ## Usage
 
 ```bash
-npx flaglint audit ./src --cost-estimate
+npx flaglint audit ./src --effort-estimate
 ```
 
 ```bash
-npx flaglint audit ./src --cost-estimate --hourly-rate 125
+npx flaglint audit ./src --effort-estimate --hourly-rate 125
 ```
 
 ## Example Output
@@ -82,11 +82,11 @@ These defaults are planning heuristics, not observed industry benchmarks.
 
 Supplying `--hourly-rate <number>` adds `costLow` and `costHigh` fields to the
 top-level estimate object in JSON output. These fields are also included in markdown
-and HTML report output. `--hourly-rate` is valid only when `--cost-estimate` is
+and HTML report output. `--hourly-rate` is valid only when `--effort-estimate` is
 also specified.
 
 ```bash
-npx flaglint audit ./src --cost-estimate --hourly-rate 125
+npx flaglint audit ./src --effort-estimate --hourly-rate 125
 ```
 
 ## Not-Applicable Behavior

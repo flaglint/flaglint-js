@@ -244,50 +244,50 @@ describe("computeEstimate — disclaimer", () => {
 
 // ── CLI integration ───────────────────────────────────────────────────────────
 
-describe("audit --cost-estimate CLI", () => {
-  it("--cost-estimate shows estimated migration effort in markdown stdout", () => {
-    const r = cli("audit", "--cost-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
+describe("audit --effort-estimate CLI", () => {
+  it("--effort-estimate shows estimated migration effort in markdown stdout", () => {
+    const r = cli("audit", "--effort-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     expect(r.stdout.toLowerCase()).toContain("estimated migration effort");
   });
 
-  it("--cost-estimate --hourly-rate 125 shows estimated cost in markdown stdout", () => {
-    const r = cli("audit", "--cost-estimate", "--hourly-rate", "125", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
+  it("--effort-estimate --hourly-rate 125 shows estimated cost in markdown stdout", () => {
+    const r = cli("audit", "--effort-estimate", "--hourly-rate", "125", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("$");
   });
 
-  it("--cost-estimate on after-complete dir shows N/A in stderr", () => {
-    const r = cli("audit", "--cost-estimate", AFTER_COMPLETE);
+  it("--effort-estimate on after-complete dir shows N/A in stderr", () => {
+    const r = cli("audit", "--effort-estimate", AFTER_COMPLETE);
     expect(r.status).toBe(0);
     expect(r.stderr).toContain("N/A");
   });
 
-  it("--format json with --cost-estimate includes estimate key", () => {
-    const r = cli("audit", "--format", "json", "--cost-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
+  it("--format json with --effort-estimate includes estimate key", () => {
+    const r = cli("audit", "--format", "json", "--effort-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     const parsed = JSON.parse(r.stdout) as Record<string, unknown>;
     expect(parsed).toHaveProperty("estimate");
     expect(parsed.estimate).not.toBeNull();
   });
 
-  it("--format json WITHOUT --cost-estimate has no estimate key", () => {
+  it("--format json WITHOUT --effort-estimate has no estimate key", () => {
     const r = cli("audit", "--format", "json", ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     const parsed = JSON.parse(r.stdout) as Record<string, unknown>;
     expect(parsed).not.toHaveProperty("estimate");
   });
 
-  it("--format json --cost-estimate on after-complete returns estimate: null", () => {
-    const r = cli("audit", "--format", "json", "--cost-estimate", AFTER_COMPLETE);
+  it("--format json --effort-estimate on after-complete returns estimate: null", () => {
+    const r = cli("audit", "--format", "json", "--effort-estimate", AFTER_COMPLETE);
     expect(r.status).toBe(0);
     const parsed = JSON.parse(r.stdout) as Record<string, unknown>;
     expect(parsed).toHaveProperty("estimate");
     expect(parsed.estimate).toBeNull();
   });
 
-  it("enterprise demo --cost-estimate produces revised default hours (22.8h – 43.9h)", () => {
-    const r = cli("audit", "--format", "json", "--cost-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
+  it("enterprise demo --effort-estimate produces revised default hours (22.8h – 43.9h)", () => {
+    const r = cli("audit", "--format", "json", "--effort-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     const parsed = JSON.parse(r.stdout) as { estimate: { hoursLow: number; hoursHigh: number } };
     expect(parsed.estimate.hoursLow).toBe(22.8);
@@ -295,7 +295,7 @@ describe("audit --cost-estimate CLI", () => {
   });
 
   it("estimate section appears before Flag Debt Inventory in markdown", () => {
-    const r = cli("audit", "--cost-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
+    const r = cli("audit", "--effort-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     const estIdx = r.stdout.indexOf("Estimated Migration Effort");
     const inventoryIdx = r.stdout.indexOf("Flag Debt Inventory");
@@ -304,36 +304,36 @@ describe("audit --cost-estimate CLI", () => {
     expect(estIdx).toBeLessThan(inventoryIdx);
   });
 
-  it("--format html --cost-estimate contains <details> and <summary>", () => {
-    const r = cli("audit", "--format", "html", "--cost-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
+  it("--format html --effort-estimate contains <details> and <summary>", () => {
+    const r = cli("audit", "--format", "html", "--effort-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     expect(r.stdout).toContain("<details");
     expect(r.stdout).toContain("<summary");
   });
 
   it("--hourly-rate 0 exits with code 2", () => {
-    const r = cli("audit", "--cost-estimate", "--hourly-rate", "0", ENTERPRISE_SRC);
+    const r = cli("audit", "--effort-estimate", "--hourly-rate", "0", ENTERPRISE_SRC);
     expect(r.status).toBe(2);
   });
 
   it("--hourly-rate -10 exits with code 2", () => {
-    const r = cli("audit", "--cost-estimate", "--hourly-rate", "-10", ENTERPRISE_SRC);
+    const r = cli("audit", "--effort-estimate", "--hourly-rate", "-10", ENTERPRISE_SRC);
     expect(r.status).toBe(2);
   });
 
   it("--hourly-rate abc exits with code 2", () => {
-    const r = cli("audit", "--cost-estimate", "--hourly-rate", "abc", ENTERPRISE_SRC);
+    const r = cli("audit", "--effort-estimate", "--hourly-rate", "abc", ENTERPRISE_SRC);
     expect(r.status).toBe(2);
   });
 
-  it("--hourly-rate without --cost-estimate warns but succeeds", () => {
+  it("--hourly-rate without --effort-estimate warns but succeeds", () => {
     const r = cli("audit", "--hourly-rate", "125", ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     expect(r.stderr).toContain("warn");
   });
 
   it("compact stderr shows directional hint when estimate is present", () => {
-    const r = cli("audit", "--cost-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
+    const r = cli("audit", "--effort-estimate", "--config", ENTERPRISE_CONFIG, ENTERPRISE_SRC);
     expect(r.status).toBe(0);
     expect(r.stderr).toContain("directional");
   });

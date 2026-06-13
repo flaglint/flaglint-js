@@ -57,4 +57,4 @@ No readiness bar or score line is printed to the terminal in this case.
 ## Further Reading
 
 - [`flaglint audit` CLI reference](/docs/cli/audit/) — command options and example output
-- [Cost Estimation (--cost-estimate)](/docs/cli/cost-estimate/) — directional effort planning
+- [Cost Estimation (--effort-estimate)](/docs/cli/effort-estimate/) — directional effort planning

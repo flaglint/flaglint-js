@@ -9,11 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- `flaglint audit --cost-estimate` — adds a directional migration-effort estimate to
+- `flaglint audit --effort-estimate` — adds a directional migration-effort estimate to
   audit output. Computes low/high hour ranges from automatable and manual-review call
   counts using configurable planning heuristics.
 - `flaglint audit --hourly-rate <rate>` — adds engineering cost projection
-  (`costLow`/`costHigh`) to the estimate. Requires `--cost-estimate`.
+  (`costLow`/`costHigh`) to the estimate. Requires `--effort-estimate`.
 - Migration readiness score displayed in `flaglint audit` terminal output: 0–100 ratio
   of safely automatable calls to total detected LaunchDarkly calls, with grade
   (`ready` | `moderate` | `complex` | `not-applicable`) and progress bar.

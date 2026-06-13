@@ -29,8 +29,8 @@ export function registerAuditCommand(program: Command): void {
     .option("-o, --output <file>", "write report to file")
     .option("-c, --config <path>", "path to .flaglintrc config file")
     .option("--exclude-tests", "exclude test files (*.test.*, *.spec.*, __tests__/, tests/)")
-    .option("--cost-estimate", "include a migration effort estimate in the report. The default assumptions are configurable planning heuristics, not observed industry benchmarks.")
-    .option("--hourly-rate <rate>", "hourly rate for cost projection (requires --cost-estimate)")
+    .option("--effort-estimate", "include a migration effort estimate in the report. The default assumptions are configurable planning heuristics, not observed industry benchmarks.")
+    .option("--hourly-rate <rate>", "hourly rate for cost projection (requires --effort-estimate)")
     .addHelpText(
       "after",
       `
@@ -38,8 +38,8 @@ Examples:
   $ flaglint audit                    generate flag debt audit report
   $ flaglint audit --format html     shareable HTML report
   $ flaglint audit --output audit.md save to file
-  $ flaglint audit --cost-estimate   include migration effort estimate
-  $ flaglint audit --cost-estimate --hourly-rate 125   include cost projection`
+  $ flaglint audit --effort-estimate   include migration effort estimate
+  $ flaglint audit --effort-estimate --hourly-rate 125   include cost projection`
     )
     .action(
       async (
@@ -49,7 +49,7 @@ Examples:
           output?: string;
           config?: string;
           excludeTests?: boolean;
-          costEstimate?: boolean;
+          effortEstimate?: boolean;
           hourlyRate?: string;
         }
       ) => {
@@ -65,9 +65,9 @@ Examples:
         // Validate --hourly-rate before doing any work
         let hourlyRate: number | undefined;
         if (options.hourlyRate !== undefined) {
-          if (!options.costEstimate) {
+          if (!options.effortEstimate) {
             process.stderr.write(
-              chalk.yellow("warn: --hourly-rate has no effect without --cost-estimate\n")
+              chalk.yellow("warn: --hourly-rate has no effect without --effort-estimate\n")
             );
           } else {
             const parsed = Number(options.hourlyRate);
@@ -161,12 +161,12 @@ Examples:
               `No LaunchDarkly SDK usage detected in ${scanResult.scannedFiles} files.\n`
             )
           );
-          if (format === "json" && options.costEstimate) {
+          if (format === "json" && options.effortEstimate) {
             // Produce a well-formed JSON report so callers get { estimate: null } consistently.
             const emptyReport = buildAuditReport(scanResult, []);
             process.stdout.write(formatAuditJson(emptyReport, { estimate: null }) + "\n");
             process.stderr.write(chalk.dim("Migration estimate: N/A\n"));
-          } else if (options.costEstimate) {
+          } else if (options.effortEstimate) {
             process.stderr.write(chalk.dim("Migration estimate: N/A\n"));
           }
           process.exit(0);
@@ -177,7 +177,7 @@ Examples:
           scanResult.migrationInventory ?? []
         );
 
-        const renderOptions: AuditRenderOptions | undefined = options.costEstimate
+        const renderOptions: AuditRenderOptions | undefined = options.effortEstimate
           ? { estimate: computeEstimate(auditReport.readiness, undefined, hourlyRate) }
           : undefined;
 
@@ -219,7 +219,7 @@ Examples:
         process.stderr.write("\n");
         if (readiness.grade === "not-applicable") {
           process.stderr.write(chalk.dim("Migration readiness: N/A — no direct LaunchDarkly calls detected.\n"));
-          if (options.costEstimate) {
+          if (options.effortEstimate) {
             process.stderr.write(chalk.dim("Migration estimate: N/A\n"));
           }
         } else {
@@ -233,7 +233,7 @@ Examples:
             )
           );
 
-          if (options.costEstimate && renderOptions?.estimate) {
+          if (options.effortEstimate && renderOptions?.estimate) {
             const est = renderOptions.estimate;
             process.stderr.write("\n");
             process.stderr.write(

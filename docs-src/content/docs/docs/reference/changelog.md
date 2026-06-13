@@ -11,17 +11,17 @@ import { LinkCard } from '@astrojs/starlight/components';
 
 ### Added
 
-- **`flaglint audit --cost-estimate`** — directional migration-effort estimate in audit
+- **`flaglint audit --effort-estimate`** — directional migration-effort estimate in audit
   output. Produces a low/high hour range from automatable and manual-review call counts.
   Assumptions and disclaimer included in all report formats.
 - **`flaglint audit --hourly-rate <rate>`** — engineering cost projection added to the
-  estimate (`costLow` / `costHigh`). Requires `--cost-estimate`.
+  estimate (`costLow` / `costHigh`). Requires `--effort-estimate`.
 - **Migration readiness score** — `flaglint audit` now prints a 0–100 score and progress
   bar showing the fraction of safely automatable calls, with grade (`ready`, `moderate`,
   `complex`, or `not-applicable`).
 - **[Migration Readiness concept page](/docs/concepts/migration-readiness/)** — explains
   the ratio formula, grade thresholds, and the 5 manual-review categories.
-- **[Cost Estimation CLI reference](/docs/cli/cost-estimate/)** — documents the algorithm,
+- **[Effort Estimation CLI reference](/docs/cli/effort-estimate/)** — documents the algorithm,
   default assumptions, minimum-hours floor, and hourly-rate behavior.
 
 ---

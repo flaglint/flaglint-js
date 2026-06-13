@@ -84,7 +84,7 @@ export default defineConfig({
           collapsed: true,
           items: [
             { label: "audit", slug: "docs/cli/audit" },
-            { label: "Cost Estimation", slug: "docs/cli/cost-estimate" },
+            { label: "Effort Estimation", slug: "docs/cli/effort-estimate" },
             { label: "scan", slug: "docs/cli/scan" },
             { label: "migrate", slug: "docs/cli/migrate" },
             { label: "validate", slug: "docs/cli/validate" },
