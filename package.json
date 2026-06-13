@@ -1,6 +1,6 @@
 {
   "name": "flaglint",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Scan LaunchDarkly Node.js SDK usage, generate safe OpenFeature migration diffs, and enforce the vendor boundary in CI.",
   "type": "module",
   "bin": {

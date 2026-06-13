@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-06-13
+
+### Changed
+
+- **`--cost-estimate` renamed to `--effort-estimate`** (breaking) — the flag outputs
+  hours, not dollars; "effort" is more accurate. Update any scripts or CI pipelines
+  that use `--cost-estimate`.
+
+### Fixed
+
+- Homepage email-capture / Loops signup section removed.
+- Version displayed on homepage now read from `package.json` at build time — can no
+  longer drift from the published npm version.
+- `robots.txt` sitemap URL updated to `/sitemap-index.xml` (was `/sitemap.xml`, which 404'd).
+- Audit sample numbers corrected to real fixture output: 13 unique flags across 19 call
+  sites, readiness 53/100, estimate 20.8h–40h.
+
+### Infrastructure
+
+- Vitest `testTimeout`/`hookTimeout` raised to 30 s to fix flaky Windows/Node 22 CI timeouts.
+- `npm publish --provenance` re-enabled in release workflow.
+- `scripts/metrics/collect.mjs` added: fetches npm downloads + GitHub stars/forks/issues
+  and appends a JSON line to `.agent-output/metrics/history.jsonl`.
+
+---
+
 ## [0.7.0] - 2026-06-07
 
 ### Added
