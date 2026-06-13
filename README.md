@@ -30,11 +30,11 @@ npx flaglint audit ./src
 ```
 
 ```
-✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
 
-Migration readiness: 50/100  ·  moderate
-[█████████████░░░░░░░░░░░░] 50%
-10 safely automatable  ·  10 require manual review
+Migration readiness: 53/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 53%
+10 of 19 call sites safely automatable  ·  9 require manual review
 ```
 
 Add `--cost-estimate` to include a directional planning estimate:
@@ -44,13 +44,13 @@ npx flaglint audit ./src --cost-estimate
 ```
 
 ```
-✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
 
-Migration readiness: 50/100  ·  moderate
-[█████████████░░░░░░░░░░░░] 50%
-10 safely automatable  ·  10 require manual review
+Migration readiness: 53/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 53%
+10 of 19 call sites safely automatable  ·  9 require manual review
 
-Estimated migration effort: 22.8h – 43.9h
+Estimated migration effort: 20.8h – 40h
 Estimates are directional. See the report for assumptions.
 ```
 

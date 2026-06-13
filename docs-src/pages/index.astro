@@ -913,10 +913,10 @@ const jsonLd = {
 <pre><span class="t-dim">$</span> npx flaglint audit ./src --cost-estimate
 <span class="t-dim">  Auditing ./src...</span>
 
-<span class="t-green">✓ Audit complete: 13 flags — 3 high risk, 10 medium risk</span>
+<span class="t-green">✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk</span>
 
-<span class="t-white">  Readiness: 50/100 · moderate</span>
-<span class="t-dim">  10 safely automatable · 10 require manual review</span>
+<span class="t-white">  Readiness: 53/100 · moderate</span>
+<span class="t-dim">  10 of 19 call sites safely automatable · 9 require manual review</span>
 
 <span class="t-dim">Flag Key               Risk     Usages  Reason</span>
 <span class="t-dim">────────────────────────────────────────────────────</span>
@@ -926,7 +926,7 @@ const jsonLd = {
 <span class="t-amber">checkout-v2            Medium      1   safely automatable</span>
 <span class="t-amber">payment-provider       Medium      1   safely automatable</span>
 
-<span class="t-dim">  Estimate: 22.8h – 43.9h  (</span><span class="t-green">--cost-estimate</span><span class="t-dim">)</span>
+<span class="t-dim">  Estimate: 20.8h – 40h  (</span><span class="t-green">--cost-estimate</span><span class="t-dim">)</span>
 
 <span class="t-dim">→ next:</span> <span class="t-green">flaglint migrate ./src --dry-run</span></pre>
           </div>

@@ -34,7 +34,7 @@ export async function isCheckoutV2Enabled(user: User): Promise<boolean> {
 Generated from `examples/enterprise-checkout-service/src`:
 
 ```text
-✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
+✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
 ```
 
 The audit gives engineers a risk-ranked overview before any migration work:
