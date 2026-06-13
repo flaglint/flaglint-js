@@ -34,10 +34,12 @@ CONTEXT.md
 CODEBASE.md
 
 
-# Private agent workflow — local only
+# Private — local only, never committed
 .agent-output/
-LATER.md
+.claude/
 tasks/
+LATER.md
+flaglint-agent-system/
 flaglint-founder-prompt.md
 flaglint-claude-code-prompts.md
 agent-system.readme.md
