@@ -53,6 +53,7 @@ Add one optional field to `FlagUsage` (additive — existing node-server usages 
 export interface FlagUsage {
   // ... existing fields unchanged ...
   sdkSurface?: "node-server" | "react" | "js-browser";
+  flagKeyIsCamelCased?: boolean;
 }
 ```
 
@@ -253,11 +254,11 @@ All React SDK migration items must appear in the report with concrete manual ins
 
 The following notes become obsolete and must be removed from docs when React/browser SDK detection is implemented:
 
-1. `docs-src/content/docs/docs/reference/supported-scope.md` — the "Browser SDKs, React SDKs, non-Node SDKs" bullet in the "What is never auto-rewritten" section. Replace with: "React and browser SDK usages are detected and reported but always require manual migration (see React SDK support)."
+1. `docs-src/content/docs/docs/reference/supported-scope.md` line 12 — the "Browser SDKs, React SDKs, non-Node SDKs" bullet in the "What is never auto-rewritten" section. Replace with: "React and browser SDK usages are detected and reported but always require manual migration (see React SDK support)."
 
-2. `README.md` — the "Browser SDKs, React SDKs, non-Node SDKs" bullet in the "What is never auto-rewritten" list. Same replacement.
+2. `README.md` line 116 — the "Browser SDKs, React SDKs, non-Node SDKs" bullet in the "What is never auto-rewritten" list. Same replacement.
 
-3. Any inline comment in `src/scanner/index.ts` noting that React/browser packages are out of scope.
+3. `src/scanner/index.ts` line 19 — the comment "MVP scope: inventory Node server-side LaunchDarkly SDK usage" (does not contain the exact phrase but is the in-scope boundary note that should be updated when React/browser detection ships).
 
 Do NOT delete the `flaglint validate --no-direct-launchdarkly` docs note that React SDK calls are not LD server-side calls — that remains accurate for the validator's scope.
 

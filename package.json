@@ -8,7 +8,6 @@
   },
   "files": [
     "dist/",
-    "bin/",
     "README.md",
     "CHANGELOG.md",
     "LICENSE"
