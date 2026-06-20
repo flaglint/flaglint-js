@@ -257,8 +257,8 @@ describe("coverage — manualReviewBreakdown", () => {
         automatableCalls: 2,
         manualReviewCalls: 2,
         manualReviewBreakdown: [
-          { label: "Dynamic key", count: 1, explanation: "Flag key is not statically resolvable" },
-          { label: "Detail evaluation", count: 1, explanation: "Returns metadata without OF equivalent" },
+          { code: "dynamic-key", label: "Dynamic key", count: 1, explanation: "Flag key is not statically resolvable" },
+          { code: "detail-evaluation", label: "Detail evaluation", count: 1, explanation: "Returns metadata without OF equivalent" },
         ],
       },
     });
