@@ -46,12 +46,16 @@ call types detected in your source — no production data or API access is requi
 - **React/browser hook** — `useFlags`, `useLDClient`, `withLDConsumer`. Outside
   current auto-migration scope.
 
-**Medium risk** — safely automatable via `flaglint migrate`, but still a direct
-LaunchDarkly SDK call that will need to move:
+**Medium risk / Automatable** — safely rewritable via `flaglint migrate`, but still a
+direct LaunchDarkly SDK call that will need to move. Displayed as 🟢 Automatable in
+the report when the only reason is that the call is safely automatable:
 
 - Safely automatable static calls (`boolVariation`, `stringVariation`,
   `numberVariation`, `jsonVariation`) with a proven OpenFeature client binding.
 - `jsonVariation` calls flagged for careful parity review.
+
+**Medium risk (other reasons)** — direct LaunchDarkly calls that are not safely
+automatable but are not high risk. Requires manual inspection before migration.
 
 ## Example Output
 

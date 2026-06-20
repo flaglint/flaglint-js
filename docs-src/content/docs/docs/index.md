@@ -5,7 +5,7 @@ lastUpdated: 2026-06-06
 tableOfContents: false
 ---
 
-Most teams do not know how many direct LaunchDarkly SDK calls are in their codebase, which ones are safe to migrate, or which ones will silently break if migrated naively. FlagLint answers all three questions before you touch a line of code.
+One command to understand your entire LaunchDarkly migration scope — before touching a line of code.
 
 ```bash
 npx flaglint audit ./src
@@ -15,7 +15,7 @@ npx flaglint audit ./src
 ✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
 ```
 
-No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
+No API key. No source upload. Runs locally against your checkout. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application code calls.
 
 <div class="button-grid">
   <a href="/docs/quickstart">Quickstart</a>
