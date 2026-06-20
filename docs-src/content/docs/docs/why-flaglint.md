@@ -89,6 +89,8 @@ matching OpenFeature method.
 
 Ready? Run your first audit in under 2 minutes: [Quickstart →](/docs/quickstart/)
 
+Before you do — read [what FlagLint commits to you, in writing →](/docs/product-contract/)
+
 ## Feedback
 
 - [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/why-flaglint.md)

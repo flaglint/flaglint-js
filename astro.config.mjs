@@ -126,6 +126,7 @@ export default defineConfig({
           label: "Trust",
           collapsed: true,
           items: [
+            { label: "Product Contract", slug: "docs/product-contract" },
             { label: "Security", slug: "docs/trust/security" },
             { label: "Privacy", slug: "docs/trust/privacy" },
           ],
