@@ -1,4 +1,4 @@
-import type { AuditReport, FlagRiskLevel } from "./index.js";
+import type { AuditReport, FlagDisplayTier, FlagRiskLevel } from "./index.js";
 import { renderReadinessBar } from "../readiness/readiness-bar.js";
 import type { MigrationEstimate } from "../estimate/estimate.js";
 
@@ -68,6 +68,11 @@ export function formatAuditMarkdown(report: AuditReport, options?: AuditRenderOp
   );
   lines.push("");
 
+  if (summary.stalenessNote !== undefined) {
+    lines.push(`> **Staleness:** ${summary.stalenessNote}`);
+    lines.push("");
+  }
+
   lines.push("## Migration Readiness");
   lines.push("");
   if (readiness.grade === "not-applicable") {
@@ -115,9 +120,10 @@ export function formatAuditMarkdown(report: AuditReport, options?: AuditRenderOp
   lines.push("| Flag Key | Risk | Usages | Files | Call Types | Reasons |");
   lines.push("|----------|------|--------|-------|------------|---------|");
 
-  const riskLabel: Record<FlagRiskLevel, string> = {
+  const tierLabel: Record<FlagDisplayTier, string> = {
     high: "🔴 High",
     medium: "🟡 Medium",
+    automatable: "🟢 Automatable",
     low: "🟢 Low",
   };
 
@@ -125,7 +131,7 @@ export function formatAuditMarkdown(report: AuditReport, options?: AuditRenderOp
     const reasons = flag.riskReasons.join(", ") || "—";
     const flagKey = displayFlagKey(flag);
     lines.push(
-      `| \`${flagKey}\` | ${riskLabel[flag.riskLevel]} | ${flag.usageCount} | ${flag.fileCount} | ${flag.callTypes.join(", ")} | ${reasons} |`
+      `| \`${flagKey}\` | ${tierLabel[flag.displayTier]} | ${flag.usageCount} | ${flag.fileCount} | ${flag.callTypes.join(", ")} | ${reasons} |`
     );
   }
   lines.push("");
@@ -152,10 +158,12 @@ export function formatAuditHtml(report: AuditReport, options?: AuditRenderOption
     typeof __PKG_VERSION__ !== "undefined" ? __PKG_VERSION__ : "0.1.0";
   const date = new Date(summary.scannedAt).toLocaleString();
 
-  const riskBadge = (level: FlagRiskLevel): string => {
-    if (level === "high")
+  const tierBadge = (tier: FlagDisplayTier): string => {
+    if (tier === "high")
       return '<span class="badge badge-high">High</span>';
-    if (level === "medium")
+    if (tier === "automatable")
+      return '<span class="badge badge-automatable">Automatable</span>';
+    if (tier === "medium")
       return '<span class="badge badge-medium">Medium</span>';
     return '<span class="badge badge-low">Low</span>';
   };
@@ -166,7 +174,7 @@ export function formatAuditHtml(report: AuditReport, options?: AuditRenderOption
       const flagKey = displayFlagKey(f);
       return `<tr>
           <td><code>${esc(flagKey)}</code></td>
-          <td>${riskBadge(f.riskLevel)}</td>
+          <td>${tierBadge(f.displayTier)}</td>
           <td>${f.usageCount}</td>
           <td>${f.fileCount}</td>
           <td>${f.callTypes.map(esc).join(", ")}</td>
@@ -272,11 +280,14 @@ export function formatAuditHtml(report: AuditReport, options?: AuditRenderOption
     .badge-high{background:#fee2e2;color:#991b1b}
     .badge-medium{background:#fef3c7;color:#92400e}
     .badge-low{background:#dcfce7;color:#166534}
+    .badge-automatable{background:#d1fae5;color:#065f46}
     @media(prefers-color-scheme:dark){
       .badge-high{background:#7f1d1d;color:#fca5a5}
       .badge-medium{background:#78350f;color:#fcd34d}
       .badge-low{background:#14532d;color:#86efac}
+      .badge-automatable{background:#064e3b;color:#6ee7b7}
     }
+    .staleness-note{margin-top:.75rem;padding:.75rem 1rem;background:var(--surface);border:1px solid var(--border);border-radius:6px;font-size:.8125rem;color:var(--muted)}
     .estimate-block{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1.25rem;margin-bottom:1.5rem}
     .estimate-total{font-size:1.5rem;font-weight:700;margin-bottom:.75rem}
     .estimate-cost{font-size:1rem;font-weight:600;margin:.75rem 0;color:#3b82f6}
@@ -296,11 +307,13 @@ export function formatAuditHtml(report: AuditReport, options?: AuditRenderOption
   <div class="cards">
     <div class="card"><div class="card-num">${summary.totalFlags}</div><div class="card-label">Total Flags</div></div>
     <div class="card"><div class="card-num red">${summary.highRisk}</div><div class="card-label">High Risk</div></div>
-    <div class="card"><div class="card-num amber">${summary.mediumRisk}</div><div class="card-label">Medium Risk</div></div>
+    ${summary.automatableFlags > 0 ? `<div class="card"><div class="card-num green">${summary.automatableFlags}</div><div class="card-label">Automatable</div></div>` : ""}
+    ${summary.mediumRisk - summary.automatableFlags > 0 ? `<div class="card"><div class="card-num amber">${summary.mediumRisk - summary.automatableFlags}</div><div class="card-label">Medium Risk</div></div>` : ""}
     ${summary.lowRisk > 0 ? `<div class="card"><div class="card-num green">${summary.lowRisk}</div><div class="card-label">Low Risk</div></div>` : ""}
     <div class="card"><div class="card-num purple">${summary.safelyAutomatable}</div><div class="card-label">Safely Automatable</div></div>
     <div class="card"><div class="card-num orange">${summary.manualReview}</div><div class="card-label">Manual Review</div></div>
   </div>
+  ${summary.stalenessNote !== undefined ? `<div class="staleness-note"><strong>Staleness:</strong> ${esc(summary.stalenessNote)}</div>` : ""}
 
   <h2>Migration Readiness</h2>
   <div class="readiness-block">
