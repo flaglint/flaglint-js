@@ -13,6 +13,10 @@ permissions:
 jobs:
   check_dco:
     name: Check DCO
+    # Bots (dependabot, github-actions) cannot sign commits — skip for them.
+    if: |
+      github.actor != 'dependabot[bot]' &&
+      github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Run dco-check
