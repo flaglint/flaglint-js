@@ -434,3 +434,28 @@ describe("scanner — path-traversal protection", () => {
     await expect(scan(new LocalFileSource(FIXTURES), config)).rejects.toThrow(/Invalid include pattern/);
   });
 });
+
+
+describe("scanner — CJS destructured patterns", () => {
+  it("detects destructured init() require pattern", async () => {
+    const result = await scan(
+      new LocalFileSource(FIXTURES),
+      cfg("ld-cjs-destructured.ts")
+    );
+
+    expect(result.uniqueFlags).toContain(
+      "destructured-init-flag"
+    );
+  });
+
+  it("does not currently detect destructured client methods", async () => {
+    const result = await scan(
+      new LocalFileSource(FIXTURES),
+      cfg("ld-cjs-destructured.ts")
+    );
+
+    expect(result.uniqueFlags).not.toContain(
+      "destructured-method-flag"
+    );
+  });
+});
