@@ -1,7 +1,7 @@
 {
   "name": "flaglint",
   "version": "0.8.0",
-  "description": "Scan LaunchDarkly Node.js SDK usage, generate safe OpenFeature migration diffs, and enforce the vendor boundary in CI.",
+  "description": "Find every direct LaunchDarkly SDK call, detect flag debt, and generate safe OpenFeature migration plans. Static analysis — no API key required.",
   "type": "module",
   "bin": {
     "flaglint": "dist/bin/flaglint.js"
@@ -16,11 +16,20 @@
     "node": ">=20"
   },
   "keywords": [
-    "feature-flags",
     "launchdarkly",
     "openfeature",
-    "cli",
+    "feature-flags",
+    "feature-flag-migration",
+    "launchdarkly-migration",
+    "openfeature-migration",
     "flag-debt",
+    "static-analysis",
+    "codemod",
+    "cli",
+    "typescript",
+    "nodejs",
+    "cncf",
+    "migration-tool",
     "developer-tools"
   ],
   "author": "flaglint",
@@ -52,6 +61,7 @@
     "test:package": "tsx scripts/test-package.ts",
     "test:smoke": "playwright test",
     "metrics": "node scripts/metrics/collect.mjs",
+    "metrics:report": "node scripts/metrics/weekly-report.mjs",
     "new-branch": "tsx scripts/new-branch.ts",
     "release:patch": "tsx scripts/release.ts patch",
     "release:minor": "tsx scripts/release.ts minor",
