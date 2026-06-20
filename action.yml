@@ -1,0 +1,37 @@
+name: "FlagLint"
+description: "Enforce LaunchDarkly SDK policies and scan for flag debt in your codebase."
+author: "flaglint"
+
+branding:
+  icon: flag
+  color: green
+
+inputs:
+  directory:
+    description: "Directory to scan"
+    required: false
+    default: "."
+  command:
+    description: "FlagLint command to run: validate, scan, or audit"
+    required: false
+    default: "validate"
+  extra-args:
+    description: "Additional CLI flags to pass to flaglint"
+    required: false
+    default: ""
+  node-version:
+    description: "Node.js version to use"
+    required: false
+    default: "20"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Run FlagLint
+      shell: bash
+      run: npx flaglint@latest ${{ inputs.command }} ${{ inputs.directory }} --no-direct-launchdarkly ${{ inputs.extra-args }}
