@@ -454,6 +454,17 @@ describe("scanner — CJS destructured patterns", () => {
       cfg("ld-cjs-destructured.ts")
     );
 
+
+    // TODO:
+// Scanner currently does not track destructured client methods:
+//
+// const { boolVariation } = ldClient;
+// boolVariation("flag", ctx, false);
+//
+// This test documents the current behavior so that any future
+// support for destructured methods requires an intentional update
+// to the test expectations.
+
     expect(result.uniqueFlags).not.toContain(
       "destructured-method-flag"
     );
