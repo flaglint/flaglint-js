@@ -53,6 +53,7 @@ async function main() {
     console.log(`Open issues:   ${latest.openIssues ?? "n/a"}`);
     console.log(`Forks:         ${latest.forks ?? "n/a"}`);
     console.log("\n(Only one data point — run again next week for trend.)");
+    process.exitCode = 1;
     return;
   }
 
