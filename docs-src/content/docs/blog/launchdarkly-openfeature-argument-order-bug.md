@@ -149,15 +149,16 @@ Any new `ldClient.boolVariation()` call fails the build. The boundary holds.
 ## Try It Now
 
 ```bash
-npx flaglint scan ./src
+npx flaglint audit ./src
 ```
 
-Runs locally, no SDK key needed, nothing changes. Shows you every 
-direct LaunchDarkly SDK call in your codebase by file and line — 
-including dynamic keys, detail methods, and bulk state calls.
+Runs locally, no SDK key needed, nothing changes. Gives you a risk-ranked
+inventory of every direct LaunchDarkly SDK call in your codebase —
+dynamic keys, detail methods, and bulk state calls included — with a
+migration readiness score.
 
-```bash frame="none"
-flaglint migrate ./src --dry-run
+```bash
+npx flaglint migrate ./src --dry-run
 ```
 
 Shows the before/after diff for every safely automatable call site.
