@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import chalk from "chalk";
 import { registerScanCommand } from "./commands/scan.js";
 import { registerMigrateCommand } from "./commands/migrate.js";
 import { registerValidateCommand } from "./commands/validate.js";
@@ -19,6 +20,7 @@ export function createCLI(): Command {
     .version(__PKG_VERSION__, "-v, --version", "output the current version")
     .option("-q, --quiet", "suppress all informational output (errors still appear)")
     .option("--verbose", "show detailed per-file progress")
+    .option("--no-color", "disable ANSI color output")
     .addHelpText(
       "after",
       `
@@ -38,8 +40,12 @@ Examples:
     );
 
   // Set output mode before any subcommand runs
-  program.hook("preAction", () => {
-    const opts = program.opts<{ quiet?: boolean; verbose?: boolean }>();
+  program.hook("preAction", (thisCommand) => {
+    const opts = thisCommand.opts<{ quiet?: boolean; verbose?: boolean; color?: boolean }>();
+    if (opts.color === false || process.env.NO_COLOR !== undefined) {
+      chalk.level = 0;
+      process.env.NO_COLOR = "1";
+    }
     setOutputMode({ quiet: opts.quiet ?? false, verbose: opts.verbose ?? false });
   });
 

@@ -220,3 +220,37 @@ describe("Update notifier", () => {
     expect(r.stderr).toMatch(/brew upgrade flaglint/);
   });
 });
+
+// ── --no-color flag ───────────────────────────────────────────────────────────
+
+describe("CLI — --no-color flag", () => {
+  it("disables ANSI color output when --no-color is used", () => {
+    // Forcing color so chalk doesn't auto-disable in non-TTY environments
+    const r = spawnSync(process.execPath, [ENTRY, "scan", FIXTURES, "--no-color"], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, FORCE_COLOR: "1" },
+    });
+    expect(r.stderr).not.toMatch(/\x1B\[[0-9;]*m/g);
+  });
+
+  it("disables ANSI color output when NO_COLOR=1 is set", () => {
+    const r = spawnSync(process.execPath, [ENTRY, "scan", FIXTURES], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, FORCE_COLOR: "1", NO_COLOR: "1" },
+    });
+    expect(r.stderr).not.toMatch(/\x1B\[[0-9;]*m/g);
+  });
+
+  it("disables ANSI color output for audit command when NO_COLOR=1 is set", () => {
+    const r = spawnSync(process.execPath, [ENTRY, "audit", FIXTURES], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, FORCE_COLOR: "1", NO_COLOR: "1" },
+    });
+    expect(r.stderr).not.toMatch(/\x1B\[[0-9;]*m/g);
+    expect(r.stdout).not.toMatch(/\x1B\[[0-9;]*m/g);
+  });
+
+});
