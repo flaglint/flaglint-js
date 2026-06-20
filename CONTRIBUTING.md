@@ -62,6 +62,19 @@ All tests must pass and coverage must meet the configured thresholds (75% lines/
 4. Ensure `npm run test:run` and `npm run typecheck` both pass
 5. Open a PR with a clear description of the change and why
 
+
+## Pull request requirements
+
+Before a PR can be merged:
+
+- The PR title should follow Conventional Commit style, for example `fix: handle aliased LaunchDarkly imports`.
+- Commits should be DCO signed using `git commit -s`.
+- Tests, lint, and build must pass.
+- Dependency review and security checks must pass.
+- A maintainer review is required before merge.
+
+CodeRabbit feedback is advisory unless a maintainer asks for changes based on it.
+
 ## Commit format
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):

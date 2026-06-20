@@ -1,0 +1,10 @@
+# Default owner for all repository changes
+* @Krishan27
+
+# Sensitive project areas
+/.github/ @Krishan27
+/package.json @Krishan27
+/package-lock.json @Krishan27
+/src/ @Krishan27
+/tests/ @Krishan27
+/docs/ @Krishan27
