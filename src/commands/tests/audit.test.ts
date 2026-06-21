@@ -118,5 +118,6 @@ describe("audit command — stderr summary", () => {
     expect(r.stderr).toContain("flags");
     expect(r.stderr).toContain("high risk");
     expect(r.stderr).not.toContain("0 low risk");
+    expect(r.stderr).toMatch(/\d+ms|\d+\.\d+s/);
   });
 });

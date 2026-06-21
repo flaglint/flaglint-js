@@ -16,6 +16,7 @@ import {
 } from "../auditor/reporter.js";
 import { renderReadinessBar } from "../readiness/readiness-bar.js";
 import { computeEstimate } from "../estimate/estimate.js";
+import { formatDuration } from "./utils/format-duration.js";
 
 const VALID_AUDIT_FORMATS = ["json", "markdown", "html"] as const;
 type AuditFormat = (typeof VALID_AUDIT_FORMATS)[number];
@@ -211,7 +212,7 @@ Examples:
         const lowRiskSegment = lowRisk > 0 ? `, ${lowRisk} low risk` : "";
         process.stderr.write(
           chalk.green(
-            `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk${lowRiskSegment}\n`
+            `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk${lowRiskSegment} (${formatDuration(scanResult.scanDurationMs)}, ${scanResult.scannedFiles} files)\n`
           )
         );
 

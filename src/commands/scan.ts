@@ -8,6 +8,7 @@ import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { formatReport } from "../reporter/index.js";
 import { loadConfig } from "../config.js";
+import { formatDuration } from "./utils/format-duration.js";
 import type { ReportFormat, ReporterOptions } from "../types.js";
 import { isStale } from "../types.js";
 
@@ -136,7 +137,7 @@ Examples:
 
         process.stderr.write(
           chalk.green(
-            `✓ ${result.totalUsages} flag usages found across ${result.uniqueFlags.length} unique flags (${result.scanDurationMs}ms)\n`
+            `✓ Scan complete — ${result.uniqueFlags.length} unique flags across ${result.totalUsages} call sites (${formatDuration(result.scanDurationMs)}, ${result.scannedFiles} files)\n`
           )
         );
         if (staleCount > 0) {
