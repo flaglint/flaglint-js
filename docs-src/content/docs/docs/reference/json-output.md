@@ -167,9 +167,8 @@ call-site. Use `stalenessSignals.length > 0` to check if a finding is stale.
 
 ## Baseline File Format
 
-The baseline file (written by `flaglint audit --write-baseline` or
-`flaglint scan --write-baseline`) is a JSON object that should be committed to
-source control alongside your code.
+The baseline file (written by `flaglint audit --write-baseline <file>`) is a JSON
+object that should be committed to source control alongside your code.
 
 ```json
 {

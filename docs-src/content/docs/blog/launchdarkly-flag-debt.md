@@ -188,7 +188,7 @@ As you resolve manual-review call sites — extracting dynamic flag keys to name
 
 ## Next steps
 
-- [LaunchDarkly to OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) — six-step end-to-end workflow: audit, provider setup, dry-run, apply, validate
+- [LaunchDarkly to OpenFeature Node.js migration guide](/docs/guides/launchdarkly-to-openfeature-nodejs/) — six-step end-to-end workflow: audit, provider setup, dry-run, apply, validate
 - [Manual Review Patterns](/docs/guides/manual-review-patterns/) — how to resolve dynamic flag keys, detail evaluations, and bulk calls before running migrate
 - [`flaglint audit` CLI reference](/docs/cli/audit/) — all options, output formats (JSON, Markdown, HTML), and exit behavior
 - [Migration Readiness concept](/docs/concepts/migration-readiness/) — grade thresholds and the formula behind the readiness score

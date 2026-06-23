@@ -119,4 +119,4 @@ If your team uses a shared evaluation wrapper that accepts dynamic flag keys, co
 
 Wrappers are reported but never auto-rewritten.
 
-[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/guides/nestjs.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Monorepos](/docs/guides/monorepos/)
+[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/guides/nestjs.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Monorepos](/docs/guides/monorepos/)

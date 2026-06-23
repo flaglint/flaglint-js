@@ -35,6 +35,6 @@ Once application code evaluates through OpenFeature, teams can enforce a single 
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/concepts/openfeature-boundary.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/concepts/openfeature-boundary.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Source-Level Debt Signals](/docs/concepts/source-level-debt-signals/)

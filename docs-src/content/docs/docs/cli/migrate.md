@@ -36,11 +36,11 @@ npx flaglint migrate ./src --apply
 Generated from the enterprise demo:
 
 ```text
-LaunchDarkly usages found: 19
-Safely automatable: 10 · Manual review: 9
+LaunchDarkly usages found: 20
+Safely automatable: 10 · Manual review: 10
 Reviewable diffs: 10
 Diffs requiring provider setup: 0
-Skipped usages: 9
+Skipped usages: 10
 ```
 
 ```diff
@@ -62,10 +62,10 @@ Provider/bootstrap setup is never inserted automatically.
 
 ## Further Reading
 
-- [LaunchDarkly-to-OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) — see which LaunchDarkly calls require manual review and how proven rewrites are applied
+- [LaunchDarkly-to-OpenFeature Node.js migration guide](/docs/guides/launchdarkly-to-openfeature-nodejs/) — see which LaunchDarkly calls require manual review and how proven rewrites are applied
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/migrate.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/cli/migrate.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [validate CLI](/docs/cli/validate/)

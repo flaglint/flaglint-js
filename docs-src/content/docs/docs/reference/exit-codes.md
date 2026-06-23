@@ -83,6 +83,6 @@ including `--bootstrap-exclude` for allowing provider setup files.
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/reference/exit-codes.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/reference/exit-codes.md)
 - [Report an issue](https://github.com/flaglint/flaglint/issues/new)
 - Next: [FAQ](/docs/reference/faq/)

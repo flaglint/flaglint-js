@@ -47,6 +47,6 @@ For TypeScript ESM projects, configured module patterns without `.js` also recog
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/tutorials/add-openfeature-provider.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/tutorials/add-openfeature-provider.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Enforce in GitHub Actions](/docs/tutorials/enforce-in-github-actions/)

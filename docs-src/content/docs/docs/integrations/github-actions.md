@@ -89,7 +89,7 @@ flaglint.direct-launchdarkly
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/integrations/github-actions.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/integrations/github-actions.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - See also: [validate command](/docs/cli/validate/)
 - Next: [OpenTelemetry](/docs/integrations/opentelemetry/)

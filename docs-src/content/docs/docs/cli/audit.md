@@ -29,6 +29,7 @@ npx flaglint audit ./src
 | `--exclude-tests` | Exclude test/spec files and test directories. |
 | `--effort-estimate` | Add a directional migration-effort estimate to audit output. |
 | `--hourly-rate <number>` | Add an optional engineering-cost range using a user-supplied hourly rate. Valid only with `--effort-estimate`. |
+| `--write-baseline <file>` | Write current finding fingerprints to a baseline file for use with `validate --baseline --fail-on-new`. |
 
 ## Risk Levels
 
@@ -62,11 +63,11 @@ automatable but are not high risk. Requires manual inspection before migration.
 Generated from `examples/enterprise-checkout-service/src`:
 
 ```text
-✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 
-Migration readiness: 53/100  ·  moderate
-[█████████████░░░░░░░░░░░░] 53%
-10 of 19 call sites safely automatable  ·  9 require manual review
+Migration readiness: 50/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 50%
+10 safely automatable  ·  10 require manual review
 ```
 
 ## Migration Readiness
@@ -85,13 +86,13 @@ npx flaglint audit ./src --effort-estimate
 ```
 
 ```text
-✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 
-Migration readiness: 53/100  ·  moderate
-[█████████████░░░░░░░░░░░░] 53%
-10 of 19 call sites safely automatable  ·  9 require manual review
+Migration readiness: 50/100  ·  moderate
+[█████████████░░░░░░░░░░░░] 50%
+10 safely automatable  ·  10 require manual review
 
-Estimated migration effort: 20.8h – 40h
+Estimated migration effort: 22.8h – 43.9h
 Estimates are directional. See the report for assumptions.
 ```
 
@@ -158,10 +159,10 @@ npx flaglint validate ./src --no-direct-launchdarkly
 
 ## Further Reading
 
-- [LaunchDarkly-to-OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) — complete safe migration workflow including audit, migrate, and enforce
+- [LaunchDarkly-to-OpenFeature Node.js migration guide](/docs/guides/launchdarkly-to-openfeature-nodejs/) — complete safe migration workflow including audit, migrate, and enforce
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/audit.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/cli/audit.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Configuration](/docs/cli/configuration/)

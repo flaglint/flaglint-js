@@ -48,6 +48,6 @@ Ambiguous or unconfigured bindings are skipped. FlagLint does not guess that an 
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/tutorials/shared-client-architecture.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/tutorials/shared-client-architecture.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [How FlagLint Works](/docs/concepts/how-flaglint-works/)

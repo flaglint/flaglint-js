@@ -40,11 +40,11 @@ node ./dist/bin/flaglint.js migrate \
 Generated summary:
 
 ```text
-LaunchDarkly usages found: 19
-Safely automatable: 10 · Manual review: 9
+LaunchDarkly usages found: 20
+Safely automatable: 10 · Manual review: 10
 Reviewable diffs: 10
 Diffs requiring provider setup: 0
-Skipped usages: 9
+Skipped usages: 10
 ```
 
 ## 4. Apply on a Clean Branch
@@ -78,6 +78,6 @@ Generated output:
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/tutorials/migrate-a-node-service.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/tutorials/migrate-a-node-service.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Add OpenFeature Provider](/docs/tutorials/add-openfeature-provider/)
