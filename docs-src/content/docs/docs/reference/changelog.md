@@ -1,11 +1,32 @@
 ---
 title: Changelog
 description: Recent FlagLint releases and what changed.
-lastUpdated: 2026-06-20
+lastUpdated: 2026-06-22
 tableOfContents: false
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
+
+## [1.0.0] — 2026-06-22
+
+### Summary
+v1.0.0 is the CI-readiness release. The core scanner and migrator are stable. This release adds stable finding fingerprints, baseline-aware CI enforcement, and the documented safety model that makes FlagLint adoptable by platform teams without needing to fix all existing debt first.
+
+### Added
+- **Stable finding fingerprints** — each finding now carries a `fingerprint: string` field (`launchdarkly:callType:flagKey:normalizedFilePath`) that remains stable across line-number changes. Fingerprints are the foundation for baseline mode and SARIF result identity.
+- **Baseline mode** — `flaglint audit --write-baseline <file>` captures current debt fingerprints. `flaglint validate --baseline <file> --fail-on-new` fails CI only for findings not in the baseline, enabling day-one CI adoption without requiring teams to fix all historical debt first.
+- **Safety model docs** — `/docs/concepts/safety-model/` documents what FlagLint will and will not auto-rewrite, and why safety takes precedence over coverage.
+- **JSON output contract** — documented v1.x compatibility promise: existing fields will not be renamed, removed, or retyped within v1.x; new fields may be added additively only.
+- **Stable exit codes** — documented 0/1/2/3 contract: 0=success, 1=policy failure, 2=invalid input, 3=internal error.
+- **ADR 007** — stable finding fingerprint schema.
+- **ADR 008** — baseline mode design, file format, and edge case behavior.
+- **Expanded fixture coverage** — golden fixtures for bulk methods, detail methods, and false-positive guards.
+
+### Scope (v1.x)
+- **Supported:** LaunchDarkly Node.js server SDK (`@launchdarkly/node-server-sdk`, `launchdarkly-node-server-sdk`)
+- **Out of scope:** Browser SDK, React SDK, Go, Python, Java — see safety model docs
+
+---
 
 ## [0.9.0] — 2026-06-20
 
