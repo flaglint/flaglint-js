@@ -113,4 +113,4 @@ const value = await ldClient.boolVariation(getFlagKey(user), ctx, false);
 
 FlagLint reports this as high-risk and skips it. Replace with a static key or use a wrapper that evaluates per known key.
 
-[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/guides/express.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [NestJS Guide](/docs/guides/nestjs/)
+[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/guides/express.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [NestJS Guide](/docs/guides/nestjs/)

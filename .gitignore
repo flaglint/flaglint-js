@@ -24,6 +24,12 @@ scripts/agent/
 docs/agents/
 tsconfig.agent.json
 
+# Private ADRs (PROPOSED / DEFERRED — not yet public)
+docs/adr/004-policy-as-code.md
+docs/adr/004-react-sdk-detection.md
+docs/adr/005-cleanup-command.md
+docs/adr/006-go-language-support.md
+
 # Private founder and strategy documents
 VISION.md
 company-vision.md

@@ -140,8 +140,7 @@ Add it to your GitHub Actions workflow:
 
 ```yaml
 - name: Enforce OpenFeature boundary
-  run: flaglint validate ./src --no-direct-launchdarkly
-  if: always()
+  run: npx flaglint@latest validate ./src --no-direct-launchdarkly
 ```
 
 Any new `ldClient.boolVariation()` call fails the build. The boundary holds.

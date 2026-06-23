@@ -12,7 +12,7 @@ npx flaglint audit ./src
 ```
 
 ```text
-✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 ```
 
 No API key. No source upload. Runs locally against your checkout. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application code calls.
@@ -62,6 +62,6 @@ No API key. No source upload. Runs locally against your checkout. LaunchDarkly s
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/index.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/index.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Quickstart](/docs/quickstart/)

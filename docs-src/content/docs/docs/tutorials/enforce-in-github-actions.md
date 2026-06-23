@@ -48,6 +48,6 @@ SARIF findings use rule id `flaglint.direct-launchdarkly`.
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/tutorials/enforce-in-github-actions.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/tutorials/enforce-in-github-actions.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Shared Client Architecture](/docs/tutorials/shared-client-architecture/)

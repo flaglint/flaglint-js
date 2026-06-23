@@ -93,6 +93,6 @@ Before you do — read [what FlagLint commits to you, in writing →](/docs/prod
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/why-flaglint.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/why-flaglint.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Enterprise Demo](/docs/enterprise-demo/)

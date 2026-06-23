@@ -28,6 +28,7 @@ function makeUsage(overrides: Partial<FlagUsage> = {}): FlagUsage {
     line: 1,
     column: 0,
     callType: "boolVariation",
+    fingerprint: "launchdarkly:boolVariation:my-flag:src/app.ts",
     stalenessSignals: [],
     ...overrides,
   };

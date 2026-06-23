@@ -53,8 +53,8 @@ See the [GitHub Actions integration guide](/docs/integrations/github-actions/) a
 
 ## Is there a config file I can use to exclude files or configure wrappers?
 
-Yes. FlagLint reads `.flaglintrc` (or `.flaglintrc.json`, `.flaglintrc.yaml`) from the
-project root. Options include:
+Yes. FlagLint reads `.flaglintrc`, `.flaglintrc.json`, or `flaglint.config.json` from the
+project root (JSON format only — YAML config is not supported). Options include:
 
 - `exclude` — glob patterns to skip (e.g. `["**/*.test.ts", "**/fixtures/**"]`)
 - `wrappers` — custom wrapper function names that FlagLint should treat as flag evaluations
@@ -96,6 +96,6 @@ Node.js 20 or newer. FlagLint uses ESM and requires Node.js 20+.
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/reference/faq.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/reference/faq.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Changelog](/docs/reference/changelog/)

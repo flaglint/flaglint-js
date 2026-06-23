@@ -906,16 +906,16 @@ const jsonLd = {
               <span class="dot yellow"></span>
               <span class="dot green"></span>
             </div>
-            <span class="term-version">flaglint v{version}</span>
+            <span class="term-version">flaglint v1.0.0</span>
           </div>
           <div class="terminal-body">
 <pre><span class="t-dim">$</span> npx flaglint audit ./src --effort-estimate
 <span class="t-dim">  Auditing ./src...</span>
 
-<span class="t-green">✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk</span>
+<span class="t-green">✓ Audit complete: 13 flags — 3 high risk, 10 medium risk</span>
 
-<span class="t-white">  Readiness: 53/100 · moderate</span>
-<span class="t-dim">  10 of 19 call sites safely automatable · 9 require manual review</span>
+<span class="t-white">  Readiness: 50/100 · moderate</span>
+<span class="t-dim">  10 safely automatable · 10 require manual review</span>
 
 <span class="t-dim">Flag Key               Risk     Usages  Reason</span>
 <span class="t-dim">────────────────────────────────────────────────────</span>
@@ -925,7 +925,7 @@ const jsonLd = {
 <span class="t-amber">checkout-v2            Medium      1   safely automatable</span>
 <span class="t-amber">payment-provider       Medium      1   safely automatable</span>
 
-<span class="t-dim">  Estimate: 20.8h – 40h  (</span><span class="t-green">--effort-estimate</span><span class="t-dim">)</span>
+<span class="t-dim">  Estimate: 22.8h – 43.9h  (</span><span class="t-green">--effort-estimate</span><span class="t-dim">)</span>
 
 <span class="t-dim">→ next:</span> <span class="t-green">flaglint migrate ./src --dry-run</span></pre>
           </div>
@@ -950,7 +950,7 @@ const jsonLd = {
           and destination binding can all be proven.
         </p>
         <p class="section-copy" style="margin-top:1rem;">
-          <a href="/guides/launchdarkly-to-openfeature-nodejs/" style="color:var(--accent);">See the complete safe migration workflow →</a>
+          <a href="/docs/guides/launchdarkly-to-openfeature-nodejs/" style="color:var(--accent);">See the complete safe migration workflow →</a>
         </p>
 
         <div class="diff-grid" aria-label="Before and after code comparison">
@@ -1163,7 +1163,7 @@ const enabled = await <span class="arch-hi-green">client.getBooleanValue</span>(
         <div class="final-links" aria-label="Recommended next links">
           <a href="/docs/quickstart">Quickstart</a>
           <span>·</span>
-          <a href="/guides/launchdarkly-to-openfeature-nodejs/">Migration guide</a>
+          <a href="/docs/guides/launchdarkly-to-openfeature-nodejs/">Migration guide</a>
           <span>·</span>
           <a href="/docs/concepts/safety-model">Safety model</a>
           <span>·</span>

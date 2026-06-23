@@ -14,6 +14,7 @@ import type {
   ScanWarning,
 } from "../types.js";
 import { checkStale } from "../stale.js";
+import { generateFingerprint } from "./fingerprint.js";
 
 // Known LaunchDarkly Node.js server-side SDK package specifiers.
 // MVP scope: inventory Node server-side LaunchDarkly SDK usage for future
@@ -334,6 +335,7 @@ function detectUsages(
 ): { usages: FlagUsage[]; migrationInventory: MigrationInventoryItem[] } {
   const usages: FlagUsage[] = [];
   const migrationInventory: MigrationInventoryItem[] = [];
+  let dynamicIndex = 0;
 
   // Establish the set of proven LD client variables for this file.
   const ldClients = collectLDClients(ast);
@@ -367,6 +369,7 @@ function detectUsages(
             line: loc.line,
             column: loc.column,
             callType: methodName as unknown as CallType,
+            fingerprint: generateFingerprint("*", methodName as unknown as CallType, filePath),
             stalenessSignals: sig ? [sig] : [],
           });
           migrationInventory.push(
@@ -378,6 +381,7 @@ function detectUsages(
         if (LD_FLAG_KEY_METHODS.has(methodName)) {
           const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
           const sig = checkStale(flagKey, filePath);
+          const dynIdx = isDynamic ? dynamicIndex++ : undefined;
           usages.push({
             flagKey,
             isDynamic,
@@ -385,6 +389,7 @@ function detectUsages(
             line: loc.line,
             column: loc.column,
             callType: methodName as unknown as CallType,
+            fingerprint: generateFingerprint(flagKey, methodName as unknown as CallType, filePath, dynIdx),
             stalenessSignals: sig ? [sig] : [],
           });
           migrationInventory.push(
@@ -404,6 +409,7 @@ function detectUsages(
         if (name === "isFeatureEnabled") {
           const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
           const sig = checkStale(flagKey, filePath);
+          const dynIdx = isDynamic ? dynamicIndex++ : undefined;
           usages.push({
             flagKey,
             isDynamic,
@@ -411,6 +417,7 @@ function detectUsages(
             line: loc.line,
             column: loc.column,
             callType: "isFeatureEnabled",
+            fingerprint: generateFingerprint(flagKey, "isFeatureEnabled", filePath, dynIdx),
             stalenessSignals: sig ? [sig] : [],
           });
           migrationInventory.push(
@@ -422,13 +429,15 @@ function detectUsages(
         // useFlags() / useLDClient()
         if (LD_HOOKS.has(name)) {
           const sig = checkStale("*", filePath);
+          const hookCallType: CallType = name === "useFlags" ? "hook-useFlags" : "hook-useLDClient";
           usages.push({
             flagKey: "*",
             isDynamic: false,
             file: filePath,
             line: loc.line,
             column: loc.column,
-            callType: name === "useFlags" ? "hook-useFlags" : "hook-useLDClient",
+            callType: hookCallType,
+            fingerprint: generateFingerprint("*", hookCallType, filePath),
             stalenessSignals: sig ? [sig] : [],
           });
           const hookCallRange = expressionRange(call);
@@ -463,6 +472,7 @@ function detectUsages(
       ) {
         const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
         const sig = checkStale(flagKey, filePath);
+        const dynIdx = isDynamic ? dynamicIndex++ : undefined;
         usages.push({
           flagKey,
           isDynamic,
@@ -470,6 +480,7 @@ function detectUsages(
           line: loc.line,
           column: loc.column,
           callType: "variation",
+          fingerprint: generateFingerprint(flagKey, "variation", filePath, dynIdx),
           stalenessSignals: sig ? [sig] : [],
         });
         migrationInventory.push(
@@ -492,6 +503,7 @@ function detectUsages(
           line: loc.line,
           column: loc.column,
           callType: "hoc",
+          fingerprint: generateFingerprint("*", "hoc", filePath),
           stalenessSignals: sig ? [sig] : [],
         });
         return;
@@ -511,6 +523,7 @@ function detectUsages(
           line: loc.line,
           column: loc.column,
           callType: "provider",
+          fingerprint: generateFingerprint("*", "provider", filePath),
           stalenessSignals: sigP ? [sigP] : [],
         });
       }

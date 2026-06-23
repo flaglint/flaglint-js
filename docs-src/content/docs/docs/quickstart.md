@@ -34,7 +34,7 @@ export async function isCheckoutV2Enabled(user: User): Promise<boolean> {
 Generated from `examples/enterprise-checkout-service/src`:
 
 ```text
-✓ Audit complete: 13 unique flags across 19 call sites — 3 high risk, 10 medium risk
+✓ Audit complete: 13 flags — 3 high risk, 10 medium risk
 ```
 
 The audit gives engineers a risk-ranked overview before any migration work:
@@ -94,8 +94,8 @@ Generated from the same demo:
 
 ```text
 - Scanning ./examples/enterprise-checkout-service/src...
-LaunchDarkly usages found: 19
-Safely automatable: 10 · Manual review: 9
+LaunchDarkly usages found: 20
+Safely automatable: 10 · Manual review: 10
 # FlagLint migrate --dry-run
 
 The transformations below use proven OpenFeature client bindings already present in the affected files.
@@ -103,7 +103,7 @@ No files are modified by dry-run output.
 
 Reviewable diffs: 10
 Diffs requiring provider setup: 0
-Skipped usages: 9
+Skipped usages: 10
 ```
 
 Actual diff excerpt:
@@ -168,6 +168,6 @@ Completed-state demo output:
 
 ---
 
-**Further reading:** [LaunchDarkly-to-OpenFeature Node.js migration guide](/guides/launchdarkly-to-openfeature-nodejs/) · [Why migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) · [Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
+**Further reading:** [LaunchDarkly-to-OpenFeature Node.js migration guide](/docs/guides/launchdarkly-to-openfeature-nodejs/) · [Why migrations break in production](/blog/launchdarkly-openfeature-argument-order-bug/) · [Vendor-neutral abstraction without a full migration](/blog/after-launchdarkly-outage-vendor-neutral-abstraction/)
 
-[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/quickstart.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Why FlagLint](/docs/why-flaglint/)
+[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/quickstart.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Why FlagLint](/docs/why-flaglint/)

@@ -58,7 +58,7 @@ For the full report see `--format html`. [Documentation](https://flaglint.dev/do
 
 No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
 
-Migrating an existing Node.js service? Read the [complete LaunchDarkly-to-OpenFeature migration guide](https://flaglint.dev/guides/launchdarkly-to-openfeature-nodejs/).
+Migrating an existing Node.js service? Read the [complete LaunchDarkly-to-OpenFeature migration guide](https://flaglint.dev/docs/guides/launchdarkly-to-openfeature-nodejs/).
 
 ---
 
@@ -114,6 +114,8 @@ FlagLint is intentionally conservative. These are always skipped and reported fo
 - **Configured wrappers**
 - **Ambiguous OpenFeature client bindings**
 - **Browser SDKs, React SDKs, non-Node SDKs**
+
+Full rationale: [Safety Model](https://flaglint.dev/docs/concepts/safety-model/)
 
 ---
 

@@ -47,6 +47,6 @@ Use `--config <path>` to pass a specific file.
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/cli/configuration.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/cli/configuration.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Report Formats](/docs/cli/report-formats/)
