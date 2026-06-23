@@ -27,6 +27,7 @@ function makeUsage(overrides: Partial<FlagUsage>): FlagUsage {
     line: 3,
     column: 4,
     callType: "variation",
+    fingerprint: "launchdarkly:variation:legacy-flag:src/legacy.ts",
     stalenessSignals: [],
     ...overrides,
   };
@@ -52,6 +53,7 @@ function makeResult(migrationInventory: MigrationInventoryItem[]): ScanResult {
       line: item.line,
       column: item.column,
       callType: item.launchDarklyMethod,
+      fingerprint: `launchdarkly:${item.launchDarklyMethod}:${item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*")}:${item.file}`,
       stalenessSignals: [],
     })),
     migrationInventory,

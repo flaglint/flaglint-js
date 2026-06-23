@@ -12,15 +12,21 @@ import {
 // ── Test helpers ──────────────────────────────────────────────────────────────
 
 function makeScanResult(usages: Partial<FlagUsage>[] = [], scannedFiles = 3): ScanResult {
-  const full: FlagUsage[] = usages.map((u, i) => ({
-    flagKey: u.flagKey ?? "my-flag",
-    isDynamic: u.isDynamic ?? false,
-    file: u.file ?? `src/service${i}.ts`,
-    line: u.line ?? 10,
-    column: u.column ?? 5,
-    callType: u.callType ?? "boolVariation",
-    stalenessSignals: u.stalenessSignals ?? [],
-  }));
+  const full: FlagUsage[] = usages.map((u, i) => {
+    const flagKey = u.flagKey ?? "my-flag";
+    const file = u.file ?? `src/service${i}.ts`;
+    const callType = u.callType ?? "boolVariation";
+    return {
+      flagKey,
+      isDynamic: u.isDynamic ?? false,
+      file,
+      line: u.line ?? 10,
+      column: u.column ?? 5,
+      callType,
+      fingerprint: u.fingerprint ?? `launchdarkly:${callType}:${flagKey}:${file}`,
+      stalenessSignals: u.stalenessSignals ?? [],
+    };
+  });
   return {
     scannedAt: "2024-01-01T00:00:00Z",
     scanRoot: "/project",

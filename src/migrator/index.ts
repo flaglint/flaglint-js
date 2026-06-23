@@ -8,6 +8,7 @@ import type {
   ScanResult,
 } from "../types.js";
 import { computeReadiness } from "../readiness/readiness.js";
+import { generateFingerprint } from "../scanner/fingerprint.js";
 
 declare const __PKG_VERSION__: string;
 
@@ -97,14 +98,16 @@ function buildEvidenceItem(item: MigrationInventoryItem): MigrationItem {
   const before = `${item.launchDarklyMethod}(${beforeArgs.join(", ")})`;
   const equivalent = item.safelyAutomatable ? openFeatureMethod(item.valueType) : null;
 
+  const usageFlagKey = item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*");
   return {
     usage: {
-      flagKey: item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*"),
+      flagKey: usageFlagKey,
       isDynamic: item.isDynamic,
       file: item.file,
       line: item.line,
       column: item.column,
       callType: item.launchDarklyMethod,
+      fingerprint: generateFingerprint(usageFlagKey, item.launchDarklyMethod, item.file),
       stalenessSignals: [],
     },
     openFeatureEquivalent: equivalent,
