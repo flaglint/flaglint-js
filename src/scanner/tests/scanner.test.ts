@@ -470,3 +470,134 @@ describe("scanner — CJS destructured patterns", () => {
     );
   });
 });
+
+describe("scanner — allFlagsState bulk method", () => {
+  it("detects allFlagsState() with callType 'allFlagsState'", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-all-flags-state.ts"));
+    const bulk = result.usages.find((u) => u.callType === "allFlagsState");
+    expect(bulk).toBeDefined();
+  });
+
+  it("allFlagsState uses flagKey '*'", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-all-flags-state.ts"));
+    const bulk = result.usages.find((u) => u.callType === "allFlagsState");
+    expect(bulk!.flagKey).toBe("*");
+  });
+
+  it("allFlagsState is not dynamic", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-all-flags-state.ts"));
+    const bulk = result.usages.find((u) => u.callType === "allFlagsState");
+    expect(bulk!.isDynamic).toBe(false);
+  });
+
+  it("allFlagsState '*' key does NOT appear in uniqueFlags", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-all-flags-state.ts"));
+    expect(result.uniqueFlags).not.toContain("*");
+    expect(result.uniqueFlags).toHaveLength(0);
+  });
+
+  it("allFlagsState appears in migrationInventory with manualReviewReason 'bulk-inventory-call'", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-all-flags-state.ts"));
+    const item = result.migrationInventory?.find((i) => i.launchDarklyMethod === "allFlagsState");
+    expect(item).toBeDefined();
+    expect(item!.safelyAutomatable).toBe(false);
+    expect(item!.manualReviewReason).toBe("bulk-inventory-call");
+  });
+});
+
+describe("scanner — typed detail methods (ld-typed-methods.ts)", () => {
+  it("detects boolVariationDetail with correct callType", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-typed-methods.ts"));
+    const u = result.usages.find((u) => u.callType === "boolVariationDetail");
+    expect(u).toBeDefined();
+    expect(u!.flagKey).toBe("new-payment-flow");
+    expect(u!.isDynamic).toBe(false);
+  });
+
+  it("detects stringVariationDetail with correct callType", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-typed-methods.ts"));
+    const u = result.usages.find((u) => u.callType === "stringVariationDetail");
+    expect(u).toBeDefined();
+    expect(u!.flagKey).toBe("checkout-tier");
+    expect(u!.isDynamic).toBe(false);
+  });
+
+  it("detects numberVariationDetail with correct callType", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-typed-methods.ts"));
+    const u = result.usages.find((u) => u.callType === "numberVariationDetail");
+    expect(u).toBeDefined();
+    expect(u!.flagKey).toBe("timeout-ms");
+    expect(u!.isDynamic).toBe(false);
+  });
+
+  it("detects jsonVariationDetail with correct callType", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-typed-methods.ts"));
+    const u = result.usages.find((u) => u.callType === "jsonVariationDetail");
+    expect(u).toBeDefined();
+    expect(u!.flagKey).toBe("checkout-config");
+    expect(u!.isDynamic).toBe(false);
+  });
+
+  it("detects allFlagsState in ld-typed-methods with flagKey '*'", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-typed-methods.ts"));
+    const bulk = result.usages.find((u) => u.callType === "allFlagsState");
+    expect(bulk).toBeDefined();
+    expect(bulk!.flagKey).toBe("*");
+  });
+
+  it("detail methods appear in migrationInventory with manualReviewReason 'detail-method'", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-typed-methods.ts"));
+    const detailItem = result.migrationInventory?.find(
+      (i) => i.launchDarklyMethod === "boolVariationDetail"
+    );
+    expect(detailItem).toBeDefined();
+    expect(detailItem!.safelyAutomatable).toBe(false);
+    expect(detailItem!.manualReviewReason).toBe("detail-method");
+  });
+
+  it("dynamic key via boolVariation is isDynamic: true and not in uniqueFlags", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-typed-methods.ts"));
+    const dynamic = result.usages.find((u) => u.isDynamic && u.callType === "boolVariation");
+    expect(dynamic).toBeDefined();
+    expect(result.uniqueFlags).not.toContain("dynamic");
+  });
+});
+
+describe("scanner — false positive guard: analyticsClient.variation()", () => {
+  it("does NOT detect analyticsClient.variation() — no LD import present", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-analytics.ts"));
+    expect(result.usages).toHaveLength(0);
+    expect(result.totalUsages).toBe(0);
+  });
+
+  it("analyticsClient flag key does not appear in uniqueFlags", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-analytics.ts"));
+    expect(result.uniqueFlags).not.toContain("analytics-experiment");
+  });
+});
+
+describe("scanner — false positive guard: someClient.boolVariation() without LD import", () => {
+  it("does NOT detect someClient.boolVariation() — no LD import present", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-any-client-typed.ts"));
+    expect(result.usages).toHaveLength(0);
+    expect(result.totalUsages).toBe(0);
+  });
+
+  it("typed method name alone is not sufficient to classify a client as LaunchDarkly", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-any-client-typed.ts"));
+    expect(result.uniqueFlags).not.toContain("not-launchdarkly");
+  });
+});
+
+describe("scanner — false positive guard: ldAnalytics.variation() with 'ld' prefix", () => {
+  it("does NOT detect ldAnalytics.variation() — no LD import, only name starts with 'ld'", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-ld-prefix.ts"));
+    expect(result.usages).toHaveLength(0);
+    expect(result.totalUsages).toBe(0);
+  });
+
+  it("ld-prefixed non-LaunchDarkly variable does not pollute uniqueFlags", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-ld-prefix.ts"));
+    expect(result.uniqueFlags).not.toContain("not-a-launchdarkly-flag");
+  });
+});

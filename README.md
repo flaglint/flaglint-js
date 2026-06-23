@@ -115,6 +115,8 @@ FlagLint is intentionally conservative. These are always skipped and reported fo
 - **Ambiguous OpenFeature client bindings**
 - **Browser SDKs, React SDKs, non-Node SDKs**
 
+Full rationale: [Safety Model](https://flaglint.dev/docs/concepts/safety-model/)
+
 ---
 
 ## Supported scope
