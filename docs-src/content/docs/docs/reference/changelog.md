@@ -1,11 +1,64 @@
 ---
 title: Changelog
 description: Recent FlagLint releases and what changed.
-lastUpdated: 2026-06-07
+lastUpdated: 2026-06-20
 tableOfContents: false
 ---
 
 import { LinkCard } from '@astrojs/starlight/components';
+
+## [0.9.0] — 2026-06-20
+
+### Added
+
+- **GitHub Actions composite action** — `uses: flaglint/flaglint@v0.9.0` runs
+  `npx flaglint@latest audit` in CI without any additional setup. Documented in
+  [GitHub Actions integration](/docs/integrations/github-actions/).
+- **Risk taxonomy: Automatable tier** — medium-risk flags that are safely
+  automatable via `flaglint migrate` now display as **Automatable** (teal badge)
+  in terminal, markdown, and HTML reports. JSON output gains an additive
+  `displayTier` field (`"high"` | `"medium"` | `"automatable"` | `"low"`).
+- **Zero-staleness explanation** — when no staleness signals fire, the audit
+  report now shows which signals were checked and why git-history staleness
+  requires metadata unavailable in a static scan.
+- **CJS destructured import detection** — `const { boolVariation } = require('launchdarkly-node-server-sdk')` patterns now detected by the scanner.
+- **[Product Contract](/docs/product-contract/)** — seven permanent promises
+  FlagLint makes to every user (free CLI forever, runs locally, no telemetry,
+  static analysis only, safety over coverage, stable JSON output, OpenFeature
+  migration target).
+- **Weekly metrics report script** (`npm run metrics:report`) — prints npm
+  download trends and GitHub star/fork/issue history from local collected data.
+- **ADR 004 — React/browser SDK detection** (PROPOSED) — design for detecting
+  `launchdarkly-react-client-sdk` and `launchdarkly-js-client-sdk` usage;
+  adds `sdkSurface` and `flagKeyIsCamelCased` fields to `FlagUsage`.
+- **ADR 004 — Policy-as-code** (PROPOSED) — `.flaglintpolicy.yaml` governance
+  layer with exception registry, expiry enforcement, and SARIF rule IDs.
+- **ADR 005 — Cleanup command** (DEFERRED) — documents the safe path for
+  automated branch removal via `--assume`/`--flag-values`; deferred until
+  `--assume` mechanism is designed.
+- **ADR 006 — Go language support** (PROPOSED) — tree-sitter-go parser design,
+  import tracing for `go-server-sdk`, go.mod boundary handling, 6-phase plan.
+
+### Fixed
+
+- Audit report risk badges are now consistent: safely-automatable medium calls
+  no longer show `🟡 Medium`, eliminating the contradiction for a manager
+  reading a screenshot.
+
+### Documentation
+
+- FAQ expanded with config file formats, wrapper detection, and CI usage.
+- Why FlagLint page rewritten to sharpen positioning around flag debt and the
+  OpenFeature migration path.
+- Homepage reframed around "feature flag debt" rather than point-in-time audit.
+
+### Infrastructure
+
+- DCO check now skips `dependabot[bot]` and `github-actions[bot]` commits.
+- npm `files` array no longer publishes `bin/` TypeScript source — only `dist/`.
+- Repository governance checks added (#120).
+
+---
 
 ## [0.8.0] — 2026-06-13
 
