@@ -27,6 +27,6 @@ Use `validate --no-direct-launchdarkly` only after the relevant source path has 
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/guides/troubleshooting.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/guides/troubleshooting.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [OpenFeature Provider](/docs/integrations/openfeature-provider/)

@@ -107,4 +107,4 @@ steps:
 
 Browser SDKs, React SDKs, and non-Node packages in the monorepo are not detected. Run FlagLint only against Node.js server-side source directories. Non-Node packages will show zero results, not errors.
 
-[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/guides/monorepos.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Manual Review Patterns](/docs/guides/manual-review-patterns/)
+[Edit this page](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/guides/monorepos.md) · [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml) · Next: [Manual Review Patterns](/docs/guides/manual-review-patterns/)

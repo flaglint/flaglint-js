@@ -34,6 +34,6 @@ Unrelated identifiers named `client`, `flag`, `feature`, `gate`, `init`, or `ldI
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/concepts/how-flaglint-works.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/concepts/how-flaglint-works.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Safety Model](/docs/concepts/safety-model/)

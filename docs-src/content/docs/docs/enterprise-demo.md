@@ -74,6 +74,6 @@ npx flaglint validate ./src --no-direct-launchdarkly
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/enterprise-demo.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/enterprise-demo.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Migrate a Node Service](/docs/tutorials/migrate-a-node-service/)

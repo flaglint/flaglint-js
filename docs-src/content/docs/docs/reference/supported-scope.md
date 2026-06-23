@@ -54,6 +54,6 @@ Unrelated functions named `init`, `ldInit`, `client`, `feature`, `flag`, or simi
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/reference/supported-scope.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/reference/supported-scope.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Limitations](/docs/reference/limitations/)

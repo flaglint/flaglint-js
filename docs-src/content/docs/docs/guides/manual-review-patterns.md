@@ -36,6 +36,6 @@ Generic `variation(...)` calls are automatable only when the fallback literal pr
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/guides/manual-review-patterns.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/guides/manual-review-patterns.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [Troubleshooting](/docs/guides/troubleshooting/)

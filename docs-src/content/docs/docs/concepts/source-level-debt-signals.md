@@ -25,6 +25,6 @@ The default `minFileCount` is `0`, so a legitimate one-file flag is not marked s
 
 ## Feedback
 
-- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/concepts/source-level-debt-signals.md)
+- [Edit this page on GitHub](https://github.com/flaglint/flaglint/edit/main/docs-src/content/docs/docs/concepts/source-level-debt-signals.md)
 - [Report an unsupported pattern](https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml)
 - Next: [scan CLI](/docs/cli/scan/)
