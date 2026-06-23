@@ -12,6 +12,7 @@ import {
   formatValidationSarif,
 } from "../validator/index.js";
 import { loadConfig } from "../config.js";
+import { readBaseline, findNewFingerprints, BaselineError } from "../baseline.js";
 
 const VALID_VALIDATE_FORMATS = ["text", "sarif"] as const;
 type ValidateFormat = (typeof VALID_VALIDATE_FORMATS)[number];
@@ -38,6 +39,8 @@ export function registerValidateCommand(program: Command): void {
     )
     .option("-o, --output <file>", "write report to file instead of stdout")
     .option("-c, --config <path>", "path to .flaglintrc config file")
+    .option("--baseline <file>", "baseline file for comparing against known debt")
+    .option("--fail-on-new", "exit 1 if any findings are not in the baseline")
     .addHelpText(
       "after",
       `
@@ -68,6 +71,8 @@ Examples:
           format: string;
           output?: string;
           config?: string;
+          baseline?: string;
+          failOnNew?: boolean;
         }
       ) => {
         // Validate format before doing any I/O
@@ -174,6 +179,57 @@ Examples:
           }
         } else {
           process.stdout.write(report);
+        }
+
+        // Baseline comparison — runs independently of the validation policy check
+        if (options.baseline) {
+          let baselineSet: Set<string>;
+          try {
+            baselineSet = await readBaseline(options.baseline);
+          } catch (err) {
+            if (err instanceof BaselineError) {
+              process.stderr.write(chalk.red(`Error: ${err.message}\n`));
+              process.exit(err.exitCode);
+            }
+            process.stderr.write(
+              chalk.red(
+                `Error: Failed to read baseline: ${err instanceof Error ? err.message : String(err)}\n`
+              )
+            );
+            process.exit(2);
+          }
+
+          const currentFingerprints = scanResult.usages
+            .map((u) => u.fingerprint)
+            .filter(Boolean);
+
+          if (options.failOnNew) {
+            const newFingerprints = findNewFingerprints(currentFingerprints, baselineSet);
+            if (newFingerprints.length > 0) {
+              process.stderr.write(
+                chalk.red(
+                  `Error: ${newFingerprints.length} new finding(s) not in baseline:\n`
+                )
+              );
+              for (const fp of newFingerprints) {
+                process.stderr.write(chalk.red(`  - ${fp}\n`));
+              }
+              process.exit(1);
+            } else {
+              process.stderr.write(
+                chalk.green("✓ No new findings beyond baseline\n")
+              );
+            }
+          } else {
+            const newFingerprints = findNewFingerprints(currentFingerprints, baselineSet);
+            if (newFingerprints.length > 0) {
+              process.stderr.write(
+                chalk.yellow(
+                  `warn: ${newFingerprints.length} finding(s) not in baseline (use --fail-on-new to fail CI)\n`
+                )
+              );
+            }
+          }
         }
 
         if (!validationResult.passed) {
