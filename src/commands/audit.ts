@@ -1,6 +1,7 @@
 import { writeFile } from "fs/promises";
 import { stat } from "fs/promises";
 import { resolve } from "path";
+import { createRequire } from "module";
 import type { Command } from "commander";
 import chalk from "chalk";
 import ora from "ora";
@@ -16,6 +17,10 @@ import {
 } from "../auditor/reporter.js";
 import { renderReadinessBar } from "../readiness/readiness-bar.js";
 import { computeEstimate } from "../estimate/estimate.js";
+import { writeBaseline, BaselineError } from "../baseline.js";
+
+const _require = createRequire(import.meta.url);
+const _pkg = _require("../../package.json") as { version: string };
 
 const VALID_AUDIT_FORMATS = ["json", "markdown", "html"] as const;
 type AuditFormat = (typeof VALID_AUDIT_FORMATS)[number];
@@ -31,6 +36,7 @@ export function registerAuditCommand(program: Command): void {
     .option("--exclude-tests", "exclude test files (*.test.*, *.spec.*, __tests__/, tests/)")
     .option("--effort-estimate", "include a migration effort estimate in the report. The default assumptions are configurable planning heuristics, not observed industry benchmarks.")
     .option("--hourly-rate <rate>", "hourly rate for cost projection (requires --effort-estimate)")
+    .option("--write-baseline <file>", "write current finding fingerprints to a baseline file")
     .addHelpText(
       "after",
       `
@@ -51,6 +57,7 @@ Examples:
           excludeTests?: boolean;
           effortEstimate?: boolean;
           hourlyRate?: string;
+          writeBaseline?: string;
         }
       ) => {
         if (!(VALID_AUDIT_FORMATS as readonly string[]).includes(options.format)) {
@@ -244,6 +251,32 @@ Examples:
               process.stderr.write(chalk.cyan(`Estimated cost: ${fmtCost(est.costLow)} – ${fmtCost(est.costHigh)}\n`));
             }
             process.stderr.write(chalk.dim("Estimates are directional. See the report for assumptions.\n"));
+          }
+        }
+
+        // Write baseline if requested
+        if (options.writeBaseline) {
+          const fingerprints = scanResult.usages
+            .map((u) => u.fingerprint)
+            .filter(Boolean);
+          try {
+            await writeBaseline(options.writeBaseline, fingerprints, _pkg.version);
+            process.stderr.write(
+              chalk.green(
+                `✓ Baseline written to ${options.writeBaseline} (${[...new Set(fingerprints)].length} fingerprints)\n`
+              )
+            );
+          } catch (err) {
+            if (err instanceof BaselineError) {
+              process.stderr.write(chalk.red(`Error: ${err.message}\n`));
+              process.exit(err.exitCode);
+            }
+            process.stderr.write(
+              chalk.red(
+                `Error: Failed to write baseline: ${err instanceof Error ? err.message : String(err)}\n`
+              )
+            );
+            process.exit(2);
           }
         }
 
