@@ -97,6 +97,7 @@ export default defineConfig({
           label: "Guides",
           collapsed: true,
           items: [
+            { label: "LaunchDarkly to OpenFeature (Node.js)", slug: "docs/guides/launchdarkly-to-openfeature-nodejs" },
             { label: "Express", slug: "docs/guides/express" },
             { label: "NestJS", slug: "docs/guides/nestjs" },
             { label: "Monorepos", slug: "docs/guides/monorepos" },
