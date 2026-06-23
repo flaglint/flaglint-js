@@ -46,16 +46,19 @@ function makeResult(migrationInventory: MigrationInventoryItem[]): ScanResult {
           .map((item) => item.staticFlagKey!)
       ),
     ],
-    usages: migrationInventory.map((item) => ({
-      flagKey: item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*"),
-      isDynamic: item.isDynamic,
-      file: item.file,
-      line: item.line,
-      column: item.column,
-      callType: item.launchDarklyMethod,
-      fingerprint: `launchdarkly:${item.launchDarklyMethod}:${item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*")}:${item.file}`,
-      stalenessSignals: [],
-    })),
+    usages: migrationInventory.map((item) => {
+      const flagKey = item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*");
+      return {
+        flagKey,
+        isDynamic: item.isDynamic,
+        file: item.file,
+        line: item.line,
+        column: item.column,
+        callType: item.launchDarklyMethod,
+        fingerprint: `launchdarkly:${item.launchDarklyMethod}:${flagKey}:${item.file}`,
+        stalenessSignals: [],
+      };
+    }),
     migrationInventory,
     scanDurationMs: 5,
     warnings: [],

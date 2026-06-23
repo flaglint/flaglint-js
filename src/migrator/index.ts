@@ -98,16 +98,16 @@ function buildEvidenceItem(item: MigrationInventoryItem): MigrationItem {
   const before = `${item.launchDarklyMethod}(${beforeArgs.join(", ")})`;
   const equivalent = item.safelyAutomatable ? openFeatureMethod(item.valueType) : null;
 
-  const usageFlagKey = item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*");
+  const flagKey = item.staticFlagKey ?? (item.isDynamic ? "dynamic" : "*");
   return {
     usage: {
-      flagKey: usageFlagKey,
+      flagKey,
       isDynamic: item.isDynamic,
       file: item.file,
       line: item.line,
       column: item.column,
       callType: item.launchDarklyMethod,
-      fingerprint: generateFingerprint(usageFlagKey, item.launchDarklyMethod, item.file),
+      fingerprint: generateFingerprint(flagKey, item.launchDarklyMethod, item.file),
       stalenessSignals: [],
     },
     openFeatureEquivalent: equivalent,

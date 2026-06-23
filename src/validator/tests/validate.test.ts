@@ -14,8 +14,8 @@ import {
 function makeScanResult(usages: Partial<FlagUsage>[] = [], scannedFiles = 3): ScanResult {
   const full: FlagUsage[] = usages.map((u, i) => {
     const flagKey = u.flagKey ?? "my-flag";
-    const file = u.file ?? `src/service${i}.ts`;
     const callType = u.callType ?? "boolVariation";
+    const file = u.file ?? `src/service${i}.ts`;
     return {
       flagKey,
       isDynamic: u.isDynamic ?? false,
