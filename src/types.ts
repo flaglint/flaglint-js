@@ -47,6 +47,7 @@ export interface FlagUsage {
   line: number;
   column: number;
   callType: CallType;
+  fingerprint: string;
   stalenessSignals: StalenessSignal[];
 }
 

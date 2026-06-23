@@ -10,6 +10,7 @@ const staleUsage: FlagUsage = {
   line: 5,
   column: 0,
   callType: "variation",
+  fingerprint: "launchdarkly:variation:old-flag:src/legacy.ts",
   stalenessSignals: [{ source: "keyword", keyword: "old" }],
 };
 
@@ -20,6 +21,7 @@ const activeUsage: FlagUsage = {
   line: 10,
   column: 0,
   callType: "variation",
+  fingerprint: "launchdarkly:variation:my-flag:src/Header.tsx",
   stalenessSignals: [],
 };
 
@@ -30,6 +32,7 @@ const dynamicUsage: FlagUsage = {
   line: 3,
   column: 0,
   callType: "variation",
+  fingerprint: "launchdarkly:variation:dynamic:src/util.ts:0",
   stalenessSignals: [],
 };
 
@@ -115,6 +118,7 @@ describe("reporter — markdown format", () => {
       line: 20,
       column: 0,
       callType: "variation",
+      fingerprint: "launchdarkly:variation:old-flag:src/other.ts",
       stalenessSignals: [{ source: "keyword", keyword: "old" }],
     };
     const result: ScanResult = {
@@ -139,6 +143,7 @@ describe("reporter — markdown format", () => {
       line: 1,
       column: 0,
       callType: "provider",
+      fingerprint: "launchdarkly:provider:*:src/provider.test.tsx",
       stalenessSignals: [{ source: "path", pattern: "test/spec/mock file" }],
     };
     const result: ScanResult = {
