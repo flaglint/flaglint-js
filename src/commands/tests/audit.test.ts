@@ -42,7 +42,7 @@ describe("audit command — exit codes", () => {
   });
 
   it("exits 0 on directory with no LD usage", () => {
-    const r = cli("audit", join(ROOT, "docs-src"));
+    const r = cli("audit", join(ROOT, "docs/adr"));
     expect(r.status).toBe(0);
   });
 
