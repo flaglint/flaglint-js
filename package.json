@@ -43,6 +43,7 @@
     "url": "https://github.com/flaglint/flaglint-js/issues"
   },
   "scripts": {
+    "prepare": "node scripts/setup-hooks.mjs",
     "sync:www": "tsx scripts/sync-www.ts",
     "build:cli": "npm run sync:www && tsup",
     "build:docs": "ASTRO_TELEMETRY_DISABLED=1 astro build",

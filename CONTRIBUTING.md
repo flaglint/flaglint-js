@@ -68,7 +68,7 @@ All tests must pass and coverage must meet the configured thresholds (75% lines/
 Before a PR can be merged:
 
 - The PR title should follow Conventional Commit style, for example `fix: handle aliased LaunchDarkly imports`.
-- Commits should be DCO signed using `git commit -s`.
+- Commits must be DCO signed. The `Signed-off-by` line is appended automatically by the git hook installed via `npm install` — no manual `-s` flag needed.
 - Tests, lint, and build must pass.
 - Dependency review and security checks must pass.
 - A maintainer review is required before merge.
