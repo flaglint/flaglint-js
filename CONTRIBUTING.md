@@ -16,7 +16,7 @@ with Node.js 22.12+ for the complete CLI + website build.
 
 ```bash
 git clone https://github.com/flaglint/flaglint-js.git
-cd flaglint
+cd flaglint-js
 npm install
 npm run build
 npm test
