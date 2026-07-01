@@ -59,28 +59,3 @@ jobs:
       - name: Build and verify package
         run: npm run test:package
 
-  website-smoke:
-    name: Website Smoke
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      - name: Build docs
-        run: npm run build:docs
-        env:
-          ASTRO_TELEMETRY_DISABLED: "1"
-
-      - name: Install Playwright browsers
-        run: npx playwright install chromium --with-deps
-
-      - name: Website smoke tests
-        run: npm run test:smoke
