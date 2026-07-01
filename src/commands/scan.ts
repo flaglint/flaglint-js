@@ -2,13 +2,12 @@ import { writeFile } from "fs/promises";
 import { resolve } from "path";
 import type { Command } from "commander";
 import chalk from "chalk";
-import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { formatReport } from "../reporter/index.js";
 import type { ReportFormat, ReporterOptions } from "../types.js";
 import { isStale } from "../types.js";
-import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, createSpinner, stderrInfo, isVerbose } from "./shared.js";
 
 const VALID_FORMATS: ReportFormat[] = ["json", "markdown", "html", "sarif"];
 
@@ -52,14 +51,14 @@ Examples:
           : config;
 
         const format = options.format as ReporterOptions["format"];
-        const spinner = ora(`Scanning ${dir}...`).start();
+        const spinner = createSpinner(`Scanning ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
         let lastSpinnerUpdate = 0;
 
         let result;
         try {
           result = await scan(new LocalFileSource(dir), scanConfig, (filesScanned) => {
-            if (filesScanned - lastSpinnerUpdate >= 50) {
+            if (filesScanned - lastSpinnerUpdate >= (isVerbose() ? 1 : 50)) {
               spinner.text = `Scanning... (${filesScanned} files)`;
               lastSpinnerUpdate = filesScanned;
             }
@@ -103,20 +102,16 @@ Examples:
         ).size;
         const dynamicCount = new Set(result.usages.filter((u) => u.isDynamic).map((u) => u.fingerprint)).size;
 
-        process.stderr.write(
+        stderrInfo(
           chalk.green(
             `✓ ${result.totalUsages} flag usages found across ${result.uniqueFlags.length} unique flags (${result.scanDurationMs}ms)\n`
           )
         );
         if (staleCount > 0) {
-          process.stderr.write(
-            chalk.yellow(`⚠  ${staleCount} potentially stale flag(s) — review recommended\n`)
-          );
+          stderrInfo(chalk.yellow(`⚠  ${staleCount} potentially stale flag(s) — review recommended\n`));
         }
         if (dynamicCount > 0) {
-          process.stderr.write(
-            chalk.blue(`ℹ  ${dynamicCount} dynamic flag key(s) require manual review\n`)
-          );
+          stderrInfo(chalk.blue(`ℹ  ${dynamicCount} dynamic flag key(s) require manual review\n`));
         }
 
         const report = formatReport(result, { format, title: config.reportTitle });

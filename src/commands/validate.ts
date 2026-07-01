@@ -2,7 +2,6 @@ import { writeFile } from "fs/promises";
 import { resolve } from "path";
 import type { Command } from "commander";
 import chalk from "chalk";
-import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import {
@@ -11,7 +10,7 @@ import {
   formatValidationSarif,
 } from "../validator/index.js";
 import { readBaseline, findNewFingerprints, BaselineError } from "../baseline.js";
-import { validateDirectory, loadConfigOrExit } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, createSpinner } from "./shared.js";
 
 const VALID_VALIDATE_FORMATS = ["text", "sarif"] as const;
 type ValidateFormat = (typeof VALID_VALIDATE_FORMATS)[number];
@@ -89,7 +88,7 @@ Examples:
         await validateDirectory(dir);
         const config = await loadConfigOrExit(options.config);
 
-        const spinner = ora(`Scanning ${dir}...`).start();
+        const spinner = createSpinner(`Scanning ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
 
         const source = new LocalFileSource(dir);
