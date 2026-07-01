@@ -184,7 +184,7 @@ Examples:
 
         const { totalFlags, highRisk, mediumRisk, lowRisk } = auditReport.summary;
         const lowRiskSegment = lowRisk > 0 ? `, ${lowRisk} low risk` : "";
-        process.stderr.write(
+        stderrInfo(
           chalk.green(
             `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk${lowRiskSegment} (${formatDuration(scanResult.scanDurationMs)}, ${scanResult.scannedFiles} files)\n`
           )
