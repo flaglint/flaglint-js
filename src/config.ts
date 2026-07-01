@@ -22,7 +22,18 @@ export const FlagLintConfigSchema = z.object({
     .default("launchdarkly"),
   // TODO v0.3: replace minFileCount with real date-based staleness via git log
   minFileCount: z.number().int().min(0).default(0),
-  wrappers: z.array(z.string()).default([]),
+  wrappers: z
+    .array(
+      z.union([
+        z.string(),
+        z.object({
+          import: z.string().min(1),
+          function: z.string().min(1),
+          flagKeyArgument: z.number().int().min(0).default(0),
+        }),
+      ])
+    )
+    .default([]),
   openFeatureClientBindings: z
     .array(
       z.object({ importName: z.string(), modulePatterns: z.array(z.string()).default([]) })
@@ -33,6 +44,7 @@ export const FlagLintConfigSchema = z.object({
 });
 
 export type FlagLintConfig = z.infer<typeof FlagLintConfigSchema>;
+export type WrapperObjectConfig = { import: string; function: string; flagKeyArgument: number };
 
 // Scan-relevant config only — the subset scan() needs. CLI output fields
 // (reportTitle, outputDir) are stripped so callers can pass scan-only config

@@ -15,6 +15,7 @@ import type {
 } from "../types.js";
 import { checkStale } from "../stale.js";
 import { generateFingerprint } from "./fingerprint.js";
+import type { WrapperObjectConfig } from "../config.js";
 
 // Known LaunchDarkly Node.js server-side SDK package specifiers.
 // MVP scope: inventory Node server-side LaunchDarkly SDK usage for future
@@ -373,11 +374,48 @@ function collectLDReactSymbols(ast: TSESTree.Program): {
   return { hooks, hocs, providers };
 }
 
+// Resolve import-verified local names for object-form wrapper configs.
+// Returns a Map of localName → { flagKeyArgument } for each wrapper whose
+// import source is present in this file's import declarations.
+function collectWrapperSymbols(
+  ast: TSESTree.Program,
+  wrappers: (string | WrapperObjectConfig)[]
+): Map<string, { flagKeyArgument: number }> {
+  const objectWrappers = wrappers.filter((w): w is WrapperObjectConfig => typeof w === "object");
+  if (objectWrappers.length === 0) return new Map();
+
+  const result = new Map<string, { flagKeyArgument: number }>();
+
+  for (const stmt of ast.body) {
+    if (stmt.type !== "ImportDeclaration") continue;
+    const importDecl = stmt as TSESTree.ImportDeclaration;
+    const matchingWrappers = objectWrappers.filter((w) => w.import === importDecl.source.value);
+    if (matchingWrappers.length === 0) continue;
+
+    for (const spec of importDecl.specifiers) {
+      if (spec.type !== "ImportSpecifier") continue;
+      const importedName =
+        spec.imported.type === "Identifier"
+          ? (spec.imported as TSESTree.Identifier).name
+          : (spec.imported as TSESTree.StringLiteral).value;
+      const localName = spec.local.name;
+
+      for (const wrapper of matchingWrappers) {
+        if (wrapper.function === importedName) {
+          result.set(localName, { flagKeyArgument: wrapper.flagKeyArgument });
+        }
+      }
+    }
+  }
+
+  return result;
+}
+
 function detectUsages(
   ast: TSESTree.Program,
   code: string,
   filePath: string,
-  wrappers: string[]
+  wrappers: (string | WrapperObjectConfig)[]
 ): { usages: FlagUsage[]; migrationInventory: MigrationInventoryItem[] } {
   const usages: FlagUsage[] = [];
   const migrationInventory: MigrationInventoryItem[] = [];
@@ -387,6 +425,10 @@ function detectUsages(
   const ldClients = collectLDClients(ast);
   // Establish React SDK symbols verified through their import source.
   const ldReact = collectLDReactSymbols(ast);
+  // Resolve import-verified local names for object-form wrapper configs.
+  const ldWrapperSymbols = collectWrapperSymbols(ast, wrappers);
+  // Collect string-form (legacy) wrapper names for backward-compat detection.
+  const stringWrappers = wrappers.filter((w): w is string => typeof w === "string");
 
   walk(ast, (node) => {
     if (node.type === "CallExpression") {
@@ -490,30 +532,54 @@ function detectUsages(
         }
       }
 
-      // Wrapper function detection — e.g. flagPredicate('my-flag', false)
-      if (
-        wrappers.length > 0 &&
-        callee.type === "Identifier" &&
-        wrappers.includes((callee as TSESTree.Identifier).name) &&
-        call.arguments.length >= 1
-      ) {
-        const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
-        const sig = checkStale(flagKey, filePath);
-        const dynIdx = isDynamic ? dynamicIndex++ : undefined;
-        usages.push({
-          flagKey,
-          isDynamic,
-          file: filePath,
-          line: loc.line,
-          column: loc.column,
-          callType: "variation",
-          fingerprint: generateFingerprint(flagKey, "variation", filePath, dynIdx),
-          stalenessSignals: sig ? [sig] : [],
-        });
-        migrationInventory.push(
-          buildMigrationInventoryItem(code, filePath, loc, call, "variation", call.arguments, flagKey, isDynamic)
-        );
-        return;
+      // Wrapper function detection — import-verified (object-form config) takes priority.
+      if (callee.type === "Identifier") {
+        const localName = (callee as TSESTree.Identifier).name;
+        const verifiedWrapper = ldWrapperSymbols.get(localName);
+        if (verifiedWrapper && call.arguments.length > verifiedWrapper.flagKeyArgument) {
+          const { flagKey, isDynamic } = extractFlagKey(call.arguments[verifiedWrapper.flagKeyArgument]);
+          const sig = checkStale(flagKey, filePath);
+          const dynIdx = isDynamic ? dynamicIndex++ : undefined;
+          usages.push({
+            flagKey,
+            isDynamic,
+            file: filePath,
+            line: loc.line,
+            column: loc.column,
+            callType: "variation",
+            fingerprint: generateFingerprint(flagKey, "variation", filePath, dynIdx),
+            stalenessSignals: sig ? [sig] : [],
+          });
+          migrationInventory.push(
+            buildMigrationInventoryItem(code, filePath, loc, call, "variation", call.arguments, flagKey, isDynamic)
+          );
+          return;
+        }
+
+        // String-form (legacy) wrapper detection — name only, no import verification.
+        if (
+          stringWrappers.length > 0 &&
+          stringWrappers.includes(localName) &&
+          call.arguments.length >= 1
+        ) {
+          const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
+          const sig = checkStale(flagKey, filePath);
+          const dynIdx = isDynamic ? dynamicIndex++ : undefined;
+          usages.push({
+            flagKey,
+            isDynamic,
+            file: filePath,
+            line: loc.line,
+            column: loc.column,
+            callType: "variation",
+            fingerprint: generateFingerprint(flagKey, "variation", filePath, dynIdx),
+            stalenessSignals: sig ? [sig] : [],
+          });
+          migrationInventory.push(
+            buildMigrationInventoryItem(code, filePath, loc, call, "variation", call.arguments, flagKey, isDynamic)
+          );
+          return;
+        }
       }
 
       // withLDConsumer()(...) — only when imported from the LD React SDK.
