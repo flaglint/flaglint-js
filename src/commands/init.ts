@@ -21,6 +21,7 @@ const CONFIG_TEMPLATE = {
   minFileCount: 0,
   wrappers: [],
   openFeatureClientBindings: [],
+  outputDir: ".",
 };
 
 export function registerInitCommand(program: Command): void {
@@ -107,7 +108,8 @@ Examples:
         `  minFileCount          Flag a key as potentially stale if found in fewer files than this threshold (0 = disabled)\n` +
         `  wrappers              Custom functions that wrap LD SDK calls — detected as flag evaluations\n` +
         `                        String form: ["myGetFlag"]  Object form: [{"import":"my-sdk","function":"getFlag","flagKeyArgument":0}]\n` +
-        `  openFeatureClientBindings  OpenFeature client variable names for migration rewrites\n`
+        `  openFeatureClientBindings  OpenFeature client variable names for migration rewrites\n` +
+        `  outputDir             Directory for generated reports (default: "." = current directory)\n`
       ));
       process.stderr.write(chalk.dim(`\nNext steps:\n`));
       process.stderr.write(chalk.dim(`  Edit ${options.output} to match your project structure\n`));
