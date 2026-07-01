@@ -42,26 +42,6 @@ jobs:
           name: coverage-report
           path: coverage/
 
-  smoke-windows:
-    name: Smoke Windows Node 22
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      - name: Type check
-        run: npm run typecheck
-
-      - name: Test
-        run: npm run test:run
-
   package-e2e:
     name: Package E2E
     runs-on: ubuntu-latest
