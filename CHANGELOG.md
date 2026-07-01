@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-07-01
+
+### Summary
+v1.1.0 adds two new CLI commands, two global flags, import-verified React SDK detection, object-form custom wrapper support, provider validation, shell completion, and GitHub Action version pinning.
+
+### Added
+- **`flaglint init`** — scaffolds `flaglint.config.json` with all fields at their defaults. Warns if a higher-precedence config file exists and would shadow the new one.
+- **`flaglint completion <shell>`** — generates shell completion scripts for bash, zsh, and fish. Source once for tab-completion of all subcommands, flags, and flag values.
+- **`--quiet` / `-q` global flag** — suppresses all progress output (spinner, summaries). Only errors appear on stderr. Useful in scripts and CI pipelines where only the exit code matters.
+- **`--verbose` global flag** — lowers the spinner update threshold to every file for detailed progress on large codebases.
+- **React SDK import-verified detection** — hooks (`useFlags`, `useLDClient`, `useVariation`), HOC (`withLDConsumer`), and provider (`LDProvider`, `asyncWithLDProvider`) are now detected via verified import chains, not name heuristics. Eliminates false positives from unrelated libraries.
+- **Object-form custom wrappers** — `wrappers` config now accepts `{ import, function, flagKeyArgument }` objects for import-verified detection of custom SDK wrappers in addition to the existing string form.
+- **GitHub Action `version` input** — pin the action to a specific FlagLint release instead of always using `@latest`. Example: `version: '1.1.0'`.
+- **`outputDir` config field** — specifies the directory for generated reports (default: `.`). Now scaffolded by `flaglint init`.
+- **ADR 010** — exit code contract: 0/1/2/3/130, stable across all v1.x.
+
+### Fixed
+- **Provider validation** — unknown `provider` values in config now exit 2 with a clear error instead of silently falling back.
+- **Bootstrap pattern matching** — replaced hand-rolled glob converter in `validate --bootstrap-exclude` with `micromatch.isMatch()` for correct glob semantics.
+- **Baseline version field** — corrected ADR 008 documentation to match the shipped implementation: the `version` field is the string `"1"`, not the number `1`.
+
 ## [1.0.0] — 2026-06-22
 
 ### Summary
