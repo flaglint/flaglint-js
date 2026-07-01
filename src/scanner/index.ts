@@ -24,7 +24,18 @@ const LD_NODE_SERVER_PACKAGES = new Set([
   "@launchdarkly/node-server-sdk",
 ]);
 
+// Known LaunchDarkly React client SDK package specifiers.
+const LD_REACT_PACKAGES = new Set([
+  "launchdarkly-react-client-sdk",
+]);
+
+// Canonical exported names from the React SDK — used to verify imports before detecting usage.
+const LD_REACT_HOOK_NAMES = new Set(["useFlags", "useLDClient"]);
+const LD_REACT_HOC_NAMES = new Set(["withLDConsumer"]);
+const LD_REACT_PROVIDER_NAMES = new Set(["LDProvider"]);
+
 // Client methods where the first argument is the flag key.
+// isFeatureEnabled is the deprecated boolean-only alias for variation — same signature.
 const LD_FLAG_KEY_METHODS = new Set([
   "variation",
   "variationDetail",
@@ -36,6 +47,7 @@ const LD_FLAG_KEY_METHODS = new Set([
   "numberVariationDetail",
   "jsonVariation",
   "jsonVariationDetail",
+  "isFeatureEnabled",
 ]);
 
 // Client methods that enumerate all flags — no flag key, use '*'.
@@ -50,7 +62,6 @@ const LD_DETAIL_METHODS = new Set([
   "jsonVariationDetail",
 ]);
 
-const LD_HOOKS = new Set(["useFlags", "useLDClient"]);
 export const DEFAULT_EXCLUDE = ["**/node_modules/**", "**/dist/**", "**/build/**", "**/.next/**"];
 
 function extractFlagKey(arg: TSESTree.Node | undefined): { flagKey: string; isDynamic: boolean } {
@@ -327,6 +338,41 @@ function collectLDClients(ast: TSESTree.Program): Set<string> {
   return ldClients;
 }
 
+// Collect the local names of React SDK hooks/HOCs/providers actually imported in this file.
+// Returns empty sets when the React SDK is not imported, producing no false positives.
+function collectLDReactSymbols(ast: TSESTree.Program): {
+  hooks: Map<string, "hook-useFlags" | "hook-useLDClient">;
+  hocs: Set<string>;
+  providers: Set<string>;
+} {
+  const hooks = new Map<string, "hook-useFlags" | "hook-useLDClient">();
+  const hocs = new Set<string>();
+  const providers = new Set<string>();
+
+  for (const stmt of ast.body) {
+    if (stmt.type !== "ImportDeclaration") continue;
+    const importDecl = stmt as TSESTree.ImportDeclaration;
+    if (!LD_REACT_PACKAGES.has(importDecl.source.value)) continue;
+
+    for (const spec of importDecl.specifiers) {
+      if (spec.type !== "ImportSpecifier") continue;
+      const importedName =
+        spec.imported.type === "Identifier"
+          ? (spec.imported as TSESTree.Identifier).name
+          : (spec.imported as TSESTree.StringLiteral).value;
+      const localName = spec.local.name;
+
+      if (LD_REACT_HOOK_NAMES.has(importedName)) {
+        hooks.set(localName, importedName === "useFlags" ? "hook-useFlags" : "hook-useLDClient");
+      }
+      if (LD_REACT_HOC_NAMES.has(importedName)) hocs.add(localName);
+      if (LD_REACT_PROVIDER_NAMES.has(importedName)) providers.add(localName);
+    }
+  }
+
+  return { hooks, hocs, providers };
+}
+
 function detectUsages(
   ast: TSESTree.Program,
   code: string,
@@ -339,6 +385,8 @@ function detectUsages(
 
   // Establish the set of proven LD client variables for this file.
   const ldClients = collectLDClients(ast);
+  // Establish React SDK symbols verified through their import source.
+  const ldReact = collectLDReactSymbols(ast);
 
   walk(ast, (node) => {
     if (node.type === "CallExpression") {
@@ -405,31 +453,10 @@ function detectUsages(
       if (callee.type === "Identifier") {
         const name = (callee as TSESTree.Identifier).name;
 
-        // isFeatureEnabled(flagKey, ...)
-        if (name === "isFeatureEnabled") {
-          const { flagKey, isDynamic } = extractFlagKey(call.arguments[0]);
-          const sig = checkStale(flagKey, filePath);
-          const dynIdx = isDynamic ? dynamicIndex++ : undefined;
-          usages.push({
-            flagKey,
-            isDynamic,
-            file: filePath,
-            line: loc.line,
-            column: loc.column,
-            callType: "isFeatureEnabled",
-            fingerprint: generateFingerprint(flagKey, "isFeatureEnabled", filePath, dynIdx),
-            stalenessSignals: sig ? [sig] : [],
-          });
-          migrationInventory.push(
-            buildMigrationInventoryItem(code, filePath, loc, call, "isFeatureEnabled", call.arguments, flagKey, isDynamic)
-          );
-          return;
-        }
-
-        // useFlags() / useLDClient()
-        if (LD_HOOKS.has(name)) {
+        // useFlags() / useLDClient() — only when imported from the LD React SDK.
+        const hookCallType = ldReact.hooks.get(name);
+        if (hookCallType) {
           const sig = checkStale("*", filePath);
-          const hookCallType: CallType = name === "useFlags" ? "hook-useFlags" : "hook-useLDClient";
           usages.push({
             flagKey: "*",
             isDynamic: false,
@@ -445,7 +472,7 @@ function detectUsages(
             file: filePath,
             line: loc.line,
             column: loc.column,
-            launchDarklyMethod: (name === "useFlags" ? "hook-useFlags" : "hook-useLDClient") as CallType,
+            launchDarklyMethod: hookCallType as CallType,
             callExpression: expressionText(code, call),
             rangeStart: hookCallRange?.[0],
             rangeEnd: hookCallRange?.[1],
@@ -489,11 +516,11 @@ function detectUsages(
         return;
       }
 
-      // withLDConsumer()(...) — callee is itself a CallExpression
+      // withLDConsumer()(...) — only when imported from the LD React SDK.
       if (
         callee.type === "CallExpression" &&
         (callee as TSESTree.CallExpression).callee.type === "Identifier" &&
-        ((callee as TSESTree.CallExpression).callee as TSESTree.Identifier).name === "withLDConsumer"
+        ldReact.hocs.has(((callee as TSESTree.CallExpression).callee as TSESTree.Identifier).name)
       ) {
         const sig = checkStale("*", filePath);
         usages.push({
@@ -510,10 +537,10 @@ function detectUsages(
       }
     }
 
-    // JSX: <LDProvider ...>
+    // JSX: <LDProvider ...> — only when imported from the LD React SDK.
     if (node.type === "JSXOpeningElement") {
       const jsx = node as TSESTree.JSXOpeningElement;
-      if (jsx.name.type === "JSXIdentifier" && (jsx.name as TSESTree.JSXIdentifier).name === "LDProvider") {
+      if (jsx.name.type === "JSXIdentifier" && ldReact.providers.has((jsx.name as TSESTree.JSXIdentifier).name)) {
         const loc = jsx.loc?.start ?? { line: 0, column: 0 };
         const sigP = checkStale("*", filePath);
         usages.push({
