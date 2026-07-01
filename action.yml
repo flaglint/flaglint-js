@@ -34,4 +34,9 @@ runs:
 
     - name: Run FlagLint
       shell: bash
-      run: npx flaglint@latest ${{ inputs.command }} ${{ inputs.directory }} --no-direct-launchdarkly ${{ inputs.extra-args }}
+      run: |
+        if [ "${{ inputs.command }}" = "validate" ]; then
+          npx flaglint@latest validate ${{ inputs.directory }} --no-direct-launchdarkly ${{ inputs.extra-args }}
+        else
+          npx flaglint@latest ${{ inputs.command }} ${{ inputs.directory }} ${{ inputs.extra-args }}
+        fi

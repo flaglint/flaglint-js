@@ -44,10 +44,12 @@ describe("CLI — exit codes", () => {
     expect(r.status).toBe(2);
   });
 
-  it("exits 1 when stale flags are found", () => {
-    // FIXTURES contains old-checkout and temp-debug-mode — both stale by keyword
+  it("exits 0 when stale flags are found (scan is inventory, not enforcement)", () => {
+    // FIXTURES contains old-checkout and temp-debug-mode — both stale by keyword.
+    // scan should always exit 0; enforcement exit codes belong only in `validate`.
     const r = cli("scan", FIXTURES);
-    expect(r.status).toBe(1);
+    expect(r.status).toBe(0);
+    expect(r.stderr).toContain("potentially stale");
   });
 
   it("exits 0 when no LaunchDarkly usage found", () => {
@@ -78,7 +80,7 @@ describe("CLI — exit codes", () => {
     expect(r.stderr).not.toContain("potentially stale");
   });
 
-  it("preserves explicit minFileCount: 1 scan failure behavior", () => {
+  it("exits 0 with minFileCount staleness signal (scan is inventory, not enforcement)", () => {
     const dir = makeTmpDir({
       "flaglint.config.json": JSON.stringify({ minFileCount: 1 }),
       "flag.ts": [
@@ -88,7 +90,7 @@ describe("CLI — exit codes", () => {
       ].join("\n"),
     });
     const r = spawnSync(process.execPath, [ENTRY, "scan", dir], { cwd: dir, encoding: "utf8", timeout: 30000 });
-    expect(r.status).toBe(1);
+    expect(r.status).toBe(0);
     expect(r.stderr).toContain("potentially stale");
   });
 
