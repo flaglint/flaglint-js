@@ -74,24 +74,18 @@ Examples:
           const msg = w.kind === "read-failure"
             ? `warn: could not read ${w.file} (${w.fsCode})`
             : `warn: failed to parse ${w.file}`;
-          process.stderr.write(chalk.yellow(msg + "\n"));
+          stderrInfo(chalk.yellow(msg + "\n"));
         }
 
         // Guard: no matching files
         if (result.scannedFiles === 0) {
-          process.stderr.write(
-            chalk.yellow("No matching files found. Check your .flaglintrc include patterns.\n")
-          );
+          stderrInfo(chalk.yellow("No matching files found. Check your .flaglintrc include patterns.\n"));
           process.exit(0);
         }
 
         // Guard: no LD usage
         if (result.totalUsages === 0) {
-          process.stderr.write(
-            chalk.dim(
-              `No LaunchDarkly SDK usage detected in ${result.scannedFiles} files.\n`
-            )
-          );
+          stderrInfo(chalk.dim(`No LaunchDarkly SDK usage detected in ${result.scannedFiles} files.\n`));
           process.exit(0);
         }
 
@@ -120,7 +114,7 @@ Examples:
           const outPath = resolve(options.output);
           try {
             await writeFile(outPath, report, "utf8");
-            process.stderr.write(chalk.dim(`   Report written to ${options.output}\n`));
+            stderrInfo(chalk.dim(`   Report written to ${options.output}\n`));
           } catch (err) {
             process.stderr.write(
               chalk.red(
