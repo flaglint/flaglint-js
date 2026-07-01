@@ -134,6 +134,33 @@ describe("scanner — ld-react.tsx", () => {
   });
 });
 
+describe("scanner — React SDK import verification (false positive guard)", () => {
+  it("does NOT detect useFlags() from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "hook-useFlags")).toBeUndefined();
+  });
+
+  it("does NOT detect useLDClient() from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "hook-useLDClient")).toBeUndefined();
+  });
+
+  it("does NOT detect withLDConsumer HOC from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "hoc")).toBeUndefined();
+  });
+
+  it("does NOT detect LDProvider JSX from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "provider")).toBeUndefined();
+  });
+
+  it("returns zero total usages for a file using only custom-named hooks", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.totalUsages).toBe(0);
+  });
+});
+
 describe("scanner — ld-stale.ts", () => {
   it("marks flag with 'old' in key as isStale: true", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-stale.ts"));
@@ -231,7 +258,7 @@ describe("scanner — template literal flag keys", () => {
 });
 
 describe("scanner — isFeatureEnabled", () => {
-  it("detects isFeatureEnabled() with a static key", async () => {
+  it("detects ldClient.isFeatureEnabled() with a static key", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-is-feature-enabled.ts"));
     const u = result.usages.find((u) => u.callType === "isFeatureEnabled" && !u.isDynamic);
     expect(u).toBeDefined();
@@ -239,7 +266,7 @@ describe("scanner — isFeatureEnabled", () => {
     expect(u?.isDynamic).toBe(false);
   });
 
-  it("detects isFeatureEnabled() with a dynamic key", async () => {
+  it("detects ldClient.isFeatureEnabled() with a dynamic key", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-is-feature-enabled.ts"));
     const u = result.usages.find((u) => u.callType === "isFeatureEnabled" && u.isDynamic);
     expect(u).toBeDefined();
@@ -249,6 +276,12 @@ describe("scanner — isFeatureEnabled", () => {
   it("static isFeatureEnabled key appears in uniqueFlags", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-is-feature-enabled.ts"));
     expect(result.uniqueFlags).toContain("is-premium-user");
+  });
+
+  it("does NOT detect a bare isFeatureEnabled() that is not a method on an LD client", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-is-feature-enabled.ts"));
+    expect(result.usages).toHaveLength(0);
+    expect(result.totalUsages).toBe(0);
   });
 });
 
