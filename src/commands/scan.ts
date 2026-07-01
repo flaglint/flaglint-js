@@ -1,5 +1,4 @@
 import { writeFile } from "fs/promises";
-import { stat } from "fs/promises";
 import { resolve } from "path";
 import type { Command } from "commander";
 import chalk from "chalk";
@@ -7,9 +6,9 @@ import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { formatReport } from "../reporter/index.js";
-import { loadConfig } from "../config.js";
 import type { ReportFormat, ReporterOptions } from "../types.js";
 import { isStale } from "../types.js";
+import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS } from "./shared.js";
 
 const VALID_FORMATS: ReportFormat[] = ["json", "markdown", "html", "sarif"];
 
@@ -45,41 +44,11 @@ Examples:
           process.exit(2);
         }
 
-        // Validate directory exists
-        try {
-          const s = await stat(resolve(dir));
-          if (!s.isDirectory()) {
-            process.stderr.write(chalk.red(`Error: Not a directory: ${dir}\n`));
-            process.exit(1);
-          }
-        } catch (err) {
-          const code = (err as NodeJS.ErrnoException).code;
-          if (code === "ENOENT") {
-            process.stderr.write(chalk.red(`Error: Directory not found: ${dir}\n`));
-          } else if (code === "EACCES") {
-            process.stderr.write(chalk.red(`Error: Permission denied: ${dir}\n`));
-          } else {
-            process.stderr.write(chalk.red(`Error: Cannot access directory: ${dir}\n`));
-          }
-          process.exit(1);
-        }
+        await validateDirectory(dir);
+        const config = await loadConfigOrExit(options.config);
 
-        // Load config — propagate parse errors with clear message
-        let config;
-        try {
-          config = await loadConfig(options.config);
-        } catch (err) {
-          process.stderr.write(chalk.red(String(err instanceof Error ? err.message : err)) + "\n");
-          process.exit(1);
-        }
-
-        const TEST_PATTERNS = [
-          "**/*.test.ts", "**/*.test.tsx",
-          "**/*.spec.ts", "**/*.spec.tsx",
-          "**/__tests__/**", "**/tests/**",
-        ];
         const scanConfig = options.excludeTests
-          ? { ...config, exclude: [...config.exclude, ...TEST_PATTERNS] }
+          ? { ...config, exclude: [...config.exclude, ...EXCLUDE_TEST_PATTERNS] }
           : config;
 
         const format = options.format as ReporterOptions["format"];
