@@ -3,11 +3,10 @@ import { resolve } from "path";
 import { createRequire } from "module";
 import type { Command } from "commander";
 import chalk from "chalk";
-import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { buildAuditReport } from "../auditor/index.js";
-import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, createSpinner, stderrInfo } from "./shared.js";
 import {
   formatAuditJson,
   formatAuditMarkdown,
@@ -97,7 +96,7 @@ Examples:
           : config;
 
         const format = options.format as AuditFormat;
-        const spinner = ora(`Auditing ${dir}...`).start();
+        const spinner = createSpinner(`Auditing ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
         let lastSpinnerUpdate = 0;
 

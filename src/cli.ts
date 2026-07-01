@@ -4,6 +4,8 @@ import { registerMigrateCommand } from "./commands/migrate.js";
 import { registerValidateCommand } from "./commands/validate.js";
 import { registerAuditCommand } from "./commands/audit.js";
 import { registerInitCommand } from "./commands/init.js";
+import { registerCompletionCommand } from "./commands/completion.js";
+import { setOutputMode } from "./commands/shared.js";
 
 declare const __PKG_VERSION__: string;
 declare const __PKG_DESCRIPTION__: string;
@@ -15,6 +17,8 @@ export function createCLI(): Command {
     .name("flaglint")
     .description(__PKG_DESCRIPTION__)
     .version(__PKG_VERSION__, "-v, --version", "output the current version")
+    .option("-q, --quiet", "suppress all informational output (errors still appear)")
+    .option("--verbose", "show detailed per-file progress")
     .addHelpText(
       "after",
       `
@@ -29,14 +33,22 @@ Examples:
   $ flaglint audit                   generate flag debt audit report
   $ flaglint audit --format html     shareable HTML report
   $ flaglint audit --output audit.md save to file
-  $ flaglint init                   scaffold a flaglint.config.json`
+  $ flaglint init                    scaffold a flaglint.config.json
+  $ flaglint completion bash         generate bash shell completion`
     );
+
+  // Set output mode before any subcommand runs
+  program.hook("preAction", () => {
+    const opts = program.opts<{ quiet?: boolean; verbose?: boolean }>();
+    setOutputMode({ quiet: opts.quiet ?? false, verbose: opts.verbose ?? false });
+  });
 
   registerInitCommand(program);
   registerScanCommand(program);
   registerMigrateCommand(program);
   registerValidateCommand(program);
   registerAuditCommand(program);
+  registerCompletionCommand(program);
 
   return program;
 }

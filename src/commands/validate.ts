@@ -2,7 +2,6 @@ import { writeFile } from "fs/promises";
 import { resolve } from "path";
 import type { Command } from "commander";
 import chalk from "chalk";
-import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import {
@@ -11,7 +10,7 @@ import {
   formatValidationSarif,
 } from "../validator/index.js";
 import { readBaseline, findNewFingerprints, BaselineError } from "../baseline.js";
-import { validateDirectory, loadConfigOrExit } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, createSpinner, stderrInfo } from "./shared.js";
 
 const VALID_VALIDATE_FORMATS = ["text", "sarif"] as const;
 type ValidateFormat = (typeof VALID_VALIDATE_FORMATS)[number];
@@ -89,7 +88,7 @@ Examples:
         await validateDirectory(dir);
         const config = await loadConfigOrExit(options.config);
 
-        const spinner = ora(`Scanning ${dir}...`).start();
+        const spinner = createSpinner(`Scanning ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
 
         const source = new LocalFileSource(dir);
@@ -112,7 +111,7 @@ Examples:
             w.kind === "read-failure"
               ? `warn: could not read ${w.file} (${w.fsCode})`
               : `warn: failed to parse ${w.file}`;
-          process.stderr.write(chalk.yellow(msg + "\n"));
+          stderrInfo(chalk.yellow(msg + "\n"));
         }
 
         // Commander strips "no-" prefix: --no-direct-launchdarkly → directLaunchdarkly = false.
@@ -142,7 +141,7 @@ Examples:
           const outPath = resolve(options.output);
           try {
             await writeFile(outPath, report, "utf8");
-            process.stderr.write(chalk.dim(`   Report written to ${options.output}\n`));
+            stderrInfo(chalk.dim(`   Report written to ${options.output}\n`));
           } catch (err) {
             process.stderr.write(
               chalk.red(
@@ -190,14 +189,12 @@ Examples:
               }
               process.exit(1);
             } else {
-              process.stderr.write(
-                chalk.green("✓ No new findings beyond baseline\n")
-              );
+              stderrInfo(chalk.green("✓ No new findings beyond baseline\n"));
             }
           } else {
             const newFingerprints = findNewFingerprints(currentFingerprints, baselineSet);
             if (newFingerprints.length > 0) {
-              process.stderr.write(
+              stderrInfo(
                 chalk.yellow(
                   `warn: ${newFingerprints.length} finding(s) not in baseline (use --fail-on-new to fail CI)\n`
                 )
