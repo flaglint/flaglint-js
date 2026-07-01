@@ -382,6 +382,75 @@ describe("scanner — wrapper functions", () => {
   });
 });
 
+describe("scanner — wrapper functions v2 (import-verified, object-form config)", () => {
+  const importVerifiedConfig = (extra: object = {}) =>
+    FlagLintConfigSchema.parse({
+      include: ["ld-wrapper-import-verified.ts"],
+      exclude: [],
+      wrappers: [
+        { import: "@company/flags", function: "useFeatureFlag" },
+        { import: "@company/experimentation", function: "evaluate", flagKeyArgument: 1 },
+      ],
+      ...extra,
+    });
+
+  it("detects import-verified wrapper calls", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.uniqueFlags).toContain("show-banner");
+    expect(result.uniqueFlags).toContain("dark-mode");
+  });
+
+  it("detects aliased import of a verified wrapper function", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.uniqueFlags).toContain("aliased-flag");
+  });
+
+  it("detects wrapper with non-zero flagKeyArgument", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.uniqueFlags).toContain("price-experiment");
+  });
+
+  it("emits callType 'variation' for all verified wrapper hits", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.usages.every((u) => u.callType === "variation")).toBe(true);
+  });
+
+  it("generates fingerprint identical to a direct LD SDK call", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    const usage = result.usages.find((u) => u.flagKey === "show-banner");
+    expect(usage?.fingerprint).toMatch(/^launchdarkly:variation:show-banner:/);
+  });
+
+  it("does NOT detect same function name imported from a different package", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-false-positive-wrapper-wrong-package.ts"],
+      exclude: [],
+      wrappers: [
+        { import: "@company/flags", function: "useFeatureFlag" },
+        { import: "@company/experimentation", function: "evaluate", flagKeyArgument: 1 },
+      ],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.totalUsages).toBe(0);
+    expect(result.uniqueFlags).toHaveLength(0);
+  });
+
+  it("string-form and object-form wrappers coexist in the same config", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts", "ld-wrapper-import-verified.ts"],
+      exclude: [],
+      wrappers: [
+        "flagPredicate",
+        { import: "@company/flags", function: "useFeatureFlag" },
+      ],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.uniqueFlags).toContain("show-banner");
+    expect(result.uniqueFlags).toContain("enable-dark-mode");
+    expect(result.uniqueFlags).toContain("dark-mode");
+  });
+});
+
 describe("scanner — unreadable file warning (P1)", () => {
   it("emits a read-failure warning and continues scanning readable files", async () => {
     const readable = `import LaunchDarkly from 'launchdarkly-node-server-sdk';
