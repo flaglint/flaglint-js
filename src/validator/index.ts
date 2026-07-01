@@ -1,5 +1,6 @@
 import { resolve } from "path";
 import { pathToFileURL } from "url";
+import micromatch from "micromatch";
 import type { ScanResult, FlagUsage, CallType } from "../types.js";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -42,44 +43,10 @@ export interface ValidateOptions {
 
 // ── Bootstrap-file glob matching ──────────────────────────────────────────────
 
-/**
- * Returns true when `file` matches any of the `patterns`.
- *
- * Supports:
- *   exact path   "src/provider/setup.ts"
- *   * wildcard   "src/provider/*.ts"         — matches within one directory level
- *   ** wildcard  "src/bootstrap/**"           — matches across directory levels
- *
- * No external dependency — avoids importing micromatch/minimatch directly.
- */
 export function matchesBootstrapPattern(file: string, patterns: string[]): boolean {
-  // Normalise leading "./"
+  if (patterns.length === 0) return false;
   const clean = (s: string): string => s.replace(/^\.\//, "");
-  const cleanFile = clean(file);
-
-  return patterns.some((pattern) => {
-    const cleanPattern = clean(pattern);
-    if (cleanFile === cleanPattern) return true;
-
-    // Convert glob to a regular expression.
-    const regexStr = cleanPattern
-      // Escape regex-special chars except * and ?
-      .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-      // Temporarily hide ** before processing single *
-      .replace(/\*\*/g, "\x00")
-      // Single * → match any sequence that does NOT cross a /
-      .replace(/\*/g, "[^/]*")
-      // ** → match anything including /
-      .replace(/\x00/g, ".*")
-      // ? → single non-separator char
-      .replace(/\?/g, "[^/]");
-
-    try {
-      return new RegExp(`^${regexStr}$`).test(cleanFile);
-    } catch {
-      return false;
-    }
-  });
+  return micromatch.isMatch(clean(file), patterns.map(clean));
 }
 
 // ── Core validation logic ─────────────────────────────────────────────────────

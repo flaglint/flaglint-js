@@ -59,11 +59,9 @@ describe("loadConfig — partial config merges with defaults", () => {
     expect(config.minFileCount).toBe(0);
   });
 
-  it("overrides provider while keeping other defaults", async () => {
+  it("throws when provider is set to an unsupported value (e.g. unleash)", async () => {
     const path = tracked(`flaglint-test-${Date.now()}.json`, { provider: "unleash" });
-    const config = await loadConfig(path);
-    expect(config.provider).toBe("unleash");
-    expect(config.outputDir).toBe(".");
+    await expect(loadConfig(path)).rejects.toThrow(/provider "unleash" is not supported/);
   });
 
   it("overrides include array", async () => {
@@ -87,7 +85,7 @@ describe("loadConfig — invalid config throws clear error", () => {
 
   it("throws when provider is an unknown value", async () => {
     const path = tracked(`flaglint-bad-${Date.now()}.json`, { provider: "unknown-provider" });
-    await expect(loadConfig(path)).rejects.toThrow(/Error in/);
+    await expect(loadConfig(path)).rejects.toThrow(/provider "unknown-provider" is not supported/);
   });
 
   it("throws when include is not an array", async () => {
