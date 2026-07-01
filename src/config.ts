@@ -15,11 +15,8 @@ export const FlagLintConfigSchema = z.object({
       "**/*.d.ts",
     ]),
   // Governs which vendor SDK the scanner targets.
-  // Currently only "launchdarkly" is wired in the scanner.
-  // Other values are accepted for forward compatibility (v0.7+).
-  provider: z
-    .enum(["launchdarkly", "unleash", "growthbook", "custom"])
-    .default("launchdarkly"),
+  // Only "launchdarkly" is wired; other values are rejected with a clear error.
+  provider: z.string().default("launchdarkly"),
   // TODO v0.3: replace minFileCount with real date-based staleness via git log
   minFileCount: z.number().int().min(0).default(0),
   wrappers: z
@@ -55,6 +52,15 @@ export type ScanConfig = Pick<FlagLintConfig, "include" | "exclude" | "minFileCo
 
 const SEARCH_PATHS = [".flaglintrc", ".flaglintrc.json", "flaglint.config.json"];
 
+function assertSupportedProvider(provider: string, configPath: string): void {
+  if (provider !== "launchdarkly") {
+    throw new Error(
+      `Error in ${configPath}: provider "${provider}" is not supported in this version. ` +
+        `Only "launchdarkly" is currently wired. Remove the provider field or set it to "launchdarkly".`
+    );
+  }
+}
+
 export async function loadConfig(configPath?: string): Promise<FlagLintConfig> {
   const candidates = configPath ? [configPath] : SEARCH_PATHS;
 
@@ -73,8 +79,9 @@ export async function loadConfig(configPath?: string): Promise<FlagLintConfig> {
       throw new Error(`Error reading ${candidate}: ${String(err)}`);
     }
 
+    let parsed: FlagLintConfig;
     try {
-      return FlagLintConfigSchema.parse(raw);
+      parsed = FlagLintConfigSchema.parse(raw);
     } catch (err) {
       if (err instanceof ZodError) {
         const detail = err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ");
@@ -82,6 +89,8 @@ export async function loadConfig(configPath?: string): Promise<FlagLintConfig> {
       }
       throw err;
     }
+    assertSupportedProvider(parsed.provider, candidate);
+    return parsed;
   }
 
   return FlagLintConfigSchema.parse({});
