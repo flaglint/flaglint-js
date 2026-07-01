@@ -1,9 +1,7 @@
 import { writeFile } from "fs/promises";
-import { stat } from "fs/promises";
 import { resolve } from "path";
 import type { Command } from "commander";
 import chalk from "chalk";
-import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import {
@@ -11,8 +9,8 @@ import {
   formatValidationReport,
   formatValidationSarif,
 } from "../validator/index.js";
-import { loadConfig } from "../config.js";
 import { readBaseline, findNewFingerprints, BaselineError } from "../baseline.js";
+import { validateDirectory, loadConfigOrExit, createSpinner, stderrInfo } from "./shared.js";
 
 const VALID_VALIDATE_FORMATS = ["text", "sarif"] as const;
 type ValidateFormat = (typeof VALID_VALIDATE_FORMATS)[number];
@@ -87,35 +85,10 @@ Examples:
 
         const format = options.format as ValidateFormat;
 
-        // Validate directory exists
-        try {
-          const s = await stat(resolve(dir));
-          if (!s.isDirectory()) {
-            process.stderr.write(chalk.red(`Error: Not a directory: ${dir}\n`));
-            process.exit(1);
-          }
-        } catch (err) {
-          const code = (err as NodeJS.ErrnoException).code;
-          if (code === "ENOENT") {
-            process.stderr.write(chalk.red(`Error: Directory not found: ${dir}\n`));
-          } else if (code === "EACCES") {
-            process.stderr.write(chalk.red(`Error: Permission denied: ${dir}\n`));
-          } else {
-            process.stderr.write(chalk.red(`Error: Cannot access directory: ${dir}\n`));
-          }
-          process.exit(1);
-        }
+        await validateDirectory(dir);
+        const config = await loadConfigOrExit(options.config);
 
-        // Load config
-        let config;
-        try {
-          config = await loadConfig(options.config);
-        } catch (err) {
-          process.stderr.write(chalk.red(String(err instanceof Error ? err.message : err)) + "\n");
-          process.exit(1);
-        }
-
-        const spinner = ora(`Scanning ${dir}...`).start();
+        const spinner = createSpinner(`Scanning ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
 
         const source = new LocalFileSource(dir);
@@ -138,7 +111,7 @@ Examples:
             w.kind === "read-failure"
               ? `warn: could not read ${w.file} (${w.fsCode})`
               : `warn: failed to parse ${w.file}`;
-          process.stderr.write(chalk.yellow(msg + "\n"));
+          stderrInfo(chalk.yellow(msg + "\n"));
         }
 
         // Commander strips "no-" prefix: --no-direct-launchdarkly → directLaunchdarkly = false.
@@ -168,7 +141,7 @@ Examples:
           const outPath = resolve(options.output);
           try {
             await writeFile(outPath, report, "utf8");
-            process.stderr.write(chalk.dim(`   Report written to ${options.output}\n`));
+            stderrInfo(chalk.dim(`   Report written to ${options.output}\n`));
           } catch (err) {
             process.stderr.write(
               chalk.red(
@@ -216,14 +189,12 @@ Examples:
               }
               process.exit(1);
             } else {
-              process.stderr.write(
-                chalk.green("✓ No new findings beyond baseline\n")
-              );
+              stderrInfo(chalk.green("✓ No new findings beyond baseline\n"));
             }
           } else {
             const newFingerprints = findNewFingerprints(currentFingerprints, baselineSet);
             if (newFingerprints.length > 0) {
-              process.stderr.write(
+              stderrInfo(
                 chalk.yellow(
                   `warn: ${newFingerprints.length} finding(s) not in baseline (use --fail-on-new to fail CI)\n`
                 )

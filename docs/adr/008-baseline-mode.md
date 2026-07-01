@@ -47,7 +47,7 @@ without CI enforcement.
 
 ```json
 {
-  "version": 1,
+  "version": "1",
   "createdAt": "2026-06-22T14:00:00.000Z",
   "flaglintVersion": "1.0.0",
   "fingerprints": [
@@ -59,7 +59,7 @@ without CI enforcement.
 
 | Field            | Type     | Description                                        |
 |------------------|----------|----------------------------------------------------|
-| `version`        | number   | Schema version; currently always `1`               |
+| `version`        | string   | Schema version; currently always `"1"` (string, not number) |
 | `createdAt`      | string   | ISO 8601 timestamp of when the baseline was written|
 | `flaglintVersion`| string   | FlagLint version used to create the baseline       |
 | `fingerprints`   | string[] | Stable finding fingerprints (from ADR 007)         |
@@ -106,8 +106,11 @@ code 130 for SIGINT) without conflicting with it.
 
 The `version` field allows future changes to the baseline schema. Consumers
 must read and validate `version` before parsing `fingerprints`. When the schema
-changes, the version number increments. Older baseline files with an unrecognised
-version exit with code 2, prompting the user to regenerate the baseline.
+changes, the version string increments (e.g. `"1"` → `"2"`). Older baseline
+files with an unrecognised version exit with code 2, prompting the user to
+regenerate the baseline. The value is always a **string**, not a number — this
+is intentional so that the check `obj["version"] !== "1"` is a simple strict
+equality test with no JSON number coercion surprises.
 
 ## Implementation
 

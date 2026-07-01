@@ -1,15 +1,13 @@
 import { writeFile } from "fs/promises";
-import { stat } from "fs/promises";
 import { resolve } from "path";
 import type { Command } from "commander";
 import chalk from "chalk";
-import ora from "ora";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { analyze, formatMigrationReport } from "../migrator/index.js";
 import { formatDryRunDiff } from "../migrator/dry-run.js";
 import { applyMigration, ApplyError } from "../migrator/apply.js";
-import { loadConfig } from "../config.js";
+import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, createSpinner, stderrInfo } from "./shared.js";
 
 export function registerMigrateCommand(program: Command): void {
   program
@@ -52,44 +50,14 @@ Examples:
           process.exit(1);
         }
 
-        // Validate directory exists
-        try {
-          const s = await stat(resolve(dir));
-          if (!s.isDirectory()) {
-            process.stderr.write(chalk.red(`Error: Not a directory: ${dir}\n`));
-            process.exit(1);
-          }
-        } catch (err) {
-          const code = (err as NodeJS.ErrnoException).code;
-          if (code === "ENOENT") {
-            process.stderr.write(chalk.red(`Error: Directory not found: ${dir}\n`));
-          } else if (code === "EACCES") {
-            process.stderr.write(chalk.red(`Error: Permission denied: ${dir}\n`));
-          } else {
-            process.stderr.write(chalk.red(`Error: Cannot access directory: ${dir}\n`));
-          }
-          process.exit(1);
-        }
+        await validateDirectory(dir);
+        const config = await loadConfigOrExit(options.config);
 
-        // Load config
-        let config;
-        try {
-          config = await loadConfig(options.config);
-        } catch (err) {
-          process.stderr.write(chalk.red(String(err instanceof Error ? err.message : err)) + "\n");
-          process.exit(1);
-        }
-
-        const TEST_PATTERNS = [
-          "**/*.test.ts", "**/*.test.tsx",
-          "**/*.spec.ts", "**/*.spec.tsx",
-          "**/__tests__/**", "**/tests/**",
-        ];
         const scanConfig = options.excludeTests
-          ? { ...config, exclude: [...config.exclude, ...TEST_PATTERNS] }
+          ? { ...config, exclude: [...config.exclude, ...EXCLUDE_TEST_PATTERNS] }
           : config;
 
-        const spinner = ora(`Scanning ${dir}...`).start();
+        const spinner = createSpinner(`Scanning ${dir}...`).start();
         process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
 
         // Single source used for scan, dry-run, and apply.
@@ -134,12 +102,12 @@ Examples:
           const msg = w.kind === "read-failure"
             ? `warn: could not read ${w.file} (${w.fsCode})`
             : `warn: failed to parse ${w.file}`;
-          process.stderr.write(chalk.yellow(msg + "\n"));
+          stderrInfo(chalk.yellow(msg + "\n"));
         }
 
         const summaryColor = analysis.manualReviewCount > 0 ? chalk.yellow : chalk.green;
-        process.stderr.write(summaryColor(`LaunchDarkly usages found: ${analysis.totalLaunchDarklyUsages}\n`));
-        process.stderr.write(
+        stderrInfo(summaryColor(`LaunchDarkly usages found: ${analysis.totalLaunchDarklyUsages}\n`));
+        stderrInfo(
           chalk.gray(
             `Safely automatable: ${analysis.safelyAutomatableCount} · Manual review: ${analysis.manualReviewCount}\n`
           )
@@ -167,29 +135,25 @@ Examples:
           }
 
           if (result.transformed > 0) {
-            process.stderr.write(
+            stderrInfo(
               chalk.green(
                 `Transformed: ${result.transformed} call-site(s) across ${result.transformedFiles.length} file(s)\n`
               )
             );
             for (const file of result.transformedFiles) {
-              process.stderr.write(chalk.dim(`  ✓ ${file}\n`));
+              stderrInfo(chalk.dim(`  ✓ ${file}\n`));
             }
           } else {
-            process.stderr.write(chalk.dim("No call-sites were transformed.\n"));
+            stderrInfo(chalk.dim("No call-sites were transformed.\n"));
           }
 
           if (result.skipped > 0) {
-            process.stderr.write(
+            stderrInfo(
               chalk.yellow(`Skipped: ${result.skipped} file(s) — OpenFeature client setup required\n`)
             );
             for (const { file } of result.skippedFiles) {
-              process.stderr.write(
-                chalk.dim(`  ⚠ ${file}: no openFeatureClient binding found\n`)
-              );
-              process.stderr.write(
-                chalk.dim("    Run `flaglint migrate --dry-run` for provider setup guidance.\n")
-              );
+              stderrInfo(chalk.dim(`  ⚠ ${file}: no openFeatureClient binding found\n`));
+              stderrInfo(chalk.dim("    Run `flaglint migrate --dry-run` for provider setup guidance.\n"));
             }
           }
 
@@ -201,7 +165,7 @@ Examples:
         const outPath = resolve(options.output);
         try {
           await writeFile(outPath, report, "utf8");
-          process.stderr.write(chalk.green(`Migration plan written to ${options.output}\n`));
+          stderrInfo(chalk.green(`Migration plan written to ${options.output}\n`));
         } catch (err) {
           process.stderr.write(
             chalk.red(

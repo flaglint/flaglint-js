@@ -19,6 +19,10 @@ inputs:
     description: "Additional CLI flags to pass to flaglint"
     required: false
     default: ""
+  version:
+    description: "FlagLint version to use (e.g. latest, 0.8.0)"
+    required: false
+    default: "latest"
   node-version:
     description: "Node.js version to use"
     required: false
@@ -34,4 +38,14 @@ runs:
 
     - name: Run FlagLint
       shell: bash
-      run: npx flaglint@latest ${{ inputs.command }} ${{ inputs.directory }} --no-direct-launchdarkly ${{ inputs.extra-args }}
+      env:
+        FLAGLINT_COMMAND: ${{ inputs.command }}
+        FLAGLINT_DIRECTORY: ${{ inputs.directory }}
+        FLAGLINT_EXTRA_ARGS: ${{ inputs.extra-args }}
+        FLAGLINT_VERSION: ${{ inputs.version }}
+      run: |
+        if [ "$FLAGLINT_COMMAND" = "validate" ]; then
+          npx flaglint@"$FLAGLINT_VERSION" validate "$FLAGLINT_DIRECTORY" --no-direct-launchdarkly $FLAGLINT_EXTRA_ARGS
+        else
+          npx flaglint@"$FLAGLINT_VERSION" "$FLAGLINT_COMMAND" "$FLAGLINT_DIRECTORY" $FLAGLINT_EXTRA_ARGS
+        fi

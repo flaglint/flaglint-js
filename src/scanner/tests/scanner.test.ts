@@ -134,6 +134,33 @@ describe("scanner — ld-react.tsx", () => {
   });
 });
 
+describe("scanner — React SDK import verification (false positive guard)", () => {
+  it("does NOT detect useFlags() from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "hook-useFlags")).toBeUndefined();
+  });
+
+  it("does NOT detect useLDClient() from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "hook-useLDClient")).toBeUndefined();
+  });
+
+  it("does NOT detect withLDConsumer HOC from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "hoc")).toBeUndefined();
+  });
+
+  it("does NOT detect LDProvider JSX from a non-LD package", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.usages.find((u) => u.callType === "provider")).toBeUndefined();
+  });
+
+  it("returns zero total usages for a file using only custom-named hooks", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-custom-hooks.tsx"));
+    expect(result.totalUsages).toBe(0);
+  });
+});
+
 describe("scanner — ld-stale.ts", () => {
   it("marks flag with 'old' in key as isStale: true", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-stale.ts"));
@@ -231,7 +258,7 @@ describe("scanner — template literal flag keys", () => {
 });
 
 describe("scanner — isFeatureEnabled", () => {
-  it("detects isFeatureEnabled() with a static key", async () => {
+  it("detects ldClient.isFeatureEnabled() with a static key", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-is-feature-enabled.ts"));
     const u = result.usages.find((u) => u.callType === "isFeatureEnabled" && !u.isDynamic);
     expect(u).toBeDefined();
@@ -239,7 +266,7 @@ describe("scanner — isFeatureEnabled", () => {
     expect(u?.isDynamic).toBe(false);
   });
 
-  it("detects isFeatureEnabled() with a dynamic key", async () => {
+  it("detects ldClient.isFeatureEnabled() with a dynamic key", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-is-feature-enabled.ts"));
     const u = result.usages.find((u) => u.callType === "isFeatureEnabled" && u.isDynamic);
     expect(u).toBeDefined();
@@ -249,6 +276,12 @@ describe("scanner — isFeatureEnabled", () => {
   it("static isFeatureEnabled key appears in uniqueFlags", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-is-feature-enabled.ts"));
     expect(result.uniqueFlags).toContain("is-premium-user");
+  });
+
+  it("does NOT detect a bare isFeatureEnabled() that is not a method on an LD client", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), cfg("ld-false-positive-is-feature-enabled.ts"));
+    expect(result.usages).toHaveLength(0);
+    expect(result.totalUsages).toBe(0);
   });
 });
 
@@ -346,6 +379,75 @@ describe("scanner — wrapper functions", () => {
     expect(dynamic).toBeDefined();
     expect(dynamic!.callType).toBe("variation");
     expect(result.uniqueFlags).not.toContain("dynamic");
+  });
+});
+
+describe("scanner — wrapper functions v2 (import-verified, object-form config)", () => {
+  const importVerifiedConfig = (extra: object = {}) =>
+    FlagLintConfigSchema.parse({
+      include: ["ld-wrapper-import-verified.ts"],
+      exclude: [],
+      wrappers: [
+        { import: "@company/flags", function: "useFeatureFlag" },
+        { import: "@company/experimentation", function: "evaluate", flagKeyArgument: 1 },
+      ],
+      ...extra,
+    });
+
+  it("detects import-verified wrapper calls", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.uniqueFlags).toContain("show-banner");
+    expect(result.uniqueFlags).toContain("dark-mode");
+  });
+
+  it("detects aliased import of a verified wrapper function", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.uniqueFlags).toContain("aliased-flag");
+  });
+
+  it("detects wrapper with non-zero flagKeyArgument", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.uniqueFlags).toContain("price-experiment");
+  });
+
+  it("emits callType 'variation' for all verified wrapper hits", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    expect(result.usages.every((u) => u.callType === "variation")).toBe(true);
+  });
+
+  it("generates fingerprint identical to a direct LD SDK call", async () => {
+    const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
+    const usage = result.usages.find((u) => u.flagKey === "show-banner");
+    expect(usage?.fingerprint).toMatch(/^launchdarkly:variation:show-banner:/);
+  });
+
+  it("does NOT detect same function name imported from a different package", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-false-positive-wrapper-wrong-package.ts"],
+      exclude: [],
+      wrappers: [
+        { import: "@company/flags", function: "useFeatureFlag" },
+        { import: "@company/experimentation", function: "evaluate", flagKeyArgument: 1 },
+      ],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.totalUsages).toBe(0);
+    expect(result.uniqueFlags).toHaveLength(0);
+  });
+
+  it("string-form and object-form wrappers coexist in the same config", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts", "ld-wrapper-import-verified.ts"],
+      exclude: [],
+      wrappers: [
+        "flagPredicate",
+        { import: "@company/flags", function: "useFeatureFlag" },
+      ],
+    });
+    const result = await scan(new LocalFileSource(FIXTURES), config);
+    expect(result.uniqueFlags).toContain("show-banner");
+    expect(result.uniqueFlags).toContain("enable-dark-mode");
+    expect(result.uniqueFlags).toContain("dark-mode");
   });
 });
 

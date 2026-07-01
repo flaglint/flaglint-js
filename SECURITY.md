@@ -4,7 +4,7 @@
 
 Please report suspected vulnerabilities privately by opening a GitHub Security Advisory:
 
-https://github.com/flaglint/flaglint/security/advisories/new
+https://github.com/flaglint/flaglint-js/security/advisories/new
 
 If GitHub advisories are unavailable, email the maintainer listed on the npm package page
 with the following details:
@@ -34,7 +34,7 @@ Older versions are not actively patched — upgrade to the latest release.
 If FlagLint flags a call site it should not (false positive), or misses a pattern it
 should detect (false negative), open a GitHub Issue with a minimal reproduction:
 
-https://github.com/flaglint/flaglint/issues/new?template=unsupported_pattern.yml
+https://github.com/flaglint/flaglint-js/issues/new?template=unsupported_pattern.yml
 
 Include the source snippet, the FlagLint version, and the command you ran.
 Label the issue `false-positive` or `unsupported-pattern`.
