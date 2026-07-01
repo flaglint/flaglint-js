@@ -5,6 +5,7 @@ import chalk from "chalk";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { formatReport } from "../reporter/index.js";
+import { formatDuration } from "./utils/format-duration.js";
 import type { ReportFormat, ReporterOptions } from "../types.js";
 import { isStale } from "../types.js";
 import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, createSpinner, stderrInfo, isVerbose } from "./shared.js";
@@ -98,7 +99,7 @@ Examples:
 
         stderrInfo(
           chalk.green(
-            `✓ ${result.totalUsages} flag usages found across ${result.uniqueFlags.length} unique flags (${result.scanDurationMs}ms)\n`
+            `✓ Scan complete — ${result.uniqueFlags.length} unique flags across ${result.totalUsages} call sites (${formatDuration(result.scanDurationMs)}, ${result.scannedFiles} files)\n`
           )
         );
         if (staleCount > 0) {

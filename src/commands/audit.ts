@@ -15,11 +15,11 @@ import {
 } from "../auditor/reporter.js";
 import { renderReadinessBar } from "../readiness/readiness-bar.js";
 import { computeEstimate } from "../estimate/estimate.js";
+import { formatDuration } from "./utils/format-duration.js";
 import { writeBaseline, BaselineError } from "../baseline.js";
 
 const _require = createRequire(import.meta.url);
 const _pkg = _require("../../package.json") as { version: string };
-
 const VALID_AUDIT_FORMATS = ["json", "markdown", "html"] as const;
 type AuditFormat = (typeof VALID_AUDIT_FORMATS)[number];
 
@@ -184,9 +184,9 @@ Examples:
 
         const { totalFlags, highRisk, mediumRisk, lowRisk } = auditReport.summary;
         const lowRiskSegment = lowRisk > 0 ? `, ${lowRisk} low risk` : "";
-        process.stderr.write(
+        stderrInfo(
           chalk.green(
-            `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk${lowRiskSegment}\n`
+            `✓ Audit complete: ${totalFlags} flags — ${highRisk} high risk, ${mediumRisk} medium risk${lowRiskSegment} (${formatDuration(scanResult.scanDurationMs)}, ${scanResult.scannedFiles} files)\n`
           )
         );
 

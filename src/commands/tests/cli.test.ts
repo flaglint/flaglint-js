@@ -107,9 +107,12 @@ describe("CLI — stdout/stderr routing", () => {
     const r = cli("scan", "--format", "json", FIXTURES);
     // Report (JSON) goes to stdout
     expect(() => JSON.parse(r.stdout)).not.toThrow();
-    // Summary goes to stderr, not stdout
-    expect(r.stdout).not.toContain("flag usages found");
-    expect(r.stderr).toContain("flag usages found");
+   // Summary goes to stderr, not stdout
+      expect(r.stdout).not.toContain("Scan complete");
+      expect(r.stderr).toContain("Scan complete");
+
+// duration formatting should be present
+      expect(r.stderr).toMatch(/\d+ms|\d+\.\d+s/);
   });
 
   it("stderr contains stale warning when stale flags exist", () => {
