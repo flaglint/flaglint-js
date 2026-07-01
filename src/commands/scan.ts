@@ -132,7 +132,7 @@ Examples:
             .filter((u) => isStale(u) && !u.isDynamic && u.flagKey !== "*")
             .map((u) => u.flagKey)
         ).size;
-        const dynamicCount = new Set(result.usages.filter((u) => u.isDynamic).map((u) => u.flagKey)).size;
+        const dynamicCount = new Set(result.usages.filter((u) => u.isDynamic).map((u) => u.fingerprint)).size;
 
         process.stderr.write(
           chalk.green(
@@ -169,7 +169,7 @@ Examples:
           process.stdout.write(report + "\n");
         }
 
-        process.exitCode = staleCount > 0 ? 1 : 0;
+        // scan is an inventory command — enforcement exit codes belong only in `validate`
       }
     );
 }
