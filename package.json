@@ -1,6 +1,6 @@
 {
   "name": "flaglint",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Static analysis CLI for finding LaunchDarkly JavaScript/TypeScript flag debt, CI enforcement with baseline mode, and safe OpenFeature migration assistance. No API key required.",
   "type": "module",
   "bin": {
