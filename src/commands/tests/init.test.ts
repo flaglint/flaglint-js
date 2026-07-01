@@ -96,12 +96,25 @@ describe("CLI — flaglint init", () => {
     expect((parsed["include"] as string[]).length).toBeGreaterThan(0);
   });
 
-  it("warns but continues if a different standard config file exists", () => {
+  it("warns when a higher-precedence config exists (.flaglintrc shadows flaglint.config.json)", () => {
+    // .flaglintrc (index 0) has higher precedence than flaglint.config.json (index 2)
     const dir = makeTmpDir({ ".flaglintrc": "{}" });
-    const r = cli(dir, "init");
+    const r = cli(dir, "init"); // writes flaglint.config.json
 
     expect(r.status).toBe(0);
     expect(r.stderr).toContain("warn");
+    expect(r.stderr).toContain("takes precedence");
     expect(existsSync(join(dir, "flaglint.config.json"))).toBe(true);
+  });
+
+  it("does not warn when only a lower-precedence config exists", () => {
+    // flaglint.config.json (index 2) has lower precedence than .flaglintrc.json (index 1)
+    // so creating .flaglintrc.json should NOT warn about flaglint.config.json
+    const dir = makeTmpDir({ "flaglint.config.json": "{}" });
+    const r = cli(dir, "init", "--output", ".flaglintrc.json");
+
+    expect(r.status).toBe(0);
+    expect(r.stderr).not.toContain("warn");
+    expect(existsSync(join(dir, ".flaglintrc.json"))).toBe(true);
   });
 });

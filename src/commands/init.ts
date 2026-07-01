@@ -59,14 +59,24 @@ Examples:
           // File does not exist — continue
         }
 
-        // Also warn if any other standard config file is present
+        // Warn about higher-precedence standard config files that would shadow the new file.
+        // loadConfig checks SEARCH_PATHS in order and returns the first match, so only
+        // files at a lower index (higher precedence) than options.output can shadow it.
+        const outputIdxInSearch = SEARCH_PATHS.findIndex(
+          (p) => resolve(p) === outPath
+        );
         for (const candidate of SEARCH_PATHS) {
-          if (candidate === options.output) continue;
+          const candidateResolved = resolve(candidate);
+          if (candidateResolved === outPath) continue; // same file (resolved), skip
+          const candidateIdx = SEARCH_PATHS.indexOf(candidate);
+          // If output is in SEARCH_PATHS, only warn about strictly higher-precedence entries.
+          // If output is not in SEARCH_PATHS (custom filename), any standard file shadows it.
+          if (outputIdxInSearch !== -1 && candidateIdx >= outputIdxInSearch) continue;
           try {
-            await access(resolve(candidate));
+            await access(candidateResolved);
             process.stderr.write(
               chalk.yellow(
-                `warn: ${candidate} already exists — flaglint will use it and ignore ${options.output}\n`
+                `warn: ${candidate} already exists and takes precedence — flaglint will use it instead of ${options.output}\n`
               )
             );
           } catch {
