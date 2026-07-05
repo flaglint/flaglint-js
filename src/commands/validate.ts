@@ -10,7 +10,7 @@ import {
   formatValidationSarif,
 } from "../validator/index.js";
 import { readBaseline, findNewFingerprints, BaselineError } from "../baseline.js";
-import { validateDirectory, loadConfigOrExit, createSpinner, stderrInfo } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, startSpinner, stderrInfo } from "./shared.js";
 
 const VALID_VALIDATE_FORMATS = ["text", "sarif"] as const;
 type ValidateFormat = (typeof VALID_VALIDATE_FORMATS)[number];
@@ -88,8 +88,7 @@ Examples:
         await validateDirectory(dir);
         const config = await loadConfigOrExit(options.config);
 
-        const spinner = createSpinner(`Scanning ${dir}...`).start();
-        process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
+        const spinner = startSpinner(`Scanning ${dir}...`);
 
         const source = new LocalFileSource(dir);
 

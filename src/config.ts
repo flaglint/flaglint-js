@@ -17,7 +17,6 @@ export const FlagLintConfigSchema = z.object({
   // Governs which vendor SDK the scanner targets.
   // Only "launchdarkly" is wired; other values are rejected with a clear error.
   provider: z.string().default("launchdarkly"),
-  // TODO v0.3: replace minFileCount with real date-based staleness via git log
   minFileCount: z.number().int().min(0).default(0),
   wrappers: z
     .array(

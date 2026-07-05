@@ -8,7 +8,7 @@ import { formatReport } from "../reporter/index.js";
 import { formatDuration } from "./utils/format-duration.js";
 import type { ReportFormat, ReporterOptions } from "../types.js";
 import { isStale } from "../types.js";
-import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, createSpinner, stderrInfo, isVerbose } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, startSpinner, stderrInfo, isVerbose } from "./shared.js";
 
 const VALID_FORMATS: ReportFormat[] = ["json", "markdown", "html", "sarif"];
 
@@ -52,8 +52,7 @@ Examples:
           : config;
 
         const format = options.format as ReporterOptions["format"];
-        const spinner = createSpinner(`Scanning ${dir}...`).start();
-        process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
+        const spinner = startSpinner(`Scanning ${dir}...`);
         let lastSpinnerUpdate = 0;
 
         let result;
