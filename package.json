@@ -35,11 +35,7 @@
     "migration-tool",
     "developer-tools"
   ],
-  "author": {
-    "name": "Krishan Kant Sharma",
-    "email": "krishansharma0327@gmail.com",
-    "url": "https://flaglint.dev"
-  },
+  "author": "flaglint (https://flaglint.dev)",
   "license": "MIT",
   "repository": {
     "type": "git",
