@@ -70,3 +70,38 @@ jobs:
         # propagated); re-enable it. Provenance requires the id-token: write
         # permission granted on this job above.
         run: npm publish --provenance --access public
+
+  update-homebrew:
+    runs-on: ubuntu-latest
+    needs: publish
+    permissions:
+      contents: read
+
+    steps:
+      - name: Bump Homebrew formula
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          TARBALL_URL="https://registry.npmjs.org/flaglint/-/flaglint-${VERSION}.tgz"
+
+          # Wait briefly for npm CDN propagation
+          sleep 15
+
+          SHA256=$(curl -sL "$TARBALL_URL" | shasum -a 256 | awk '{print $1}')
+
+          echo "Version: $VERSION"
+          echo "SHA256:  $SHA256"
+
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/flaglint/homebrew-tap.git" tap
+          cd tap
+
+          sed -i "s|url \"https://registry.npmjs.org/flaglint/-/flaglint-.*\.tgz\"|url \"${TARBALL_URL}\"|" Formula/flaglint.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/flaglint.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/flaglint.rb
+          git diff --cached --quiet && echo "No changes needed" && exit 0
+          git commit -m "chore: bump flaglint formula to ${VERSION}"
+          git push
