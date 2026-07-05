@@ -19,6 +19,9 @@
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" />
   </a>
+  <a href="https://openfeature.dev/ecosystem/?instant_search%5BrefinementList%5D%5Btype%5D%5B0%5D=Integration">
+    <img src="https://img.shields.io/badge/OpenFeature-Ecosystem-blueviolet.svg" alt="Listed on OpenFeature Ecosystem" />
+  </a>
 </p>
 
 ---
@@ -171,4 +174,4 @@ FlagLint runs entirely on your machine. No source code, flag keys, or file paths
 
 ## Links
 
-**[Docs](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Blog](https://flaglint.dev/blog)** · [Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE)
+**[Docs](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Blog](https://flaglint.dev/blog)** · [OpenFeature Ecosystem](https://openfeature.dev/ecosystem/?instant_search%5BrefinementList%5D%5Btype%5D%5B0%5D=Integration) · [Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE)
