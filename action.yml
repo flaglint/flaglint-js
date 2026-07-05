@@ -12,15 +12,19 @@ inputs:
     required: false
     default: "."
   command:
-    description: "FlagLint command to run: validate, scan, or audit"
+    description: "FlagLint command to run: validate | scan | audit | migrate"
     required: false
     default: "validate"
+  no-direct-launchdarkly:
+    description: "Fail if any direct LaunchDarkly Node server SDK calls are found (validate only)"
+    required: false
+    default: "true"
   extra-args:
     description: "Additional CLI flags to pass to flaglint"
     required: false
     default: ""
   version:
-    description: "FlagLint version to use (e.g. latest, 0.8.0)"
+    description: "FlagLint version to use (e.g. latest, 1.1.0)"
     required: false
     default: "latest"
   node-version:
@@ -43,9 +47,18 @@ runs:
         FLAGLINT_DIRECTORY: ${{ inputs.directory }}
         FLAGLINT_EXTRA_ARGS: ${{ inputs.extra-args }}
         FLAGLINT_VERSION: ${{ inputs.version }}
+        FLAGLINT_NO_DIRECT_LD: ${{ inputs.no-direct-launchdarkly }}
       run: |
-        if [ "$FLAGLINT_COMMAND" = "validate" ]; then
-          npx flaglint@"$FLAGLINT_VERSION" validate "$FLAGLINT_DIRECTORY" --no-direct-launchdarkly $FLAGLINT_EXTRA_ARGS
-        else
-          npx flaglint@"$FLAGLINT_VERSION" "$FLAGLINT_COMMAND" "$FLAGLINT_DIRECTORY" $FLAGLINT_EXTRA_ARGS
+        # Validate command against allowlist to prevent injection
+        case "$FLAGLINT_COMMAND" in
+          validate|scan|audit|migrate) ;;
+          *) echo "Error: unsupported command '$FLAGLINT_COMMAND'. Must be one of: validate, scan, audit, migrate" >&2; exit 2 ;;
+        esac
+
+        ARGS=()
+        if [ "$FLAGLINT_COMMAND" = "validate" ] && [ "$FLAGLINT_NO_DIRECT_LD" = "true" ]; then
+          ARGS+=("--no-direct-launchdarkly")
         fi
+
+        # shellcheck disable=SC2086
+        npx flaglint@"$FLAGLINT_VERSION" "$FLAGLINT_COMMAND" "$FLAGLINT_DIRECTORY" "${ARGS[@]}" $FLAGLINT_EXTRA_ARGS
