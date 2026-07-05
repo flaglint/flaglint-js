@@ -19,6 +19,9 @@
   <a href="https://opensource.org/licenses/MIT">
     <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="MIT License" />
   </a>
+  <a href="https://openfeature.dev/ecosystem/?instant_search%5BrefinementList%5D%5Btype%5D%5B0%5D=Integration">
+    <img src="https://img.shields.io/badge/OpenFeature-Ecosystem-blueviolet.svg" alt="Listed on OpenFeature Ecosystem" />
+  </a>
 </p>
 
 ---
@@ -59,6 +62,13 @@ For the full report see `--format html`. [Documentation](https://flaglint.dev/do
 No API key. No source upload. LaunchDarkly stays your provider — OpenFeature becomes the evaluation API your application calls.
 
 Migrating an existing Node.js service? Read the [complete LaunchDarkly-to-OpenFeature migration guide](https://flaglint.dev/docs/guides/launchdarkly-to-openfeature-nodejs/).
+
+---
+
+## Featured in the ecosystem
+
+- **[OpenFeature Ecosystem](https://openfeature.dev/ecosystem/?instant_search%5BrefinementList%5D%5Btype%5D%5B0%5D=Integration)** — Listed as 1 of 2 OpenFeature integrations (JavaScript · Server · Integration)
+- **[Flipt's LaunchDarkly migration guide](https://docs.flipt.io/v1/guides/migration/launchdarkly/openfeature#optional-use-flaglint)** — Recommended as the codebase analysis tool for LD → OpenFeature migrations
 
 ---
 
@@ -147,6 +157,22 @@ Full instructions: [OpenFeature Provider Setup](https://flaglint.dev/docs/tutori
 
 ---
 
+## Installation
+
+**npm / npx (Node.js required)**
+```bash
+npx flaglint@latest audit       # run without installing
+npm install -g flaglint         # install globally
+```
+
+**Homebrew (macOS / Linux — no Node.js required)**
+```bash
+brew tap flaglint/tap
+brew install flaglint
+```
+
+---
+
 ## Local analysis
 
 FlagLint runs entirely on your machine. No source code, flag keys, or file paths leave your environment. No LaunchDarkly API key or credentials are required for `audit`, `scan`, `migrate`, or `validate`.
@@ -155,4 +181,4 @@ FlagLint runs entirely on your machine. No source code, flag keys, or file paths
 
 ## Links
 
-**[Docs](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Blog](https://flaglint.dev/blog)** · [Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE)
+**[Docs](https://flaglint.dev/docs)** · **[Quickstart](https://flaglint.dev/docs/quickstart)** · **[Blog](https://flaglint.dev/blog)** · [OpenFeature Ecosystem](https://openfeature.dev/ecosystem/?instant_search%5BrefinementList%5D%5Btype%5D%5B0%5D=Integration) · [Security](./SECURITY.md) · [Contributing](./CONTRIBUTING.md) · [Changelog](./CHANGELOG.md) · [License](./LICENSE)
