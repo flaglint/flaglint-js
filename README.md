@@ -147,6 +147,22 @@ Full instructions: [OpenFeature Provider Setup](https://flaglint.dev/docs/tutori
 
 ---
 
+## Installation
+
+**npm / npx (Node.js required)**
+```bash
+npx flaglint@latest audit       # run without installing
+npm install -g flaglint         # install globally
+```
+
+**Homebrew (macOS / Linux — no Node.js required)**
+```bash
+brew tap flaglint/tap
+brew install flaglint
+```
+
+---
+
 ## Local analysis
 
 FlagLint runs entirely on your machine. No source code, flag keys, or file paths leave your environment. No LaunchDarkly API key or credentials are required for `audit`, `scan`, `migrate`, or `validate`.
