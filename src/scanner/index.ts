@@ -52,8 +52,7 @@ const LD_FLAG_KEY_METHODS = new Set([
 ]);
 
 // Client methods that enumerate all flags — no flag key, use '*'.
-// TODO: bulk inventory calls must not be auto-migrated as normal single-flag
-// evaluations; they need a separate manual-review migration path.
+// Bulk calls are flagged safelyAutomatable: false in the migrator (manualReviewReason: "bulk-inventory-call").
 const LD_ALL_FLAGS_METHODS = new Set(["allFlags", "allFlagsState"]);
 const LD_DETAIL_METHODS = new Set([
   "variationDetail",
@@ -678,6 +677,8 @@ export async function scan(
     return { ...detectUsages(ast, code, file, config.wrappers), warning: null };
   }
 
+  // 50 concurrent file reads — balanced for I/O-bound work on most codebases.
+  // AST parsing is CPU-bound; raising this on large monorepos may not help.
   const limit = pLimit(50);
 
   const results = await Promise.all(

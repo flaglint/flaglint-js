@@ -23,6 +23,9 @@
     "launchdarkly-migration",
     "openfeature-migration",
     "flag-debt",
+    "flag-cleanup",
+    "feature-toggle",
+    "tech-debt",
     "static-analysis",
     "codemod",
     "cli",
@@ -32,7 +35,7 @@
     "migration-tool",
     "developer-tools"
   ],
-  "author": "flaglint",
+  "author": "flaglint (https://flaglint.dev)",
   "license": "MIT",
   "repository": {
     "type": "git",

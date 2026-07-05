@@ -7,7 +7,7 @@ import { LocalFileSource } from "../scanner/local-source.js";
 import { analyze, formatMigrationReport } from "../migrator/index.js";
 import { formatDryRunDiff } from "../migrator/dry-run.js";
 import { applyMigration, ApplyError } from "../migrator/apply.js";
-import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, createSpinner, stderrInfo } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, startSpinner, stderrInfo } from "./shared.js";
 
 export function registerMigrateCommand(program: Command): void {
   program
@@ -57,8 +57,7 @@ Examples:
           ? { ...config, exclude: [...config.exclude, ...EXCLUDE_TEST_PATTERNS] }
           : config;
 
-        const spinner = createSpinner(`Scanning ${dir}...`).start();
-        process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
+        const spinner = startSpinner(`Scanning ${dir}...`);
 
         // Single source used for scan, dry-run, and apply.
         const source = new LocalFileSource(dir);

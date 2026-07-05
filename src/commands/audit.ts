@@ -6,7 +6,7 @@ import chalk from "chalk";
 import { scan } from "../scanner/index.js";
 import { LocalFileSource } from "../scanner/local-source.js";
 import { buildAuditReport } from "../auditor/index.js";
-import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, createSpinner, stderrInfo } from "./shared.js";
+import { validateDirectory, loadConfigOrExit, EXCLUDE_TEST_PATTERNS, startSpinner, stderrInfo } from "./shared.js";
 import {
   formatAuditJson,
   formatAuditMarkdown,
@@ -96,8 +96,7 @@ Examples:
           : config;
 
         const format = options.format as AuditFormat;
-        const spinner = createSpinner(`Auditing ${dir}...`).start();
-        process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
+        const spinner = startSpinner(`Auditing ${dir}...`);
         let lastSpinnerUpdate = 0;
 
         let scanResult;

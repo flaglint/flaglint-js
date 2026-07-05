@@ -26,7 +26,16 @@ export function stderrInfo(msg: string): void {
 
 /** Creates an ora spinner that is silenced in quiet mode. */
 export function createSpinner(text: string): Ora {
-  const spinner = ora({ text, isSilent: _quiet });
+  return ora({ text, isSilent: _quiet });
+}
+
+/**
+ * Starts a spinner and wires SIGINT → stop + exit 130.
+ * Centralises the identical setup block that every scan command needs.
+ */
+export function startSpinner(text: string): Ora {
+  const spinner = createSpinner(text).start();
+  process.once("SIGINT", () => { spinner.stop(); process.exit(130); });
   return spinner;
 }
 
