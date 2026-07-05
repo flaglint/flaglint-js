@@ -65,6 +65,13 @@ Migrating an existing Node.js service? Read the [complete LaunchDarkly-to-OpenFe
 
 ---
 
+## Featured in the ecosystem
+
+- **[OpenFeature Ecosystem](https://openfeature.dev/ecosystem/?instant_search%5BrefinementList%5D%5Btype%5D%5B0%5D=Integration)** — Listed as 1 of 2 OpenFeature integrations (JavaScript · Server · Integration)
+- **[Flipt's LaunchDarkly migration guide](https://docs.flipt.io/v1/guides/migration/launchdarkly/openfeature#optional-use-flaglint)** — Recommended as the codebase analysis tool for LD → OpenFeature migrations
+
+---
+
 ## The problem FlagLint solves
 
 The OpenFeature `getBooleanValue(key, defaultValue, context)` API takes arguments in a different order from LaunchDarkly's `boolVariation(key, context, defaultValue)`. A naive find-and-replace silently swaps your fallback and context, producing valid-looking code that evaluates flags incorrectly in production.
