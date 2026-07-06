@@ -663,7 +663,7 @@ export async function scan(
     let ast: TSESTree.Program;
     try {
       ast = parse(code, {
-        jsx: true,
+        jsx: file.endsWith(".tsx") || file.endsWith(".jsx") || file.endsWith(".js"),
         loc: true,
         range: true,
         comment: false,
