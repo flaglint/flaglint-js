@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { spawnSync } from "child_process";
-import { mkdtempSync, writeFileSync, rmSync, readFileSync } from "fs";
+import { mkdtempSync, writeFileSync, mkdirSync, rmSync, readFileSync } from "fs";
 import { join, dirname } from "path";
 import { tmpdir } from "os";
 import { fileURLToPath } from "url";
@@ -16,6 +16,8 @@ function cli(...args: string[]) {
     encoding: "utf8",
     timeout: 30000,
     maxBuffer: 1024 * 1024,
+    // Suppress update notifier so tests don't depend on network or cache state
+    env: { ...process.env, FLAGLINT_NO_UPDATE_CHECK: "1" },
   });
 }
 
@@ -168,5 +170,53 @@ describe("CLI — --output flag", () => {
     // file should exist and be valid JSON
     const content = readFileSync(outFile, "utf8");
     expect(() => JSON.parse(content)).not.toThrow();
+  });
+});
+
+// ── Update notifier ───────────────────────────────────────────────────────────
+
+describe("Update notifier", () => {
+  it("is suppressed when FLAGLINT_NO_UPDATE_CHECK=1", () => {
+    const r = spawnSync(process.execPath, [ENTRY, "scan", FIXTURES], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, FLAGLINT_NO_UPDATE_CHECK: "1" },
+    });
+    expect(r.stderr).not.toMatch(/Update available/);
+  });
+
+  it("is suppressed in CI environments", () => {
+    const r = spawnSync(process.execPath, [ENTRY, "scan", FIXTURES], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: { ...process.env, CI: "1", FLAGLINT_NO_UPDATE_CHECK: undefined },
+    });
+    expect(r.stderr).not.toMatch(/Update available/);
+  });
+
+  it("shows notification when cache contains a newer version", () => {
+    const configDir = mkdtempSync(join(tmpdir(), "flaglint-update-test-"));
+    tmpDirs.push(configDir);
+    const cacheDir = join(configDir, "flaglint");
+    mkdirSync(cacheDir, { recursive: true });
+    writeFileSync(
+      join(cacheDir, "update-check.json"),
+      JSON.stringify({ latestVersion: "99.99.99", checkedAt: Date.now() })
+    );
+    const r = spawnSync(process.execPath, [ENTRY, "scan", FIXTURES], {
+      cwd: ROOT,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        XDG_CONFIG_HOME: configDir,
+        CI: undefined,
+        GITHUB_ACTIONS: undefined,
+        FLAGLINT_NO_UPDATE_CHECK: undefined,
+      },
+    });
+    expect(r.stderr).toMatch(/Update available/);
+    expect(r.stderr).toMatch(/99\.99\.99/);
+    expect(r.stderr).toMatch(/npm install -g flaglint/);
+    expect(r.stderr).toMatch(/brew upgrade flaglint/);
   });
 });
