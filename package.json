@@ -75,7 +75,7 @@
     "micromatch": "^4.0.8",
     "ora": "^8.1.0",
     "p-limit": "^7.3.0",
-    "zod": "^3.23.8"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/micromatch": "^4.0.10",

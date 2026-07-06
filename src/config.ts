@@ -83,7 +83,7 @@ export async function loadConfig(configPath?: string): Promise<FlagLintConfig> {
       parsed = FlagLintConfigSchema.parse(raw);
     } catch (err) {
       if (err instanceof ZodError) {
-        const detail = err.errors.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ");
+        const detail = err.issues.map((e) => `${e.path.join(".")}: ${e.message}`).join("; ");
         throw new Error(`Error in ${candidate}: ${detail}`);
       }
       throw err;
