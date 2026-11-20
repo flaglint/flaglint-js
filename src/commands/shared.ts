@@ -70,6 +70,6 @@ export async function loadConfigOrExit(configPath?: string): Promise<FlagLintCon
     return await loadConfig(configPath);
   } catch (err) {
     process.stderr.write(chalk.red(String(err instanceof Error ? err.message : err)) + "\n");
-    process.exit(1);
+    process.exit(2);
   }
 }

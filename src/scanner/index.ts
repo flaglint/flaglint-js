@@ -542,6 +542,7 @@ function detectUsages(
           usages.push({
             flagKey,
             isDynamic,
+            isWrapper: true,
             file: filePath,
             line: loc.line,
             column: loc.column,
@@ -567,6 +568,7 @@ function detectUsages(
           usages.push({
             flagKey,
             isDynamic,
+            isWrapper: true,
             file: filePath,
             line: loc.line,
             column: loc.column,

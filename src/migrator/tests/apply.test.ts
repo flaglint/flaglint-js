@@ -926,6 +926,23 @@ describe("applyMigration — arg order and await preservation", () => {
 // ── unsupported usages are never modified ─────────────────────────────────────
 
 describe("applyMigration — unsupported usages unchanged", () => {
+  it("does not request OpenFeature setup when every usage is non-automatable", async () => {
+    const code = [
+      'import LaunchDarkly from "launchdarkly-node-server-sdk";',
+      'const ldClient = LaunchDarkly.init("sdk-key");',
+      "declare const ctx: unknown;",
+      "declare const dynamicKey: string;",
+      "export const value = ldClient.boolVariation(dynamicKey, ctx, false);",
+    ].join("\n");
+
+    const { source, applyResult } = await runApply({ "dynamic.ts": code });
+
+    expect(applyResult.transformed).toBe(0);
+    expect(applyResult.skipped).toBe(0);
+    expect(applyResult.skippedFiles).toEqual([]);
+    expect(source.getContent("dynamic.ts")).toBe(code);
+  });
+
   // Shared fixture: file has proven binding + one safe call + all unsupported variants.
   async function mixedFile() {
     const code = [

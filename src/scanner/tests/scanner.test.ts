@@ -25,6 +25,7 @@ describe("scanner — ld-basic.ts", () => {
     expect(banner).toBeDefined();
     expect(banner!.isDynamic).toBe(false);
     expect(banner!.callType).toBe("variation");
+    expect(banner!.isWrapper).toBeUndefined();
   });
 
   it("reports correct file path", async () => {
@@ -341,6 +342,7 @@ describe("scanner — wrapper functions", () => {
     expect(result.uniqueFlags).toContain("show-banner");
     expect(result.uniqueFlags).toContain("enable-dark-mode");
     expect(result.totalUsages).toBe(3);
+    expect(result.usages.every((usage) => usage.isWrapper === true)).toBe(true);
     const dynamic = result.usages.find((u) => u.isDynamic);
     expect(dynamic).toBeDefined();
   });
@@ -413,6 +415,7 @@ describe("scanner — wrapper functions v2 (import-verified, object-form config)
   it("emits callType 'variation' for all verified wrapper hits", async () => {
     const result = await scan(new LocalFileSource(FIXTURES), importVerifiedConfig());
     expect(result.usages.every((u) => u.callType === "variation")).toBe(true);
+    expect(result.usages.every((u) => u.isWrapper === true)).toBe(true);
   });
 
   it("generates fingerprint identical to a direct LD SDK call", async () => {

@@ -42,6 +42,8 @@ export type CallType =
 export interface FlagUsage {
   flagKey: string;
   isDynamic: boolean;
+  /** Present only when the usage came from configured wrapper detection. */
+  isWrapper?: true;
   // always relative to scan root — never an absolute path
   file: string;
   line: number;

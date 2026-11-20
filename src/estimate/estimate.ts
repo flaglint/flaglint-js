@@ -15,7 +15,7 @@ export const DEFAULT_ASSUMPTIONS: EstimationAssumptions = {
   automationHoursPerCall: 0.25,
   manualReviewHoursPerCall: 1.5,
   validationMultiplier: 0.3,
-  minimumHours: 4,
+  minimumHours: 0,
 };
 
 export interface EstimateBreakdownItem {

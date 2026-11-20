@@ -62,3 +62,35 @@ describe("buildAuditReport — enterprise-checkout-service", () => {
     expect(summary.highRisk + summary.mediumRisk + summary.lowRisk).toBe(summary.totalFlags);
   });
 });
+
+describe("buildAuditReport — wrapper provenance", () => {
+  it("does not label a direct dynamic variation call as wrapper usage", async () => {
+    const config = FlagLintConfigSchema.parse({ include: ["ld-dynamic.ts"], exclude: [] });
+    const fixtures = join(
+      dirname(fileURLToPath(import.meta.url)),
+      "../../scanner/tests/fixtures"
+    );
+    const scanResult = await scan(new LocalFileSource(fixtures), config);
+    const report = buildAuditReport(scanResult, scanResult.migrationInventory ?? []);
+
+    expect(report.summary.wrapperUsages).toBe(0);
+    expect(report.flags.flatMap((flag) => flag.riskReasons)).not.toContain("wrapper usage");
+  });
+
+  it("labels configured wrapper findings as wrapper usage", async () => {
+    const config = FlagLintConfigSchema.parse({
+      include: ["ld-wrapper.ts"],
+      exclude: [],
+      wrappers: ["flagPredicate"],
+    });
+    const fixtures = join(
+      dirname(fileURLToPath(import.meta.url)),
+      "../../scanner/tests/fixtures"
+    );
+    const scanResult = await scan(new LocalFileSource(fixtures), config);
+    const report = buildAuditReport(scanResult, scanResult.migrationInventory ?? []);
+
+    expect(report.summary.wrapperUsages).toBe(scanResult.totalUsages);
+    expect(report.flags.flatMap((flag) => flag.riskReasons)).toContain("wrapper usage");
+  });
+});
