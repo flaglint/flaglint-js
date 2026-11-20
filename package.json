@@ -48,9 +48,11 @@
   "scripts": {
     "prepare": "node scripts/setup-hooks.mjs",
     "build:cli": "tsup",
+    "build:codemod": "codemod jssg bundle codemods/launchdarkly-to-openfeature/scripts/codemod.ts --output codemods/launchdarkly-to-openfeature/scripts/codemod.js --base-dir . --disable-analytics",
     "build": "npm run build:cli",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
+    "typecheck:codemod": "tsc --noEmit -p codemods/launchdarkly-to-openfeature/tsconfig.json",
     "typecheck:agent": "tsc --project tsconfig.agent.json",
     "pretest": "npm run build:cli",
     "test": "vitest",
@@ -59,6 +61,7 @@
     "pretest:coverage": "npm run build:cli",
     "test:coverage": "vitest run --coverage",
     "test:package": "tsx scripts/test-package.ts",
+    "test:codemod": "npm run build:cli && npm run build:codemod && npm run typecheck:codemod && codemod workflow validate -w codemods/launchdarkly-to-openfeature --disable-analytics && codemod jssg test -l typescript codemods/launchdarkly-to-openfeature/scripts/codemod.js codemods/launchdarkly-to-openfeature/tests --sequential --disable-analytics && node --import tsx scripts/test-codemod-package.ts",
     "metrics": "node scripts/metrics/collect.mjs",
     "metrics:report": "node scripts/metrics/weekly-report.mjs",
     "new-branch": "tsx scripts/new-branch.ts",
@@ -78,9 +81,11 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@codemod.com/jssg-types": "1.5.1",
     "@types/micromatch": "^4.0.10",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "^4.1.6",
+    "codemod": "1.18.7",
     "clipboardy": "^4.0.0",
     "tsup": "^8.2.4",
     "tsx": "^4.19.0",

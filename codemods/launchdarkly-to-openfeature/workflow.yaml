@@ -1,0 +1,51 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/codemod/codemod/refs/heads/main/schemas/workflow.json
+
+version: "1"
+
+nodes:
+  - id: apply-transforms
+    name: Apply proven-safe LaunchDarkly transformations
+    type: automatic
+    steps:
+      - name: "Transform JavaScript and JSX"
+        js-ast-grep:
+          js_file: scripts/codemod.js
+          base_path: "."
+          language: "javascript"
+          include:
+            - "**/*.{js,jsx,mjs,cjs}"
+          exclude:
+            - "**/node_modules/**"
+            - "**/dist/**"
+            - "**/build/**"
+            - "**/.next/**"
+            - "**/coverage/**"
+            - "**/*.min.js"
+      - name: "Transform TypeScript"
+        js-ast-grep:
+          js_file: scripts/codemod.js
+          base_path: "."
+          language: "typescript"
+          include:
+            - "**/*.{ts,mts,cts}"
+          exclude:
+            - "**/node_modules/**"
+            - "**/dist/**"
+            - "**/build/**"
+            - "**/.next/**"
+            - "**/coverage/**"
+            - "**/*.d.ts"
+      - name: "Transform TSX"
+        js-ast-grep:
+          js_file: scripts/codemod.js
+          base_path: "."
+          language: "tsx"
+          include:
+            - "**/*.tsx"
+          exclude:
+            - "**/node_modules/**"
+            - "**/dist/**"
+            - "**/build/**"
+            - "**/.next/**"
+            - "**/coverage/**"
+            - "**/*.d.ts"

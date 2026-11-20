@@ -1,0 +1,24 @@
+schema_version: "1.0"
+
+name: "@flaglint/launchdarkly-to-openfeature"
+version: "0.1.0"
+description: "Safely migrate LaunchDarkly server SDK evaluations to OpenFeature"
+author: "FlagLint <maintainers@flaglint.dev>"
+license: "MIT"
+
+
+targets:
+  languages: ["javascript", "typescript", "tsx"]
+
+keywords: ["launchdarkly", "openfeature", "feature-flags", "migration"]
+
+registry:
+  access: "public"
+  visibility: "public"
+
+capabilities: []
+
+workflows:
+  - name: main
+    default: true
+    path: workflow.yaml

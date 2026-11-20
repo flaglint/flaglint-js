@@ -3,7 +3,11 @@ import { promisify } from "node:util";
 import { parse } from "@typescript-eslint/typescript-estree";
 import type { TSESTree } from "@typescript-eslint/types";
 import micromatch from "micromatch";
-import type { FileSource, MigrationAnalysis, MigrationInventoryItem, MigrationValueType } from "../types.js";
+import type { FileSource, MigrationAnalysis, MigrationInventoryItem } from "../types.js";
+import {
+  planMigrationEditsForBinding,
+  type MigrationTextEdit,
+} from "./rewrite-plan.js";
 
 /**
  * Returns true when the module specifier matches the glob pattern.
@@ -299,110 +303,40 @@ export function hasOpenFeatureClientBinding(code: string): boolean {
   return getOpenFeatureClientBindingName(code) != null;
 }
 
-// ── Internal replacement types ────────────────────────────────────────────────
+// ── Migration edit planning ───────────────────────────────────────────────────
 
-type Replacement = {
-  item: MigrationInventoryItem;
-  replacement: string;
-};
-
-type SkippedItem = {
-  item: MigrationInventoryItem;
-  reason: string;
-};
-
-// Detail methods: skip — parity between LD and OpenFeature detail results requires manual review.
-const DETAIL_METHODS = new Set([
-  "variationDetail",
-  "boolVariationDetail",
-  "stringVariationDetail",
-  "numberVariationDetail",
-  "jsonVariationDetail",
-]);
-
-function methodForType(valueType: MigrationValueType): string | null {
-  switch (valueType) {
-    case "boolean": return "getBooleanValue";
-    case "string":  return "getStringValue";
-    case "number":  return "getNumberValue";
-    case "object":  return "getObjectValue";
-    case "unknown": return null;
-  }
+export interface MigrationEditPlan {
+  edits: MigrationTextEdit[];
+  missingOpenFeatureClientBinding: boolean;
 }
 
 /**
- * Decide whether an inventory item can be automatically rewritten.
- * Returns a Replacement on success, a SkippedItem on any guard condition.
- *
- * NEVER modifies: detail methods, dynamic keys, unknown fallbacks, bulk calls.
- * PRESERVES: await (the keyword sits outside the CallExpression range and is
- * left intact by applyReplacements — do not inject it here).
- *
- * @param item  The inventory item to evaluate.
- * @param code  The current file content — used to verify the range still
- *              points at the expected LD call (stale-analysis guard).
+ * Prove the OpenFeature binding, then plan safe edits for one source file.
  */
-function buildReplacement(item: MigrationInventoryItem, code: string, clientBindingName: string): Replacement | SkippedItem {
-  if (DETAIL_METHODS.has(item.launchDarklyMethod)) {
-    return {
-      item,
-      reason:
-        "detail methods skipped: OpenFeature detail APIs exist, but LaunchDarkly/OpenFeature detail result parity requires manual review",
-    };
+export function planMigrationEdits(
+  code: string,
+  items: MigrationInventoryItem[],
+  allowedOpenFeatureClientBindings: Array<{ importName: string; modulePatterns: string[] }> = []
+): MigrationEditPlan {
+  const bindingName = getOpenFeatureClientBindingName(code, allowedOpenFeatureClientBindings);
+  if (!bindingName) {
+    return { edits: [], missingOpenFeatureClientBinding: true };
   }
 
-  if (!item.safelyAutomatable) {
-    const reason =
-      item.manualReviewReason === "dynamic-key"
-        ? "dynamic key requires manual review"
-        : item.manualReviewReason === "unknown-fallback"
-          ? "unknown fallback type requires manual review"
-          : item.manualReviewReason === "bulk-inventory-call"
-            ? "bulk inventory call has no single-flag codemod"
-            : "manual review required";
-    return { item, reason };
-  }
-
-  if (item.rangeStart == null || item.rangeEnd == null || !item.callExpression) {
-    return { item, reason: "missing source range for apply" };
-  }
-
-  // Stale-analysis guard: verify the text at the recorded range still matches
-  // the original LD call expression.  After one successful apply the range
-  // points at OF code (different bytes), so this guard prevents a second
-  // write and guards against misapplication of a stale analysis object.
-  const currentText = code.slice(item.rangeStart, item.rangeEnd);
-  if (currentText !== item.callExpression) {
-    return {
-      item,
-      reason:
-        "range content does not match original call — already transformed or stale analysis; skipping",
-    };
-  }
-
-  if (!item.flagKeyExpression || !item.fallbackExpression || !item.evaluationContextExpression) {
-    return { item, reason: "missing flag key, fallback, or evaluation context evidence" };
-  }
-
-  const method = methodForType(item.valueType);
-  if (!method) return { item, reason: "unsupported or unknown value type" };
-
-  // The `await` keyword (if any) sits outside the CallExpression range.
-  // applyReplacements uses code.slice(0, rangeStart), which preserves the
-  // outer `await ` verbatim.  Never inject `await` inside this replacement.
-  const call =
-    `${clientBindingName}.${method}(${item.flagKeyExpression}, ${item.fallbackExpression}, ${item.evaluationContextExpression})`;
-  return { item, replacement: call };
+  return {
+    edits: planMigrationEditsForBinding(code, items, bindingName),
+    missingOpenFeatureClientBinding: false,
+  };
 }
 
 /**
- * Apply replacements from last to first so earlier char-offsets are not
+ * Apply edits from last to first so earlier character offsets are not
  * invalidated by prior edits.
  */
-function applyReplacements(code: string, replacements: Replacement[]): string {
+function applyTextEdits(code: string, edits: MigrationTextEdit[]): string {
   let next = code;
-  for (const r of [...replacements].sort((a, b) => b.item.rangeStart! - a.item.rangeStart!)) {
-    next = next.slice(0, r.item.rangeStart!) + r.replacement + next.slice(r.item.rangeEnd!);
+  for (const edit of [...edits].sort((a, b) => b.start - a.start)) {
+    next = next.slice(0, edit.start) + edit.replacement + next.slice(edit.end);
   }
   return next;
 }
@@ -482,9 +416,12 @@ export async function applyMigration(
   for (const [file, items] of [...itemsByFile.entries()].sort(([a], [b]) => a.localeCompare(b))) {
     const code = await source.readFile(file);
 
-    // Determine the proven OpenFeature client binding name (if any).
-    const bindingName = getOpenFeatureClientBindingName(code, options.allowedOpenFeatureClientBindings ?? []);
-    if (!bindingName) {
+    const plan = planMigrationEdits(
+      code,
+      items,
+      options.allowedOpenFeatureClientBindings ?? []
+    );
+    if (plan.missingOpenFeatureClientBinding) {
       skippedFiles.push({
         file,
         reason:
@@ -494,23 +431,14 @@ export async function applyMigration(
       continue;
     }
 
-    // Build replacements; unsupported items (detail/dynamic/unknown/bulk) are silently skipped.
-    // Pass `code` so buildReplacement can verify the range still holds the original call.
-    const replacements: Replacement[] = [];
-    for (const item of items) {
-      const result = buildReplacement(item, code, bindingName);
-      if ("reason" in result) continue;
-      replacements.push(result);
-    }
+    if (plan.edits.length === 0) continue;
 
-    if (replacements.length === 0) continue;
-
-    const newCode = applyReplacements(code, replacements);
+    const newCode = applyTextEdits(code, plan.edits);
     if (newCode === code) continue; // already at target state — nothing to write
 
     await source.writeFile(file, newCode);
     transformedFiles.push(file);
-    transformed += replacements.length;
+    transformed += plan.edits.length;
   }
 
   return { transformed, skipped: skippedFiles.length, transformedFiles, skippedFiles };
