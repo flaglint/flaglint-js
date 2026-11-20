@@ -157,6 +157,21 @@ Full instructions: [OpenFeature Provider Setup](https://flaglint.dev/docs/tutori
 
 ---
 
+## Codemod registry
+
+Run the same proven-safe rewrites through the Codemod registry:
+
+```bash
+npx codemod @flaglint/launchdarkly-to-openfeature
+```
+
+The codemod changes only static-key evaluations with a known fallback type and
+a verified OpenFeature client binding. Dynamic keys, detail evaluations, bulk
+calls, and other unproven cases remain unchanged. Use
+`npx flaglint migrate --dry-run` for the complete manual-review inventory.
+
+---
+
 ## Installation
 
 **npm / npx (Node.js required)**
