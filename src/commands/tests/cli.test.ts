@@ -46,6 +46,17 @@ describe("CLI — exit codes", () => {
     expect(r.status).toBe(2);
   });
 
+  it("exits 2 on malformed configuration", () => {
+    const dir = makeTmpDir({
+      "flag.ts": "const value = true;",
+      "invalid.json": '{"include":[}',
+    });
+    const r = cli("scan", dir, "--config", join(dir, "invalid.json"));
+
+    expect(r.status).toBe(2);
+    expect(r.stderr).toContain("Error reading");
+  });
+
   it("exits 0 when stale flags are found (scan is inventory, not enforcement)", () => {
     // FIXTURES contains old-checkout and temp-debug-mode — both stale by keyword.
     // scan should always exit 0; enforcement exit codes belong only in `validate`.

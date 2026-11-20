@@ -68,7 +68,7 @@ function scoreFlag(
   if (usages.some((u) => u.stalenessSignals.length > 0)) {
     highReasons.push("stale signal");
   }
-  if (usages.some((u) => u.callType === "variation" && u.isDynamic)) {
+  if (usages.some((u) => u.isWrapper === true)) {
     if (!highReasons.includes("wrapper usage")) {
       highReasons.push("wrapper usage");
     }
@@ -185,7 +185,7 @@ export function buildAuditReport(
     dynamicKeys: scanResult.usages.filter((u) => u.isDynamic).length,
     detailEvaluations: inventoryItems.filter((i) => i.manualReviewReason === "detail-method").length,
     bulkCalls: inventoryItems.filter((i) => i.manualReviewReason === "bulk-inventory-call").length,
-    wrapperUsages: scanResult.usages.filter((u) => u.callType === "variation").length,
+    wrapperUsages: scanResult.usages.filter((u) => u.isWrapper === true).length,
     staleSignals,
     safelyAutomatable: inventoryItems.filter((i) => i.safelyAutomatable).length,
     manualReview: inventoryItems.filter((i) => !i.safelyAutomatable).length,

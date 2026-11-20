@@ -81,12 +81,13 @@ describe("computeEstimate — core algorithm", () => {
     expect(est.hoursHigh).toBe(43.9);
   });
 
-  it("minimumHours floors both totals when call count is very small", () => {
-    // 1 automatable call: rawLow≈0.3, rawHigh≈0.5 — both below minimumHours=4
+  it("preserves a useful range when call count is very small", () => {
+    // 1 automatable call: rawLow=0.325, rawHigh=0.4875
     const r = makeReadiness({ automatableCalls: 1, manualReviewCalls: 0, grade: "ready", score: 100 });
     const est = computeEstimate(r)!;
-    expect(est.hoursLow).toBe(4);
-    expect(est.hoursHigh).toBe(4);
+    expect(est.hoursLow).toBe(0.3);
+    expect(est.hoursHigh).toBe(0.5);
+    expect(est.hoursHigh).toBeGreaterThan(est.hoursLow);
   });
 
   it("minimumHours only floors — does not cap large estimates", () => {

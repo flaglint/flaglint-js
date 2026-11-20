@@ -480,6 +480,9 @@ export async function applyMigration(
   let transformed = 0;
 
   for (const [file, items] of [...itemsByFile.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    const automatableItems = items.filter((item) => item.safelyAutomatable);
+    if (automatableItems.length === 0) continue;
+
     const code = await source.readFile(file);
 
     // Determine the proven OpenFeature client binding name (if any).
@@ -497,7 +500,7 @@ export async function applyMigration(
     // Build replacements; unsupported items (detail/dynamic/unknown/bulk) are silently skipped.
     // Pass `code` so buildReplacement can verify the range still holds the original call.
     const replacements: Replacement[] = [];
-    for (const item of items) {
+    for (const item of automatableItems) {
       const result = buildReplacement(item, code, bindingName);
       if ("reason" in result) continue;
       replacements.push(result);
